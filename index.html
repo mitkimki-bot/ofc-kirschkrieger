@@ -26,27 +26,30 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 .nav-inner button.active{color:#fff;border-bottom-color:var(--red)}
 .app-main{max-width:960px;margin:0 auto;padding:24px 16px}
 .section{display:none}.section.active{display:block}
-.login-page{min-height:100vh;background:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-.login-logo{width:100px;height:100px;border-radius:50%;border:4px solid rgba(255,255,255,.8);overflow:hidden;margin-bottom:16px;background:var(--blue-dark)}
-.login-logo img{width:100%;height:100%;object-fit:cover}
-.login-club-name{font-family:'Oswald',sans-serif;font-size:28px;font-weight:600;color:#fff;letter-spacing:1px;margin-bottom:4px;text-align:center}
-.login-club-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:28px;text-align:center}
-.login-card{background:#fff;border-radius:var(--radius);width:100%;max-width:380px;overflow:hidden}
-.login-card-header{background:var(--black);padding:16px 24px;border-bottom:3px solid var(--red)}
-.login-card-header h2{font-family:'Oswald',sans-serif;font-size:16px;color:#fff;font-weight:500}
-.login-card-body{padding:24px}
+.full-page{min-height:100vh;background:var(--blue);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.full-page.active{display:flex}
+.full-page-card{background:#fff;border-radius:var(--radius);width:100%;max-width:420px;overflow:hidden}
+.card-head-dark{background:var(--black);padding:16px 24px;border-bottom:3px solid var(--red)}
+.card-head-dark h2{font-family:'Oswald',sans-serif;font-size:16px;color:#fff;font-weight:500}
+.card-body{padding:24px}
+.logo-top{width:90px;height:90px;border-radius:50%;border:4px solid rgba(255,255,255,.8);overflow:hidden;margin-bottom:14px;background:var(--blue-dark)}
+.logo-top img{width:100%;height:100%;object-fit:cover}
+.club-name{font-family:'Oswald',sans-serif;font-size:26px;font-weight:600;color:#fff;letter-spacing:1px;margin-bottom:4px;text-align:center}
+.club-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:24px;text-align:center}
 .form-group{margin-bottom:14px}
 .form-group label{display:block;font-size:13px;color:var(--g700);margin-bottom:5px;font-weight:500}
 .form-group input,.form-group select{width:100%;padding:9px 12px;border:1.5px solid var(--g300);border-radius:var(--radius-sm);font-size:14px;font-family:'Inter',sans-serif;color:var(--g900);background:#fff;transition:border-color .15s}
 .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--blue)}
+.form-hint{font-size:11px;color:var(--g500);margin-top:4px}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--g300);background:transparent;color:var(--g900);font-size:13px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s}
 .btn:hover{background:var(--g100)}
 .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue-dark)}.btn-primary:hover{background:var(--blue-dark)}
 .btn-red{background:var(--red);color:#fff;border-color:var(--red-dark)}.btn-red:hover{background:var(--red-dark)}
 .btn-sm{padding:5px 11px;font-size:12px}
 .btn-danger{border-color:#dc3545;color:#842029}.btn-danger:hover{background:#f8d7da}
-.btn-full{width:100%;justify-content:center;padding:11px}
 .btn-green{background:#198754;color:#fff;border-color:#146c43}.btn-green:hover{background:#146c43}
+.btn-full{width:100%;justify-content:center;padding:11px}
+.btn-link{background:none;border:none;color:var(--blue);cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;padding:0;text-decoration:underline}
 .card{background:#fff;border-radius:var(--radius);border:1px solid var(--g200);padding:18px 20px;margin-bottom:14px}
 .card-red{border-left:4px solid var(--red);border-radius:0 var(--radius) var(--radius) 0}
 .card-blue{border-left:4px solid var(--blue);border-radius:0 var(--radius) var(--radius) 0}
@@ -72,6 +75,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 .prog-bar-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .4s}
 .info-box{background:#dbeafe;border:1px solid #93c5fd;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;font-size:13px;color:#1e3a8a}
 .success-box{background:#d1e7dd;border:1px solid #86efac;border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#0a3622}
+.error-box{background:#f8d7da;border:1px solid #f5c2c7;border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#842029}
 .warn-box{background:#fff3cd;border:1px solid #ffc107;border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#664d03}
 .divider{height:1px;background:var(--g200);margin:14px 0}
 .tab-btns{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
@@ -84,43 +88,88 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 .profile-photo-wrap{position:relative}
 .profile-photo-wrap label{position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #fff;font-size:14px;color:#fff}
 .profile-photo-wrap input[type=file]{display:none}
-.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:600px){.settings-grid{grid-template-columns:1fr}}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--black);color:#fff;padding:11px 22px;border-radius:999px;font-size:13px;font-weight:500;border-left:4px solid var(--red);opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;white-space:nowrap}
 #toast.show{opacity:1}
 .loading{text-align:center;padding:40px;color:var(--g500);font-size:14px}
 .spinner{display:inline-block;width:24px;height:24px;border:3px solid var(--g200);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.phase-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:500}
-.phase-1{background:#dbeafe;color:#1e40af}.phase-2{background:#f8d7da;color:#842029}
-.phase-3{background:#d1e7dd;color:#0a3622}.phase-wait{background:var(--g200);color:var(--g700)}
 .api-status{font-size:11px;text-align:right;margin-bottom:8px}
 .api-status.ok{color:#198754}.api-status.err{color:#dc3545}
-.stufe-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);margin-bottom:8px;margin-top:16px}
-.stufe-label:first-child{margin-top:0}
-hr.stufe-hr{border:none;border-top:1px dashed var(--g300);margin:12px 0}
 @media(max-width:600px){.header-user-name{display:none}}
 </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<div id="login-page" class="login-page">
-  <div class="login-logo"><img src="logo.jpg" alt="OFC Kirschrieger" onerror="this.style.display='none'"></div>
-  <div class="login-club-name">OFC Kirschrieger</div>
-  <div class="login-club-sub">Offizieller Fanclub · Hamburger SV</div>
-  <div class="login-card">
-    <div class="login-card-header"><h2>&#127826; Mitglieder-Login</h2></div>
-    <div class="login-card-body">
+<!-- ═══ LOGIN PAGE ═══ -->
+<div id="page-login" class="full-page active">
+  <div class="logo-top"><img src="logo.jpg" alt="OFC" onerror="this.style.display='none'"></div>
+  <div class="club-name">OFC Kirschrieger</div>
+  <div class="club-sub">Offizieller Fanclub · Hamburger SV</div>
+  <div class="full-page-card">
+    <div class="card-head-dark"><h2>&#127826; Mitglieder-Login</h2></div>
+    <div class="card-body">
       <div class="form-group"><label>Benutzername</label><input type="text" id="login-user" placeholder="z.B. kotte" autocomplete="username"></div>
       <div class="form-group"><label>Passwort</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
-      <div id="login-err" style="display:none;font-size:13px;color:#842029;background:#f8d7da;padding:10px 12px;border-radius:6px;margin-bottom:12px">&#9888; Ungültige Anmeldedaten.</div>
+      <div id="login-err" class="error-box" style="display:none;margin-bottom:12px">&#9888; Ungültige Anmeldedaten.</div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Anmelden</button>
+      <div style="text-align:center;margin-top:14px">
+        <button class="btn-link" onclick="showPage('page-forgot')">Passwort vergessen?</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- APP -->
+<!-- ═══ PASSWORT VERGESSEN PAGE ═══ -->
+<div id="page-forgot" class="full-page">
+  <div class="logo-top"><img src="logo.jpg" alt="OFC" onerror="this.style.display='none'"></div>
+  <div class="club-name">OFC Kirschrieger</div>
+  <div class="club-sub">Passwort zurücksetzen</div>
+  <div class="full-page-card">
+    <div class="card-head-dark"><h2>&#128274; Passwort zurücksetzen</h2></div>
+    <div class="card-body">
+      <div id="forgot-form">
+        <p style="font-size:13px;color:var(--g700);margin-bottom:16px">Gib deine E-Mail-Adresse ein. Du erhältst einen Link zum Zurücksetzen des Passworts (gültig 24 Stunden).</p>
+        <div class="form-group"><label>E-Mail-Adresse</label><input type="email" id="forgot-email" placeholder="deine@email.de"></div>
+        <div id="forgot-err" class="error-box" style="display:none;margin-bottom:12px"></div>
+        <button class="btn btn-primary btn-full" onclick="sendResetMail()">Reset-Link senden</button>
+      </div>
+      <div id="forgot-success" class="success-box" style="display:none">&#10003; Reset-Link wurde gesendet! Bitte prüfe deine E-Mails.</div>
+      <div style="text-align:center;margin-top:14px">
+        <button class="btn-link" onclick="showPage('page-login')">&#8592; Zurück zum Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SETUP / RESET PAGE (via Link) ═══ -->
+<div id="page-setup" class="full-page">
+  <div class="logo-top"><img src="logo.jpg" alt="OFC" onerror="this.style.display='none'"></div>
+  <div class="club-name">OFC Kirschrieger</div>
+  <div id="setup-subtitle" class="club-sub">Konto einrichten</div>
+  <div class="full-page-card">
+    <div class="card-head-dark"><h2 id="setup-title">&#128100; Konto einrichten</h2></div>
+    <div class="card-body">
+      <div id="setup-loading" class="loading"><div class="spinner"></div></div>
+      <div id="setup-form" style="display:none">
+        <p id="setup-welcome" style="font-size:13px;color:var(--g700);margin-bottom:16px"></p>
+        <div id="setup-user-group" class="form-group">
+          <label>Benutzername wählen</label>
+          <input type="text" id="setup-username" placeholder="z.B. kotte123" autocomplete="username">
+          <div class="form-hint">Nur Buchstaben, Zahlen und Unterstriche. Wird zum Einloggen verwendet.</div>
+        </div>
+        <div class="form-group"><label>Neues Passwort</label><input type="password" id="setup-pass" placeholder="Mindestens 6 Zeichen"></div>
+        <div class="form-group"><label>Passwort bestätigen</label><input type="password" id="setup-pass2" placeholder="Wiederholen"></div>
+        <div id="setup-err" class="error-box" style="display:none;margin-bottom:12px"></div>
+        <button class="btn btn-primary btn-full" onclick="submitSetup()">Speichern &amp; Anmelden</button>
+      </div>
+      <div id="setup-success" class="success-box" style="display:none">&#10003; Erfolgreich gespeichert! Du wirst weitergeleitet...</div>
+      <div id="setup-invalid" class="error-box" style="display:none">&#9888; Dieser Link ist ungültig oder abgelaufen. Bitte wende dich an den Admin.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP SHELL ═══ -->
 <div id="app-shell" style="display:none">
   <header class="app-header">
     <div class="header-inner">
@@ -157,13 +206,13 @@ hr.stufe-hr{border:none;border-top:1px dashed var(--g300);margin:12px 0}
         <button class="filter-btn" onclick="setFilter('DFB',this)">DFB-Pokal</button>
       </div>
       <div id="api-status" class="api-status"></div>
-      <div id="games-list"><div class="loading"><div class="spinner"></div><br>Lade HSV-Spielplan...</div></div>
+      <div id="games-list"><div class="loading"><div class="spinner"></div><br>Lade Spielplan...</div></div>
     </div>
 
     <!-- KARTEN -->
     <div id="tab-karten" class="section">
       <div class="section-heading">&#127915; Kartenverwaltung</div>
-      <div id="karten-content"><div class="loading"><div class="spinner"></div><br>Lade...</div></div>
+      <div id="karten-content"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
     <!-- STATISTIK -->
@@ -181,7 +230,7 @@ hr.stufe-hr{border:none;border-top:1px dashed var(--g300);margin:12px 0}
         <div class="profile-header">
           <div class="profile-photo-wrap">
             <div class="avatar avatar-xl" id="profile-avatar-display"></div>
-            <label for="photo-upload" title="Foto ändern">&#9998;</label>
+            <label for="photo-upload">&#9998;</label>
             <input type="file" id="photo-upload" accept="image/*" onchange="handlePhotoUpload(event)">
           </div>
           <div>
@@ -191,10 +240,10 @@ hr.stufe-hr{border:none;border-top:1px dashed var(--g300);margin:12px 0}
           </div>
         </div>
         <div class="divider"></div>
-        <div class="settings-grid">
+        <div class="grid2">
           <div class="form-group"><label>Anzeigename</label><input type="text" id="profil-displayname"></div>
           <div class="form-group"><label>Benutzername</label><input type="text" id="profil-username" disabled style="background:#f8f9fa;color:#6c757d"></div>
-          <div class="form-group"><label>E-Mail-Adresse</label><input type="email" id="profil-email" placeholder="fuer@benachrichtigungen.de"></div>
+          <div class="form-group"><label>E-Mail</label><input type="email" id="profil-email" placeholder="fuer@benachrichtigungen.de"></div>
           <div class="form-group"><label>Neues Passwort</label><input type="password" id="profil-newpass" placeholder="Leer lassen = unverändert"></div>
           <div class="form-group"><label>Passwort bestätigen</label><input type="password" id="profil-newpass2" placeholder="Wiederholen"></div>
         </div>
@@ -211,20 +260,17 @@ hr.stufe-hr{border:none;border-top:1px dashed var(--g300);margin:12px 0}
         <button onclick="adminTab('einstellungen',this)">Einstellungen</button>
         <button onclick="adminTab('zuteilung',this)">Zuteilungen</button>
       </div>
-
-      <!-- MITGLIEDER -->
       <div id="admin-mitglieder">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
           <strong>Mitgliederliste</strong>
           <button class="btn btn-sm btn-primary" onclick="toggleForm('admin-add-member-form')">+ Hinzufügen</button>
         </div>
         <div id="admin-add-member-form" style="display:none;background:var(--g50);border-radius:var(--radius);padding:16px;margin-bottom:16px;border:1px solid var(--g200)">
-          <div class="settings-grid">
+          <p style="font-size:13px;color:var(--g700);margin-bottom:14px">Das neue Mitglied erhält eine Willkommens-Mail mit einem Link zum Einrichten des Kontos (Benutzername &amp; Passwort).</p>
+          <div class="grid2">
             <div class="form-group"><label>Name</label><input type="text" id="new-name" placeholder="Max Mustermann"></div>
             <div class="form-group"><label>Anzeigename</label><input type="text" id="new-display" placeholder="Max"></div>
-            <div class="form-group"><label>Benutzername</label><input type="text" id="new-user" placeholder="maxm"></div>
-            <div class="form-group"><label>Passwort</label><input type="password" id="new-pass"></div>
-            <div class="form-group"><label>E-Mail</label><input type="email" id="new-email" placeholder="max@email.de"></div>
+            <div class="form-group"><label>E-Mail <span style="color:var(--red)">*</span></label><input type="email" id="new-email" placeholder="max@email.de"></div>
             <div class="form-group"><label>Typ</label>
               <select id="new-type">
                 <option value="hsv">HSV-Mitglied (Dauerkarte)</option>
@@ -232,299 +278,352 @@ hr.stufe-hr{border:none;border-top:1px dashed var(--g300);margin:12px 0}
               </select>
             </div>
           </div>
+          <div id="add-member-err" class="error-box" style="display:none;margin-bottom:12px"></div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm btn-primary" onclick="addMember()">Speichern</button>
+            <button class="btn btn-sm btn-primary" onclick="addMember()">&#128231; Einladen</button>
             <button class="btn btn-sm" onclick="toggleForm('admin-add-member-form')">Abbrechen</button>
           </div>
         </div>
         <div id="admin-member-list"><div class="loading"><div class="spinner"></div></div></div>
       </div>
-
-      <!-- SPIELE & FRISTEN -->
       <div id="admin-spiele" style="display:none">
-        <div class="info-box">&#128338; Hier kannst du pro Spiel die Fristen und das Vergabeverfahren festlegen. Mails werden automatisch versendet sobald ein Spiel offiziell angesetzt ist.</div>
+        <div class="info-box">&#128338; Fristen und Vergabeverfahren pro Spiel festlegen. Mails werden automatisch versendet sobald ein Spiel offiziell angesetzt ist.</div>
         <div id="admin-spiele-list"><div class="loading"><div class="spinner"></div></div></div>
       </div>
-
-      <!-- EINSTELLUNGEN -->
       <div id="admin-einstellungen" style="display:none">
         <div class="card">
           <div class="section-heading" style="font-size:15px">&#127758; Globale Standards</div>
-          <div class="settings-grid">
-            <div class="form-group">
-              <label>Frist Pool (Tage vor Spiel) – Stufe 1</label>
-              <input type="number" id="set-frist-pool" min="1" max="30" value="5">
-              <div style="font-size:11px;color:var(--g500);margin-top:4px">Wie viele Tage vor dem Spiel müssen HSV-Mitglieder entschieden haben</div>
-            </div>
-            <div class="form-group">
-              <label>Frist Fan-Bewerbung (Tage nach Pool) – Stufe 2</label>
-              <input type="number" id="set-frist-fan" min="1" max="10" value="3">
-              <div style="font-size:11px;color:var(--g500);margin-top:4px">Wie viele Tage nach Pool-Öffnung können Fan-Mitglieder sich bewerben</div>
-            </div>
-            <div class="form-group">
-              <label>Freigabe Freunde/Familie (Tage vor Spiel) – Stufe 3</label>
-              <input type="number" id="set-frist-stufe3" min="1" max="10" value="1">
-              <div style="font-size:11px;color:var(--g500);margin-top:4px">Ab wann dürfen übrige Karten an Nichtmitglieder weitergegeben werden</div>
-            </div>
-            <div class="form-group">
-              <label>Standard Vergabeverfahren – Stufe 2</label>
+          <div class="grid2">
+            <div class="form-group"><label>Frist Pool – Tage vor Spiel (Stufe 1)</label><input type="number" id="set-frist-pool" min="1" max="30" value="5"><div class="form-hint">HSV-Mitglieder müssen bis X Tage vor dem Spiel entschieden haben</div></div>
+            <div class="form-group"><label>Frist Fan-Bewerbung – Tage nach Pool (Stufe 2)</label><input type="number" id="set-frist-fan" min="1" max="10" value="3"><div class="form-hint">Fan-Mitglieder können sich X Tage lang bewerben</div></div>
+            <div class="form-group"><label>Freigabe Freunde – Tage vor Spiel (Stufe 3)</label><input type="number" id="set-frist-stufe3" min="1" max="10" value="1"><div class="form-hint">Ab X Tage vor Spiel: Weitergabe an Nichtmitglieder erlaubt</div></div>
+            <div class="form-group"><label>Standard Vergabeverfahren (Stufe 2)</label>
               <select id="set-verfahren">
                 <option value="selten">Wer seltener dran war (Fairness)</option>
                 <option value="los">Losverfahren (Zufall)</option>
                 <option value="rotation">Rotation (Reih um)</option>
               </select>
-              <div style="font-size:11px;color:var(--g500);margin-top:4px">Kann pro Spiel überschrieben werden</div>
             </div>
           </div>
           <button class="btn btn-primary" onclick="saveEinstellungen()">Einstellungen speichern</button>
         </div>
       </div>
-
-      <!-- ZUTEILUNGEN -->
       <div id="admin-zuteilung" style="display:none">
         <div id="admin-zut-list"><div class="loading"><div class="spinner"></div></div></div>
       </div>
     </div>
-
   </main>
 </div>
 <div id="toast"></div>
-
-<!-- ENTSCHEIDUNGS-SEITE (für Mail-Link) -->
-<div id="entscheidungs-page" style="display:none;min-height:100vh;background:var(--blue);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#fff;border-radius:var(--radius);max-width:400px;width:100%;overflow:hidden">
-    <div style="background:var(--black);padding:16px 24px;border-bottom:3px solid var(--red)">
-      <h2 style="font-family:'Oswald',sans-serif;font-size:16px;color:#fff;font-weight:500">&#127826; OFC Kirschrieger – Kartenentscheidung</h2>
-    </div>
-    <div style="padding:24px">
-      <div id="entsch-game-info" style="margin-bottom:20px"></div>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-primary btn-full" onclick="submitEntscheidung('behalten')" style="flex:1">&#10003; Karte behalten</button>
-        <button class="btn btn-red btn-full" onclick="submitEntscheidung('abgeben')" style="flex:1">&#8599; Karte abgeben</button>
-      </div>
-      <div id="entsch-result" style="margin-top:14px;display:none"></div>
-    </div>
-  </div>
-</div>
-
 <script>
-// ══ CONFIG ════════════════════════════════════════
-const SUPA_URL   = 'https://hrqlmmptmijbxjpwbpnc.supabase.co';
-const SUPA_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhycWxtbXB0bWlqYnhqcHdicG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDI1ODksImV4cCI6MjA5NTkxODU4OX0.nnUCGbdNaHJiZV74VjVZDMrhT9pHlaqs97lEiBNws4w';
-const RESEND_KEY = 're_5PFHwnc6_3w7wLNoo7r6ttXCDpMGiP4Ht';
-const HSV_ID     = 175;
-const PROXY      = 'https://api.allorigins.win/get?url=';
-const FDAPI_KEY  = 'bb1087c6a1284405938c37f03dfefb43';
-const APP_URL    = window.location.origin + window.location.pathname.replace('index.html','');
-const sb         = supabase.createClient(SUPA_URL, SUPA_KEY);
+const SUPA_URL='https://hrqlmmptmijbxjpwbpnc.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhycWxtbXB0bWlqYnhqcHdicG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDI1ODksImV4cCI6MjA5NTkxODU4OX0.nnUCGbdNaHJiZV74VjVZDMrhT9pHlaqs97lEiBNws4w';
+const RESEND_KEY='re_5PFHwnc6_3w7wLNoo7r6ttXCDpMGiP4Ht';
+const HSV_ID=175;
+const PROXY='https://api.allorigins.win/get?url=';
+const APP_URL=window.location.origin+window.location.pathname.replace(/index\.html$/,'');
+const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
-// ══ STATE ════════════════════════════════════════
-let currentUser = null, allMembers = [], apiGames = [], dbGames = [], gameFilter = 'alle', globalSettings = {};
+let currentUser=null,allMembers=[],apiGames=[],dbGames=[],gameFilter='alle',globalSettings={};
 
-// ══ HELPERS ══════════════════════════════════════
-const initials = n => n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
-function fmtDate(iso){ const d=new Date(iso),dn=['So','Mo','Di','Mi','Do','Fr','Sa']; return `${dn[d.getDay()]}, ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()} · ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')} Uhr`; }
-function compBadge(c){ if(!c) return ''; if(c.includes('Bundesliga')) return `<span class="badge badge-bl">${c}</span>`; if(c.includes('DFB')) return `<span class="badge badge-dfb">${c}</span>`; return `<span class="badge badge-gray">${c}</span>`; }
-function avatarHTML(m,cls=''){ if(m.foto_url) return `<div class="avatar ${cls}" style="background:none"><img src="${m.foto_url}" alt="${m.anzeigename}"></div>`; return `<div class="avatar ${cls}">${initials(m.name)}</div>`; }
-function toast(msg,dur=2800){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),dur); }
-function toggleForm(id){ const f=document.getElementById(id); f.style.display=f.style.display==='none'?'block':'none'; }
-function daysUntil(iso){ return Math.ceil((new Date(iso)-Date.now())/(1000*60*60*24)); }
-function addDays(iso,d){ const dt=new Date(iso); dt.setDate(dt.getDate()-d); return dt.toISOString().slice(0,16); }
+// ── HELPERS ──────────────────────────────────────────
+const initials=n=>n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+function fmtDate(iso){const d=new Date(iso),dn=['So','Mo','Di','Mi','Do','Fr','Sa'];return`${dn[d.getDay()]}, ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()} · ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')} Uhr`;}
+function compBadge(c){if(!c)return'';if(c.includes('Bundesliga'))return`<span class="badge badge-bl">${c}</span>`;if(c.includes('DFB'))return`<span class="badge badge-dfb">${c}</span>`;return`<span class="badge badge-gray">${c}</span>`;}
+function avatarHTML(m,cls=''){if(m.foto_url)return`<div class="avatar ${cls}" style="background:none"><img src="${m.foto_url}" alt="${m.anzeigename}"></div>`;return`<div class="avatar ${cls}">${initials(m.name)}</div>`;}
+function toast(msg,dur=2800){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);}
+function toggleForm(id){const f=document.getElementById(id);f.style.display=f.style.display==='none'?'block':'none';}
+function addDays(iso,d){const dt=new Date(iso);dt.setDate(dt.getDate()-d);return dt.toISOString().slice(0,16);}
+function genToken(){return Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)+Date.now().toString(36);}
 
-// ══ URL-PARAMETER PRÜFEN (Mail-Link) ═════════════
+// ── PAGE ROUTING ─────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.full-page').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  document.getElementById('app-shell').style.display='none';
+  const el=document.getElementById(id);
+  if(el){el.classList.add('active');el.style.display='flex';}
+}
+function showApp(){
+  document.querySelectorAll('.full-page').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  document.getElementById('app-shell').style.display='block';
+}
+
+// ── URL PARAMETER CHECK ──────────────────────────────
 async function checkUrlParams(){
   const p=new URLSearchParams(window.location.search);
-  const action=p.get('action'), mid=p.get('mid'), sid=p.get('sid');
-  if(action==='entscheiden'&&mid&&sid){
-    document.getElementById('login-page').style.display='none';
-    const ep=document.getElementById('entscheidungs-page');
-    ep.style.display='flex';
-    const {data:game}=await sb.from('spiel_einstellungen').select('*').eq('id',sid).single();
-    const {data:member}=await sb.from('mitglieder').select('*').eq('id',mid).single();
-    if(game&&member){
-      document.getElementById('entsch-game-info').innerHTML=`
-        <div style="font-size:16px;font-weight:500;margin-bottom:6px">${game.heimteam} vs. ${game.gastteam}</div>
-        <div style="font-size:13px;color:#6c757d">${fmtDate(game.datum_iso)} &nbsp;${compBadge(game.wettbewerb)}</div>
-        <div style="font-size:13px;margin-top:10px">Hallo <strong>${member.anzeigename||member.name}</strong>, bitte teile uns deine Entscheidung mit:</div>`;
-      window._entsch={mid,sid:game.spiel_api_id,dbSid:sid};
-    } else {
-      document.getElementById('entsch-game-info').innerHTML='<div style="color:#842029">Link ungültig oder abgelaufen.</div>';
+  const action=p.get('action'),token=p.get('token');
+  if((action==='setup'||action==='reset')&&token){
+    showPage('page-setup');
+    document.getElementById('setup-loading').style.display='block';
+    document.getElementById('setup-form').style.display='none';
+    document.getElementById('setup-invalid').style.display='none';
+    // Passwort-Reset: Benutzername-Feld ausblenden
+    if(action==='reset'){
+      document.getElementById('setup-user-group').style.display='none';
+      document.getElementById('setup-title').textContent='&#128274; Neues Passwort setzen';
+      document.getElementById('setup-subtitle').textContent='Passwort zurücksetzen';
     }
+    const {data:tok}=await sb.from('auth_tokens').select('*,mitglied:mitglieder(*)').eq('token',token).eq('typ',action).eq('verwendet',false).single();
+    document.getElementById('setup-loading').style.display='none';
+    if(!tok||new Date(tok.gueltig_bis)<new Date()){
+      document.getElementById('setup-invalid').style.display='block';
+      return;
+    }
+    window._setupToken=tok;
+    const name=tok.mitglied?.anzeigename||tok.mitglied?.name||'';
+    document.getElementById('setup-welcome').textContent=action==='setup'
+      ?`Willkommen ${name}! Bitte wähle deinen Benutzernamen und ein Passwort.`
+      :`Hallo ${name}! Bitte wähle ein neues Passwort.`;
+    document.getElementById('setup-form').style.display='block';
+    return;
   }
-}
-async function submitEntscheidung(dec){
-  const {mid,sid,dbSid}=window._entsch||{};
-  if(!mid||!sid) return;
-  await sb.from('kartenentscheidungen').upsert({spiel_id:sid,spiel_api_id:sid,mitglied_id:mid,entscheidung:dec},{onConflict:'spiel_id,mitglied_id'});
-  const r=document.getElementById('entsch-result');
-  r.style.display='block';
-  r.className='success-box';
-  r.innerHTML=dec==='behalten'?'&#10003; Danke! Du behältst deine Karte.':'&#10003; Danke! Deine Karte geht in den Pool.';
-  document.querySelectorAll('#entscheidungs-page .btn').forEach(b=>b.disabled=true);
+  // Entscheidungs-Link (Karte behalten/abgeben)
+  const dec=p.get('dec'),mid=p.get('mid'),sid=p.get('sid');
+  if(dec&&mid&&sid){
+    await handleMailDecision(dec,mid,sid);
+    return;
+  }
+  showPage('page-login');
 }
 
-// ══ SPIELPLAN API ════════════════════════════════
-function isOfficiallyScheduled(matches){
-  // Offiziell angesetzt = Spiele des gleichen Spieltags haben UNTERSCHIEDLICHE Uhrzeiten
-  if(!matches||matches.length<2) return true;
-  const times=matches.filter(m=>m.matchday===matches[0].matchday).map(m=>new Date(m.utcDate).getHours()*60+new Date(m.utcDate).getMinutes());
-  const unique=new Set(times);
-  return unique.size > 1;
+async function handleMailDecision(dec,mid,sid){
+  await sb.from('kartenentscheidungen').upsert({spiel_id:sid,spiel_api_id:sid,mitglied_id:mid,entscheidung:dec},{onConflict:'spiel_id,mitglied_id'});
+  document.body.innerHTML=`<div style="min-height:100vh;background:#0046AD;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px">
+    <div style="background:#fff;border-radius:12px;padding:32px;max-width:380px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">${dec==='behalten'?'✅':'↗️'}</div>
+      <h2 style="font-family:Oswald,sans-serif;color:#0046AD;margin-bottom:10px">${dec==='behalten'?'Karte behalten':'Karte abgeben'}</h2>
+      <p style="color:#495057;font-size:14px">${dec==='behalten'?'Super! Du behältst deine Dauerkarte für dieses Spiel.':'Danke! Deine Karte geht in den Pool. Fan-Mitglieder können sich jetzt bewerben.'}</p>
+      <a href="${APP_URL}" style="display:inline-block;margin-top:20px;background:#0046AD;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:500">Zur App</a>
+    </div>
+  </div>`;
 }
+
+async function submitSetup(){
+  const tok=window._setupToken;
+  if(!tok) return;
+  const isReset=tok.typ==='reset';
+  const username=isReset?tok.mitglied.benutzername:document.getElementById('setup-username').value.trim();
+  const pass=document.getElementById('setup-pass').value;
+  const pass2=document.getElementById('setup-pass2').value;
+  const errEl=document.getElementById('setup-err');
+  errEl.style.display='none';
+  if(!isReset&&!username){errEl.textContent='Bitte Benutzername eingeben.';errEl.style.display='block';return;}
+  if(!isReset&&!/^[a-zA-Z0-9_]+$/.test(username)){errEl.textContent='Nur Buchstaben, Zahlen und _ erlaubt.';errEl.style.display='block';return;}
+  if(pass.length<6){errEl.textContent='Passwort muss mindestens 6 Zeichen haben.';errEl.style.display='block';return;}
+  if(pass!==pass2){errEl.textContent='Passwörter stimmen nicht überein.';errEl.style.display='block';return;}
+  if(!isReset){
+    const {data:exists}=await sb.from('mitglieder').select('id').eq('benutzername',username).single();
+    if(exists){errEl.textContent='Benutzername bereits vergeben. Bitte einen anderen wählen.';errEl.style.display='block';return;}
+  }
+  const upd={passwort:pass};
+  if(!isReset) upd.benutzername=username;
+  await sb.from('mitglieder').update(upd).eq('id',tok.mitglied_id);
+  await sb.from('auth_tokens').update({verwendet:true}).eq('id',tok.id);
+  document.getElementById('setup-form').style.display='none';
+  document.getElementById('setup-success').style.display='block';
+  setTimeout(()=>{window.location.href=APP_URL;},2000);
+}
+
+// ── AUTH ─────────────────────────────────────────────
+async function doLogin(){
+  const u=document.getElementById('login-user').value.trim(),p=document.getElementById('login-pass').value;
+  if(!u||!p) return;
+  const {data,error}=await sb.from('mitglieder').select('*').eq('benutzername',u).eq('passwort',p).single();
+  if(error||!data){document.getElementById('login-err').style.display='block';return;}
+  document.getElementById('login-err').style.display='none';
+  currentUser=data;
+  showApp();
+  document.getElementById('header-name').textContent=data.anzeigename||data.name;
+  if(data.typ==='admin') document.getElementById('admin-nav-btn').style.display='block';
+  await loadMembers();await fetchHSVGames();renderStats();renderProfile();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const lp=document.getElementById('login-pass');
+  if(lp) lp.addEventListener('keydown',e=>{if(e.key==='Enter') doLogin();});
+});
+function logout(){currentUser=null;allMembers=[];apiGames=[];showPage('page-login');document.getElementById('admin-nav-btn').style.display='none';document.getElementById('login-user').value='';document.getElementById('login-pass').value='';}
+
+// ── PASSWORT VERGESSEN ────────────────────────────────
+async function sendResetMail(){
+  const email=document.getElementById('forgot-email').value.trim();
+  const errEl=document.getElementById('forgot-err');
+  errEl.style.display='none';
+  if(!email){errEl.textContent='Bitte E-Mail eingeben.';errEl.style.display='block';return;}
+  const {data:member}=await sb.from('mitglieder').select('*').eq('email',email).single();
+  // Immer Erfolg zeigen (Sicherheit)
+  document.getElementById('forgot-form').style.display='none';
+  document.getElementById('forgot-success').style.display='block';
+  if(!member) return;
+  const token=genToken();
+  const gueltigBis=new Date(Date.now()+24*3600*1000).toISOString();
+  await sb.from('auth_tokens').insert({mitglied_id:member.id,token,typ:'reset',gueltig_bis:gueltigBis});
+  const link=`${APP_URL}?action=reset&token=${token}`;
+  await sendEmail(member.email,'OFC Kirschrieger – Passwort zurücksetzen',
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1></div>
+      <div style="padding:24px">
+        <p>Hallo <strong>${member.anzeigename||member.name}</strong>,</p>
+        <p style="margin:12px 0">du hast ein neues Passwort angefordert. Klicke auf den Button um ein neues Passwort zu setzen:</p>
+        <a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:8px 0">&#128274; Neues Passwort setzen</a>
+        <p style="font-size:12px;color:#adb5bd;margin-top:16px">Dieser Link ist 24 Stunden gültig. Falls du kein neues Passwort angefordert hast, ignoriere diese Mail.</p>
+      </div>
+      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
+    </div>`
+  );
+}
+
+// ── MAIL SENDEN ──────────────────────────────────────
+async function sendEmail(to,subject,html){
+  try{await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${RESEND_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:'OFC Kirschrieger <onboarding@resend.dev>',to:[to],subject,html})});}catch(e){console.log('Mail-Fehler:',e);}
+}
+
+// ── NAV ──────────────────────────────────────────────
+function showTab(t,btn){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-inner button').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');if(btn)btn.classList.add('active');if(t==='karten')renderKarten();if(t==='stats')renderStats();if(t==='profil')renderProfile();if(t==='admin'){renderAdminMembers();loadEinstellungen();}}
+function adminTab(t,btn){document.querySelectorAll('.tab-btns button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');['admin-mitglieder','admin-spiele','admin-einstellungen','admin-zuteilung'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('admin-'+t).style.display='block';if(t==='mitglieder')renderAdminMembers();if(t==='spiele')renderAdminSpiele();if(t==='einstellungen')loadEinstellungen();if(t==='zuteilung')renderAdminZuteilung();}
+function setFilter(f,btn){gameFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderGames();}
+
+// ── DATA ─────────────────────────────────────────────
+async function loadMembers(){const{data}=await sb.from('mitglieder').select('*').order('name');allMembers=data||[];}
+
+// ── ADMIN MITGLIEDER ──────────────────────────────────
+function renderAdminMembers(){
+  const el=document.getElementById('admin-member-list');
+  el.innerHTML=allMembers.filter(m=>m.typ!=='admin').map(m=>`
+    <div class="member-row">
+      ${avatarHTML(m)}
+      <div class="member-info">
+        <strong>${m.anzeigename||m.name} &nbsp;<span class="badge ${m.hsv_mitglied?'badge-hsv':'badge-fan'}">${m.hsv_mitglied?'HSV':'Fan'}</span>
+        ${!m.benutzername?'&nbsp;<span class="badge badge-orange">Konto nicht eingerichtet</span>':''}</strong>
+        <span>${m.benutzername?'@'+m.benutzername:'–'} &nbsp;·&nbsp; ${m.email||'<span style="color:#dc3545">Keine E-Mail</span>'} &nbsp;·&nbsp; ${m.karten_count} Karten</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="resendInvite('${m.id}')" title="Einladung erneut senden">&#128231;</button>
+        <button class="btn btn-sm" onclick="resetMemberPassword('${m.id}','${m.email||''}')" title="Passwort zurücksetzen">&#128274;</button>
+        <button class="btn btn-sm" onclick="editMemberCards('${m.id}','${m.anzeigename||m.name}',${m.karten_count})">&#9998;</button>
+        <button class="btn btn-sm btn-danger" onclick="removeMember('${m.id}')">&#128465;</button>
+      </div>
+    </div>`).join('');
+}
+
+async function addMember(){
+  const name=document.getElementById('new-name').value.trim();
+  const disp=document.getElementById('new-display').value.trim();
+  const email=document.getElementById('new-email').value.trim();
+  const type=document.getElementById('new-type').value;
+  const errEl=document.getElementById('add-member-err');
+  errEl.style.display='none';
+  if(!name||!email){errEl.textContent='Name und E-Mail sind Pflichtfelder.';errEl.style.display='block';return;}
+  const{error,data:newM}=await sb.from('mitglieder').insert({name,anzeigename:disp||name,email,typ:type,hsv_mitglied:type==='hsv',karten_count:0}).select().single();
+  if(error){errEl.textContent='Fehler: E-Mail bereits vergeben?';errEl.style.display='block';return;}
+  await sendWelcomeMail(newM);
+  toggleForm('admin-add-member-form');
+  ['new-name','new-display','new-email'].forEach(id=>document.getElementById(id).value='');
+  await loadMembers();renderAdminMembers();renderStats();
+  toast('Mitglied eingeladen ✓ – Willkommens-Mail gesendet');
+}
+
+async function sendWelcomeMail(member){
+  const token=genToken();
+  const gueltigBis=new Date(Date.now()+24*3600*1000).toISOString();
+  await sb.from('auth_tokens').insert({mitglied_id:member.id,token,typ:'setup',gueltig_bis:gueltigBis});
+  const link=`${APP_URL}?action=setup&token=${token}`;
+  await sendEmail(member.email,'Willkommen beim OFC Kirschrieger! Konto einrichten',
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1><p style="color:rgba(255,255,255,.7);margin:4px 0 0;font-size:13px">Offizieller Fanclub · Hamburger SV</p></div>
+      <div style="padding:24px">
+        <p style="font-size:16px">Willkommen <strong>${member.anzeigename||member.name}</strong>! &#127826;</p>
+        <p style="margin:12px 0;color:#495057">Du wurdest als ${member.hsv_mitglied?'HSV-Mitglied (Dauerkarte)':'Fan-Mitglied'} zum OFC Kirschrieger Mitgliederportal eingeladen.</p>
+        <p style="margin-bottom:20px;color:#495057">Klicke auf den Button um deinen Benutzernamen und dein Passwort einzurichten:</p>
+        <a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px">&#128100; Konto einrichten</a>
+        <p style="font-size:12px;color:#adb5bd;margin-top:20px">Dieser Link ist 24 Stunden gültig. Danach wende dich an den Admin für einen neuen Link.</p>
+      </div>
+      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger · Offizieller HSV Fanclub</p></div>
+    </div>`
+  );
+}
+
+async function resendInvite(id){
+  const m=allMembers.find(x=>x.id===id);
+  if(!m?.email){toast('Keine E-Mail hinterlegt!');return;}
+  await sendWelcomeMail(m);
+  toast('Einladungs-Mail erneut gesendet ✓');
+}
+
+async function resetMemberPassword(id,email){
+  if(!email){toast('Keine E-Mail hinterlegt!');return;}
+  const m=allMembers.find(x=>x.id===id);
+  if(!m) return;
+  const token=genToken();
+  const gueltigBis=new Date(Date.now()+24*3600*1000).toISOString();
+  await sb.from('auth_tokens').insert({mitglied_id:id,token,typ:'reset',gueltig_bis:gueltigBis});
+  const link=`${APP_URL}?action=reset&token=${token}`;
+  await sendEmail(email,'OFC Kirschrieger – Passwort zurücksetzen',
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1></div>
+      <div style="padding:24px">
+        <p>Hallo <strong>${m.anzeigename||m.name}</strong>,</p>
+        <p style="margin:12px 0">Der Admin hat einen Passwort-Reset für dich ausgelöst:</p>
+        <a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:8px 0">&#128274; Neues Passwort setzen</a>
+        <p style="font-size:12px;color:#adb5bd;margin-top:16px">Dieser Link ist 24 Stunden gültig.</p>
+      </div>
+      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
+    </div>`
+  );
+  toast('Passwort-Reset-Mail gesendet ✓');
+}
+
+async function removeMember(id){if(!confirm('Mitglied wirklich entfernen?'))return;await sb.from('mitglieder').delete().eq('id',id);await loadMembers();renderAdminMembers();renderStats();toast('Mitglied entfernt.');}
+async function editMemberCards(id,name,current){const val=prompt(`Kartenanzahl für ${name} (aktuell: ${current}):`,current);if(val===null)return;const n=parseInt(val);if(isNaN(n)||n<0){toast('Ungültige Zahl.');return;}await sb.from('mitglieder').update({karten_count:n}).eq('id',id);await loadMembers();renderAdminMembers();renderStats();toast('Aktualisiert ✓');}
+
+// ── SPIELPLAN API ─────────────────────────────────────
+function isOfficiallyScheduled(matches){if(!matches||matches.length<2)return true;const times=matches.filter(m=>m.matchday===matches[0]?.matchday).map(m=>new Date(m.utcDate).getHours()*60+new Date(m.utcDate).getMinutes());return new Set(times).size>1;}
 
 async function fetchHSVGames(force=false){
-  const el=document.getElementById('games-list'), st=document.getElementById('api-status');
-  el.innerHTML='<div class="loading"><div class="spinner"></div><br>Lade HSV-Spielplan...</div>';
-  const cached=sessionStorage.getItem('hsv_games'), cachedAt=sessionStorage.getItem('hsv_games_at');
-  if(!force&&cached&&cachedAt&&(Date.now()-parseInt(cachedAt))<3600000){
-    apiGames=JSON.parse(cached); st.className='api-status ok'; st.textContent='&#10003; Spielplan aus Cache';
-    await checkNewAnsetzungen(); renderGames(); return;
-  }
+  const el=document.getElementById('games-list'),st=document.getElementById('api-status');
+  el.innerHTML='<div class="loading"><div class="spinner"></div><br>Lade...</div>';
+  const cached=sessionStorage.getItem('hsv_games'),cachedAt=sessionStorage.getItem('hsv_games_at');
+  if(!force&&cached&&cachedAt&&(Date.now()-parseInt(cachedAt))<3600000){apiGames=JSON.parse(cached);st.className='api-status ok';st.textContent='✓ Spielplan aus Cache';await checkNewAnsetzungen();renderGames();return;}
   try{
     const url=`https://api.football-data.org/v4/teams/${HSV_ID}/matches?limit=40`;
     const res=await fetch(`${PROXY}${encodeURIComponent(url)}`);
-    const wrapper=await res.json(); const data=JSON.parse(wrapper.contents);
+    const data=JSON.parse((await res.json()).contents);
     if(data.matches){
-      // Spieltag-Gruppen prüfen
-      const byMatchday={};
-      data.matches.forEach(m=>{ if(m.matchday){ if(!byMatchday[m.matchday]) byMatchday[m.matchday]=[]; byMatchday[m.matchday].push(m); }});
-      apiGames=data.matches.map(m=>({
-        id:'m_'+m.id, api_id:String(m.id),
-        heimteam:m.homeTeam.name, gastteam:m.awayTeam.name,
-        datum_iso:m.utcDate, wettbewerb:m.competition.name,
-        status:m.status, matchday:m.matchday,
-        score:m.score?.fullTime?`${m.score.fullTime.home??'–'}:${m.score.fullTime.away??'–'}`:null,
-        spielort:m.homeTeam.id===HSV_ID?'Heimspiel':'Auswärtsspiel',
-        offiziell: m.matchday&&byMatchday[m.matchday] ? isOfficiallyScheduled(byMatchday[m.matchday]) : true,
-      })).sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
-      sessionStorage.setItem('hsv_games',JSON.stringify(apiGames));
-      sessionStorage.setItem('hsv_games_at',Date.now().toString());
-      st.className='api-status ok'; st.textContent=`&#10003; ${apiGames.length} Spiele von football-data.org`;
+      const byMd={};data.matches.forEach(m=>{if(m.matchday){if(!byMd[m.matchday])byMd[m.matchday]=[];byMd[m.matchday].push(m);}});
+      apiGames=data.matches.map(m=>({id:'m_'+m.id,api_id:String(m.id),heimteam:m.homeTeam.name,gastteam:m.awayTeam.name,datum_iso:m.utcDate,wettbewerb:m.competition.name,status:m.status,matchday:m.matchday,score:m.score?.fullTime?`${m.score.fullTime.home??'–'}:${m.score.fullTime.away??'–'}`:null,spielort:m.homeTeam.id===HSV_ID?'Heimspiel':'Auswärtsspiel',offiziell:m.matchday&&byMd[m.matchday]?isOfficiallyScheduled(byMd[m.matchday]):true})).sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
+      sessionStorage.setItem('hsv_games',JSON.stringify(apiGames));sessionStorage.setItem('hsv_games_at',Date.now().toString());
+      st.className='api-status ok';st.textContent=`✓ ${apiGames.length} Spiele von football-data.org`;
       await checkNewAnsetzungen();
-    } else throw new Error('keine Daten');
-  } catch(e){
-    st.className='api-status err'; st.textContent='&#9888; API nicht erreichbar – manuelle Spiele';
-    const {data}=await sb.from('spiel_einstellungen').select('*').order('datum_iso');
-    dbGames=data||[]; apiGames=[];
-  }
+    }else throw new Error();
+  }catch(e){st.className='api-status err';st.textContent='⚠ API nicht erreichbar';const{data}=await sb.from('spiel_einstellungen').select('*').order('datum_iso');dbGames=data||[];apiGames=[];}
   renderGames();
 }
 
-// ══ NEUE ANSETZUNGEN PRÜFEN & MAILS SENDEN ═══════
 async function checkNewAnsetzungen(){
-  if(!currentUser) return;
-  const {data:settings}=await sb.from('einstellungen').select('*').eq('id','global').single();
-  globalSettings=settings||{frist_tage_pool:5,frist_tage_fan:3,frist_tage_stufe3:1,vergabe_verfahren:'selten'};
-  const {data:bekannte}=await sb.from('spiel_einstellungen').select('spiel_api_id');
-  const bekannteIds=new Set((bekannte||[]).map(s=>s.spiel_api_id));
-  const neuOffiziell=apiGames.filter(g=>g.offiziell&&!bekannteIds.has(g.api_id)&&g.status!=='FINISHED'&&g.status!=='POSTPONED');
-  for(const g of neuOffiziell){
-    const fristPool=addDays(g.datum_iso,globalSettings.frist_tage_pool||5);
-    const fristFan=new Date(new Date(fristPool).getTime()+(globalSettings.frist_tage_fan||3)*24*3600*1000).toISOString().slice(0,16);
-    const fristStufe3=addDays(g.datum_iso,globalSettings.frist_tage_stufe3||1);
-    const {data:sp}=await sb.from('spiel_einstellungen').insert({
-      spiel_api_id:g.api_id, heimteam:g.heimteam, gastteam:g.gastteam,
-      datum_iso:g.datum_iso, wettbewerb:g.wettbewerb, spielort:g.spielort,
-      frist_pool_bis:fristPool, frist_fan_bis:fristFan, frist_stufe3_ab:fristStufe3,
-      vergabe_verfahren:globalSettings.vergabe_verfahren||'selten',
-      mail_gesendet:false, phase:'stufe1'
-    }).select().single();
-    if(sp) await sendeStufe1Mails(sp);
+  if(!currentUser)return;
+  const{data:s}=await sb.from('einstellungen').select('*').eq('id','global').single();
+  globalSettings=s||{frist_tage_pool:5,frist_tage_fan:3,frist_tage_stufe3:1,vergabe_verfahren:'selten'};
+  const{data:bek}=await sb.from('spiel_einstellungen').select('spiel_api_id');
+  const bekIds=new Set((bek||[]).map(x=>x.spiel_api_id));
+  const neu=apiGames.filter(g=>g.offiziell&&!bekIds.has(g.api_id)&&g.status!=='FINISHED'&&g.status!=='POSTPONED');
+  for(const g of neu){
+    const fp=addDays(g.datum_iso,globalSettings.frist_tage_pool||5);
+    const ff=new Date(new Date(fp).getTime()+(globalSettings.frist_tage_fan||3)*24*3600*1000).toISOString().slice(0,16);
+    const fs=addDays(g.datum_iso,globalSettings.frist_tage_stufe3||1);
+    const{data:sp}=await sb.from('spiel_einstellungen').insert({spiel_api_id:g.api_id,heimteam:g.heimteam,gastteam:g.gastteam,datum_iso:g.datum_iso,wettbewerb:g.wettbewerb,spielort:g.spielort,frist_pool_bis:fp,frist_fan_bis:ff,frist_stufe3_ab:fs,vergabe_verfahren:globalSettings.vergabe_verfahren||'selten',mail_gesendet:false,phase:'stufe1'}).select().single();
+    if(sp)await sendeStufe1Mails(sp);
   }
-  // Fristen prüfen
   await pruefeFristen();
-}
-
-// ══ MAILS SENDEN ═════════════════════════════════
-async function sendEmail(to, subject, html){
-  try{
-    await fetch('https://api.resend.com/emails',{
-      method:'POST',
-      headers:{'Authorization':`Bearer ${RESEND_KEY}`,'Content-Type':'application/json'},
-      body:JSON.stringify({from:'OFC Kirschrieger <onboarding@resend.dev>',to:[to],subject,html})
-    });
-  } catch(e){ console.log('Mail-Fehler:',e); }
-}
-
-async function sendeStufe1Mails(spiel){
-  const hsvMember=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin'&&m.email);
-  for(const m of hsvMember){
-    const {data:already}=await sb.from('mail_log').select('id').eq('spiel_api_id',spiel.spiel_api_id).eq('mitglied_id',m.id).eq('typ','stufe1').single();
-    if(already) continue;
-    const link=`${APP_URL}?action=entscheiden&mid=${m.id}&sid=${spiel.id}`;
-    const fristStr=new Date(spiel.frist_pool_bis).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    await sendEmail(m.email,
-      `&#9917; HSV: ${spiel.heimteam} vs. ${spiel.gastteam} – Karte behalten oder abgeben?`,
-      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-        <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000">
-          <h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1>
-          <p style="color:rgba(255,255,255,.7);margin:4px 0 0;font-size:13px">Offizieller Fanclub · Hamburger SV</p>
-        </div>
-        <div style="padding:24px;background:#fff">
-          <p style="font-size:15px;margin-bottom:16px">Hey <strong>${m.anzeigename||m.name}</strong>,</p>
-          <p style="margin-bottom:12px">das Spiel <strong>${spiel.heimteam} vs. ${spiel.gastteam}</strong> ist offiziell angesetzt:</p>
-          <div style="background:#f1f3f5;border-radius:8px;padding:14px;margin-bottom:20px">
-            <div style="font-size:16px;font-weight:bold;margin-bottom:4px">${spiel.heimteam} vs. ${spiel.gastteam}</div>
-            <div style="color:#495057;font-size:13px">${fmtDate(spiel.datum_iso)}</div>
-            <div style="color:#495057;font-size:13px;margin-top:4px">${spiel.spielort} · ${spiel.wettbewerb}</div>
-          </div>
-          <p style="margin-bottom:20px;color:#495057;font-size:13px">Bitte teile uns <strong>bis ${fristStr}</strong> mit, ob du deine Karte behältst oder in den Pool gibst:</p>
-          <div style="display:flex;gap:10px;margin-bottom:20px">
-            <a href="${link}&dec=behalten" style="flex:1;background:#0046AD;color:#fff;padding:12px;border-radius:8px;text-decoration:none;text-align:center;font-weight:bold;display:block">&#10003; Karte behalten</a>
-            <a href="${link}&dec=abgeben" style="flex:1;background:#CC0000;color:#fff;padding:12px;border-radius:8px;text-decoration:none;text-align:center;font-weight:bold;display:block">&#8599; Karte abgeben</a>
-          </div>
-          <p style="font-size:12px;color:#adb5bd">Oder öffne die App: <a href="${APP_URL}">${APP_URL}</a></p>
-          <p style="font-size:12px;color:#adb5bd;margin-top:4px">&#9888; Kein Klick bis zur Frist = Karte geht automatisch in den Pool.</p>
-        </div>
-        <div style="background:#0d0d0d;padding:14px;text-align:center">
-          <p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger · Offizieller HSV Fanclub</p>
-        </div>
-      </div>`
-    );
-    await sb.from('mail_log').insert({spiel_api_id:spiel.spiel_api_id,mitglied_id:m.id,typ:'stufe1'});
-  }
-  await sb.from('spiel_einstellungen').update({mail_gesendet:true}).eq('id',spiel.id);
-}
-
-async function sendeStufe2Mails(spiel){
-  const fanMember=allMembers.filter(m=>!m.hsv_mitglied&&m.email);
-  const {data:allDec}=await sb.from('kartenentscheidungen').select('*').eq('spiel_api_id',spiel.spiel_api_id);
-  const freie=(allDec||[]).filter(d=>d.entscheidung==='abgeben').length;
-  if(freie===0) return;
-  for(const m of fanMember){
-    const {data:already}=await sb.from('mail_log').select('id').eq('spiel_api_id',spiel.spiel_api_id).eq('mitglied_id',m.id).eq('typ','stufe2').single();
-    if(already) continue;
-    const fristStr=new Date(spiel.frist_fan_bis).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    await sendEmail(m.email,
-      `&#127915; ${freie} Karte(n) verfügbar – HSV: ${spiel.heimteam} vs. ${spiel.gastteam}`,
-      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-        <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000">
-          <h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1>
-        </div>
-        <div style="padding:24px;background:#fff">
-          <p>Hey <strong>${m.anzeigename||m.name}</strong>,</p>
-          <p style="margin:12px 0">Es sind <strong>${freie} Karte(n)</strong> für das Spiel <strong>${spiel.heimteam} vs. ${spiel.gastteam}</strong> (${fmtDate(spiel.datum_iso)}) verfügbar!</p>
-          <p style="margin-bottom:20px;color:#495057;font-size:13px">Bewirb dich <strong>bis ${fristStr}</strong> in der App:</p>
-          <a href="${APP_URL}" style="background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">&#127915; Zur App – Karte anfragen</a>
-        </div>
-        <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
-      </div>`
-    );
-    await sb.from('mail_log').insert({spiel_api_id:spiel.spiel_api_id,mitglied_id:m.id,typ:'stufe2'});
-  }
 }
 
 async function pruefeFristen(){
   const now=new Date();
-  const {data:spiele}=await sb.from('spiel_einstellungen').select('*').in('phase',['stufe1','stufe2']);
+  const{data:spiele}=await sb.from('spiel_einstellungen').select('*').in('phase',['stufe1','stufe2']);
   for(const sp of spiele||[]){
     if(sp.phase==='stufe1'&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<now){
-      // Stufe 1 abgelaufen: kein Klick = abgeben
       const hsvIds=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin').map(m=>m.id);
-      const {data:dec}=await sb.from('kartenentscheidungen').select('mitglied_id').eq('spiel_api_id',sp.spiel_api_id);
+      const{data:dec}=await sb.from('kartenentscheidungen').select('mitglied_id').eq('spiel_api_id',sp.spiel_api_id);
       const entschiedenIds=new Set((dec||[]).map(d=>d.mitglied_id));
-      const nichtEntschieden=hsvIds.filter(id=>!entschiedenIds.has(id));
-      for(const mid of nichtEntschieden){
+      for(const mid of hsvIds.filter(id=>!entschiedenIds.has(id))){
         await sb.from('kartenentscheidungen').upsert({spiel_id:sp.spiel_api_id,spiel_api_id:sp.spiel_api_id,mitglied_id:mid,entscheidung:'abgeben'},{onConflict:'spiel_id,mitglied_id'});
       }
       await sb.from('spiel_einstellungen').update({phase:'stufe2'}).eq('id',sp.id);
@@ -537,354 +636,267 @@ async function pruefeFristen(){
   }
 }
 
-async function fuehreVergabeAus(sp){
-  const {data:reqs}=await sb.from('kartenanfragen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',sp.spiel_api_id).eq('status','offen');
-  if(!reqs||!reqs.length) return;
-  const {data:allAbg}=await sb.from('kartenentscheidungen').select('*').eq('spiel_api_id',sp.spiel_api_id).eq('entscheidung','abgeben');
-  const anzahl=(allAbg||[]).length;
-  const verfahren=sp.vergabe_verfahren||globalSettings.vergabe_verfahren||'selten';
-  let sortiert=[];
-  if(verfahren==='selten') sortiert=[...reqs].sort((a,b)=>{ const ca=a.mitglied?.karten_count||0,cb=b.mitglied?.karten_count||0; return ca===cb?(Math.random()<.5?-1:1):ca-cb; });
-  else if(verfahren==='los') sortiert=[...reqs].sort(()=>Math.random()-.5);
-  else if(verfahren==='rotation'){
-    // Rotation: wer am längsten nicht dran war (karten_count als Proxy, älteste Anfrage zuerst)
-    sortiert=[...reqs].sort((a,b)=>new Date(a.erstellt_am)-new Date(b.erstellt_am));
+async function sendeStufe1Mails(spiel){
+  const hsvM=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin'&&m.email);
+  const fristStr=new Date(spiel.frist_pool_bis).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  for(const m of hsvM){
+    const{data:already}=await sb.from('mail_log').select('id').eq('spiel_api_id',spiel.spiel_api_id).eq('mitglied_id',m.id).eq('typ','stufe1').single();
+    if(already)continue;
+    const behLink=`${APP_URL}?dec=behalten&mid=${m.id}&sid=${spiel.spiel_api_id}`;
+    const abgLink=`${APP_URL}?dec=abgeben&mid=${m.id}&sid=${spiel.spiel_api_id}`;
+    await sendEmail(m.email,`⚽ HSV: ${spiel.heimteam} vs. ${spiel.gastteam} – Karte behalten oder abgeben?`,
+      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1></div>
+        <div style="padding:24px">
+          <p>Hey <strong>${m.anzeigename||m.name}</strong>,</p>
+          <p style="margin:12px 0">das Spiel <strong>${spiel.heimteam} vs. ${spiel.gastteam}</strong> ist offiziell angesetzt!</p>
+          <div style="background:#f1f3f5;border-radius:8px;padding:14px;margin-bottom:20px">
+            <div style="font-size:16px;font-weight:bold">${spiel.heimteam} vs. ${spiel.gastteam}</div>
+            <div style="color:#495057;font-size:13px;margin-top:4px">${fmtDate(spiel.datum_iso)} · ${spiel.spielort} · ${spiel.wettbewerb}</div>
+          </div>
+          <p style="color:#495057;font-size:13px;margin-bottom:16px">Bitte entscheide <strong>bis ${fristStr}</strong>:</p>
+          <table width="100%"><tr>
+            <td style="padding-right:6px"><a href="${behLink}" style="display:block;background:#0046AD;color:#fff;padding:12px;border-radius:8px;text-decoration:none;text-align:center;font-weight:bold">✓ Karte behalten</a></td>
+            <td style="padding-left:6px"><a href="${abgLink}" style="display:block;background:#CC0000;color:#fff;padding:12px;border-radius:8px;text-decoration:none;text-align:center;font-weight:bold">↗ Karte abgeben</a></td>
+          </tr></table>
+          <p style="font-size:12px;color:#adb5bd;margin-top:16px">⚠ Kein Klick bis zur Frist = Karte geht automatisch in den Pool.</p>
+        </div>
+        <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
+      </div>`
+    );
+    await sb.from('mail_log').insert({spiel_api_id:spiel.spiel_api_id,mitglied_id:m.id,typ:'stufe1'}).catch(()=>{});
   }
-  const gewinner=sortiert.slice(0,anzahl);
-  for(const w of gewinner){
-    const {data:exists}=await sb.from('kartenzuteilungen').select('*').eq('spiel_id',sp.spiel_api_id).eq('mitglied_id',w.mitglied_id).single();
-    if(exists) continue;
+  await sb.from('spiel_einstellungen').update({mail_gesendet:true}).eq('id',spiel.id);
+}
+
+async function sendeStufe2Mails(spiel){
+  const fanM=allMembers.filter(m=>!m.hsv_mitglied&&m.email);
+  const{data:allDec}=await sb.from('kartenentscheidungen').select('*').eq('spiel_api_id',spiel.spiel_api_id);
+  const freie=(allDec||[]).filter(d=>d.entscheidung==='abgeben').length;
+  if(freie===0)return;
+  const fristStr=new Date(spiel.frist_fan_bis).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  for(const m of fanM){
+    const{data:already}=await sb.from('mail_log').select('id').eq('spiel_api_id',spiel.spiel_api_id).eq('mitglied_id',m.id).eq('typ','stufe2').single();
+    if(already)continue;
+    await sendEmail(m.email,`🎟 ${freie} Karte(n) verfügbar – HSV: ${spiel.heimteam} vs. ${spiel.gastteam}`,
+      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1></div>
+        <div style="padding:24px">
+          <p>Hey <strong>${m.anzeigename||m.name}</strong>,</p>
+          <p style="margin:12px 0">Es sind <strong>${freie} Karte(n)</strong> für <strong>${spiel.heimteam} vs. ${spiel.gastteam}</strong> (${fmtDate(spiel.datum_iso)}) verfügbar!</p>
+          <p style="color:#495057;font-size:13px;margin-bottom:20px">Bewirb dich bis <strong>${fristStr}</strong> in der App:</p>
+          <a href="${APP_URL}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">🎟 Zur App – Karte anfragen</a>
+        </div>
+        <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
+      </div>`
+    );
+    await sb.from('mail_log').insert({spiel_api_id:spiel.spiel_api_id,mitglied_id:m.id,typ:'stufe2'}).catch(()=>{});
+  }
+}
+
+async function fuehreVergabeAus(sp){
+  const{data:reqs}=await sb.from('kartenanfragen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',sp.spiel_api_id).eq('status','offen');
+  if(!reqs||!reqs.length)return;
+  const{data:allAbg}=await sb.from('kartenentscheidungen').select('*').eq('spiel_api_id',sp.spiel_api_id).eq('entscheidung','abgeben');
+  const anzahl=(allAbg||[]).length;
+  const verf=sp.vergabe_verfahren||globalSettings.vergabe_verfahren||'selten';
+  let sortiert=verf==='los'?[...reqs].sort(()=>Math.random()-.5):verf==='rotation'?[...reqs].sort((a,b)=>new Date(a.erstellt_am)-new Date(b.erstellt_am)):[...reqs].sort((a,b)=>{const ca=a.mitglied?.karten_count||0,cb=b.mitglied?.karten_count||0;return ca===cb?(Math.random()<.5?-1:1):ca-cb;});
+  for(const w of sortiert.slice(0,anzahl)){
+    const{data:ex}=await sb.from('kartenzuteilungen').select('*').eq('spiel_id',sp.spiel_api_id).eq('mitglied_id',w.mitglied_id).single();
+    if(ex)continue;
     await sb.from('kartenzuteilungen').insert({spiel_id:sp.spiel_api_id,spiel_api_id:sp.spiel_api_id,mitglied_id:w.mitglied_id});
     await sb.from('kartenanfragen').update({status:'zugeteilt'}).eq('id',w.id);
     await sb.from('mitglieder').update({karten_count:(w.mitglied?.karten_count||0)+1}).eq('id',w.mitglied_id);
-    // Benachrichtigung an Gewinner
-    if(w.mitglied?.email){
-      await sendEmail(w.mitglied.email,`&#127881; Du hast eine Karte – HSV: ${sp.heimteam} vs. ${sp.gastteam}`,
-        `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#fff">
-          <h2 style="color:#0046AD">&#127881; Glückwunsch ${w.mitglied.anzeigename||w.mitglied.name}!</h2>
-          <p>Du hast eine Karte für <strong>${sp.heimteam} vs. ${sp.gastteam}</strong> (${fmtDate(sp.datum_iso)}) erhalten!</p>
-          <p style="margin-top:12px;color:#495057;font-size:13px">Bitte melde dich beim Kartenverantwortlichen des OFC Kirschrieger.</p>
-        </div>`
-      );
-      await sb.from('mail_log').insert({spiel_api_id:sp.spiel_api_id,mitglied_id:w.mitglied_id,typ:'zuteilung'}).catch(()=>{});
-    }
+    if(w.mitglied?.email){await sendEmail(w.mitglied.email,`🎉 Du hast eine Karte – HSV: ${sp.heimteam} vs. ${sp.gastteam}`,`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px"><h2 style="color:#0046AD">🎉 Glückwunsch ${w.mitglied.anzeigename||w.mitglied.name}!</h2><p>Du hast eine Karte für <strong>${sp.heimteam} vs. ${sp.gastteam}</strong> (${fmtDate(sp.datum_iso)}) erhalten!</p><p style="margin-top:12px;color:#495057">Bitte melde dich beim Kartenverantwortlichen des OFC Kirschrieger.</p></div>`);await sb.from('mail_log').insert({spiel_api_id:sp.spiel_api_id,mitglied_id:w.mitglied_id,typ:'zuteilung'}).catch(()=>{});}
   }
   await loadMembers();
 }
 
-// ══ RENDER SPIELPLAN ════════════════════════════
+// ── RENDER SPIELPLAN ─────────────────────────────────
 async function renderGames(){
   const el=document.getElementById('games-list');
   const games=apiGames.length>0?apiGames:dbGames;
   if(!games.length){el.innerHTML='<p style="color:#6c757d;text-align:center;padding:20px">Keine Spiele gefunden.</p>';return;}
   let filtered=games;
-  if(gameFilter==='upcoming') filtered=games.filter(g=>g.status!=='FINISHED'&&g.status!=='POSTPONED');
-  if(gameFilter==='finished') filtered=games.filter(g=>g.status==='FINISHED');
-  if(gameFilter==='BL1')      filtered=games.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
-  if(gameFilter==='DFB')      filtered=games.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
-  const {data:allDec}=await sb.from('kartenentscheidungen').select('*');
-  const {data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
+  if(gameFilter==='upcoming')filtered=games.filter(g=>g.status!=='FINISHED'&&g.status!=='POSTPONED');
+  if(gameFilter==='finished')filtered=games.filter(g=>g.status==='FINISHED');
+  if(gameFilter==='BL1')filtered=games.filter(g=>g.wettbewerb?.includes('Bundesliga'));
+  if(gameFilter==='DFB')filtered=games.filter(g=>g.wettbewerb?.includes('DFB'));
+  const{data:allDec}=await sb.from('kartenentscheidungen').select('*');
+  const{data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
   const myDecMap={}; (myDecs||[]).forEach(d=>myDecMap[d.spiel_api_id||d.spiel_id]=d.entscheidung);
   const hsvIds=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin').map(m=>m.id);
-  const {data:spielSettings}=await sb.from('spiel_einstellungen').select('*');
-  const settingsMap={}; (spielSettings||[]).forEach(s=>settingsMap[s.spiel_api_id]=s);
-  el.innerHTML=filtered.map(g=>{
-    const gid=g.api_id||g.id;
-    const dec=(allDec||[]);
+  const{data:sps}=await sb.from('spiel_einstellungen').select('*');
+  const spMap={}; (sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
+  el.innerHTML=(filtered.length?filtered:[]).map(g=>{
+    const gid=g.api_id||g.id,dec=allDec||[];
     const beh=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten').length;
     const abg=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='abgeben').length;
-    const off=hsvIds.length-beh-abg;
-    const myDec=myDecMap[gid];
-    const isHsv=currentUser&&currentUser.hsv_mitglied&&currentUser.typ!=='admin';
-    const isFan=currentUser&&!currentUser.hsv_mitglied;
-    const isLive=g.status==='IN_PLAY'||g.status==='PAUSED';
-    const isFinished=g.status==='FINISHED';
-    const isNochNichtAngesetzt=g.offiziell===false;
-    const sp=settingsMap[gid];
-    const phase=sp?.phase;
+    const off=hsvIds.length-beh-abg,myDec=myDecMap[gid];
+    const isHsv=currentUser?.hsv_mitglied&&currentUser?.typ!=='admin',isFan=currentUser&&!currentUser.hsv_mitglied;
+    const isLive=g.status==='IN_PLAY'||g.status==='PAUSED',isFinished=g.status==='FINISHED',isNochNicht=g.offiziell===false;
+    const sp=spMap[gid],phase=sp?.phase;
     const fristStr=sp?.frist_pool_bis?`Frist: ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
-    return `<div class="card ${isFinished?'card-gray':isNochNichtAngesetzt?'card-gray':'card-red'}">
+    return`<div class="card ${isFinished||isNochNicht?'card-gray':'card-red'}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:500">${g.heimteam} <span style="color:#6c757d;font-weight:400">vs.</span> ${g.gastteam} ${isLive?'&nbsp;<span class="badge badge-live">&#9679; LIVE</span>':''}</div>
+          <div style="font-size:15px;font-weight:500">${g.heimteam} <span style="color:#6c757d;font-weight:400">vs.</span> ${g.gastteam}${isLive?' &nbsp;<span class="badge badge-live">● LIVE</span>':''}</div>
           <div style="font-size:12px;color:#6c757d;margin-top:4px">${fmtDate(g.datum_iso||g.datum)} &nbsp;·&nbsp; <span style="color:${g.spielort==='Heimspiel'?'#0a3622':'#842029'};font-weight:500">${g.spielort}</span></div>
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
             ${compBadge(g.wettbewerb)}
-            ${isNochNichtAngesetzt?'<span class="badge badge-orange">&#9201; Uhrzeit noch nicht fix</span>':''}
+            ${isNochNicht?'<span class="badge badge-orange">⏱ Uhrzeit noch nicht fix</span>':''}
             ${isFinished&&g.score?`<span class="badge badge-gray">${g.score}</span>`:''}
-            ${!isFinished&&!isNochNichtAngesetzt?`<span class="badge badge-green">${beh} behalten</span><span class="badge badge-red">${abg} abgeben</span><span class="badge badge-gray">${off} offen</span>`:''}
-            ${phase==='stufe2'?'<span class="badge" style="background:#f8d7da;color:#842029">&#127826; Fan-Bewerbung offen</span>':''}
-            ${phase==='stufe3'?'<span class="badge" style="background:#d1e7dd;color:#0a3622">&#128101; Freigabe für Freunde</span>':''}
+            ${!isFinished&&!isNochNicht?`<span class="badge badge-green">${beh} behalten</span><span class="badge badge-red">${abg} abgeben</span><span class="badge badge-gray">${off} offen</span>`:''}
+            ${phase==='stufe2'?'<span class="badge" style="background:#f8d7da;color:#842029">🍒 Fan-Bewerbung offen</span>':''}
+            ${phase==='stufe3'?'<span class="badge" style="background:#d1e7dd;color:#0a3622">👥 Freigabe Freunde</span>':''}
           </div>
-          ${fristStr&&!isFinished?`<div style="font-size:11px;color:var(--g500);margin-top:4px">&#9201; ${fristStr}</div>`:''}
+          ${fristStr&&!isFinished?`<div style="font-size:11px;color:var(--g500);margin-top:4px">⏱ ${fristStr}</div>`:''}
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0">
-          ${!isFinished&&!isNochNichtAngesetzt&&isHsv?`<button class="btn btn-sm ${myDec==='behalten'?'btn-primary':''}" onclick="setTicket('${gid}','behalten')">&#10003; Behalten</button><button class="btn btn-sm ${myDec==='abgeben'?'btn-red':''}" onclick="setTicket('${gid}','abgeben')">&#8599; Abgeben</button>`:''}
-          ${!isFinished&&!isNochNichtAngesetzt&&isFan&&(phase==='stufe2'||abg>0)?`<button class="btn btn-sm btn-primary" onclick="requestCard('${gid}')">Karte anfragen</button>`:''}
+          ${!isFinished&&!isNochNicht&&isHsv?`<button class="btn btn-sm ${myDec==='behalten'?'btn-primary':''}" onclick="setTicket('${gid}','behalten')">✓ Behalten</button><button class="btn btn-sm ${myDec==='abgeben'?'btn-red':''}" onclick="setTicket('${gid}','abgeben')">↗ Abgeben</button>`:''}
+          ${!isFinished&&!isNochNicht&&isFan&&(phase==='stufe2'||abg>0)?`<button class="btn btn-sm btn-primary" onclick="requestCard('${gid}')">Karte anfragen</button>`:''}
         </div>
       </div>
-      ${myDec?`<div class="divider"></div><div style="font-size:12px;color:#6c757d">Deine Entscheidung: <strong style="color:${myDec==='behalten'?'#0a3622':'#842029'}">${myDec==='behalten'?'&#10003; Karte behalten':'&#8599; Karte abgeben'}</strong></div>`:''}
+      ${myDec?`<div class="divider"></div><div style="font-size:12px;color:#6c757d">Deine Entscheidung: <strong style="color:${myDec==='behalten'?'#0a3622':'#842029'}">${myDec==='behalten'?'✓ Karte behalten':'↗ Karte abgeben'}</strong></div>`:''}
     </div>`;
-  }).join('');
-  if(!filtered.length) el.innerHTML='<p style="color:#6c757d;text-align:center;padding:20px">Keine Spiele für diesen Filter.</p>';
+  }).join('')||'<p style="color:#6c757d;text-align:center;padding:20px">Keine Spiele für diesen Filter.</p>';
 }
 
-function setFilter(f,btn){ gameFilter=f; document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderGames(); }
-async function setTicket(gid,dec){
-  await sb.from('kartenentscheidungen').upsert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec},{onConflict:'spiel_id,mitglied_id'});
-  toast(dec==='behalten'?'Karte wird behalten ✓':'Karte abgegeben – geht in den Pool');
-  renderGames();
-}
-async function requestCard(gid){
-  const {data:ex}=await sb.from('kartenanfragen').select('*').eq('spiel_api_id',gid).eq('mitglied_id',currentUser.id).single();
-  if(ex){toast('Du hast bereits eine Anfrage gestellt.');return;}
-  await sb.from('kartenanfragen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,status:'offen'});
-  toast('Kartenanfrage gestellt ✓'); renderGames();
-}
+async function setTicket(gid,dec){await sb.from('kartenentscheidungen').upsert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec},{onConflict:'spiel_id,mitglied_id'});toast(dec==='behalten'?'Karte behalten ✓':'Karte abgegeben – geht in den Pool');renderGames();}
+async function requestCard(gid){const{data:ex}=await sb.from('kartenanfragen').select('*').eq('spiel_api_id',gid).eq('mitglied_id',currentUser.id).single();if(ex){toast('Du hast bereits eine Anfrage gestellt.');return;}await sb.from('kartenanfragen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,status:'offen'});toast('Kartenanfrage gestellt ✓');renderGames();}
 
-// ══ KARTEN ══════════════════════════════════════
+// ── KARTEN, STATS, PROFIL, ADMIN (kompakt) ────────────
 async function renderKarten(){
-  const el=document.getElementById('karten-content');
-  el.innerHTML='<div class="loading"><div class="spinner"></div><br>Lade...</div>';
+  const el=document.getElementById('karten-content');el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
   if(!currentUser){el.innerHTML='';return;}
-  const games=(apiGames.length>0?apiGames:dbGames).filter(g=>g.status!=='FINISHED'&&g.status!=='POSTPONED'&&g.offiziell!==false);
-  const {data:myDecs}=await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id);
-  const decMap={}; (myDecs||[]).forEach(d=>decMap[d.spiel_api_id||d.spiel_id]=d.entscheidung);
-  const {data:zuts}=await sb.from('kartenzuteilungen').select('*,mitglied:mitglieder(*)');
-  const zutMap={}; (zuts||[]).forEach(z=>zutMap[z.spiel_api_id||z.spiel_id]=z);
-  const {data:myReqs}=await sb.from('kartenanfragen').select('*').eq('mitglied_id',currentUser.id);
-  const reqMap={}; (myReqs||[]).forEach(r=>reqMap[r.spiel_api_id||r.spiel_id]=r);
-  const {data:spielSettings}=await sb.from('spiel_einstellungen').select('*');
-  const settingsMap={}; (spielSettings||[]).forEach(s=>settingsMap[s.spiel_api_id]=s);
-  const {data:allDecs}=await sb.from('kartenentscheidungen').select('*');
+  const games=(apiGames.length>0?apiGames:dbGames).filter(g=>g.status!=='FINISHED'&&g.offiziell!==false);
+  const{data:myDecs}=await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id);
+  const decMap={};(myDecs||[]).forEach(d=>decMap[d.spiel_api_id||d.spiel_id]=d.entscheidung);
+  const{data:zuts}=await sb.from('kartenzuteilungen').select('*,mitglied:mitglieder(*)');
+  const zutMap={};(zuts||[]).forEach(z=>zutMap[z.spiel_api_id||z.spiel_id]=z);
+  const{data:myReqs}=await sb.from('kartenanfragen').select('*').eq('mitglied_id',currentUser.id);
+  const reqMap={};(myReqs||[]).forEach(r=>reqMap[r.spiel_api_id||r.spiel_id]=r);
+  const{data:sps}=await sb.from('spiel_einstellungen').select('*');
+  const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
+  const{data:allDecs}=await sb.from('kartenentscheidungen').select('*');
   let html='';
   if(currentUser.hsv_mitglied&&currentUser.typ!=='admin'){
-    html+=`<div class="info-box">&#128274; Du hast eine Dauerkarte. Entscheide pro Spiel ob du sie behältst oder abgibst. Du erhältst automatisch eine E-Mail wenn ein Spiel angesetzt wird.</div>`;
-    if(!games.length) html+='<p style="color:#6c757d">Keine kommenden Spiele.</p>';
-    games.forEach(g=>{
-      const gid=g.api_id||g.id; const dec=decMap[gid]; const zut=zutMap[gid]; const am=zut?.mitglied;
-      const sp=settingsMap[gid]; const phase=sp?.phase;
+    html+=`<div class="info-box">🔒 Du hast eine Dauerkarte. Entscheide pro Spiel ob du sie behältst oder abgibst. Du erhältst automatisch eine E-Mail wenn ein Spiel angesetzt wird.</div>`;
+    if(!games.length)html+='<p style="color:#6c757d">Keine kommenden Spiele.</p>';
+    for(const g of games){
+      const gid=g.api_id||g.id,dec=decMap[gid],zut=zutMap[gid],am=zut?.mitglied;
+      const sp=spMap[gid],phase=sp?.phase;
       const reqs=(allDecs||[]).filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='abgeben');
+      const verf=sp?.vergabe_verfahren==='los'?'Losverfahren':sp?.vergabe_verfahren==='rotation'?'Rotation':'Fairness';
       const fristStr=sp?.frist_pool_bis?`bis ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
       html+=`<div class="card ${dec?'card-red':''}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
           <div><div style="font-size:14px;font-weight:500">${g.heimteam} vs. ${g.gastteam}</div>
           <div style="font-size:12px;color:#6c757d;margin-top:3px">${fmtDate(g.datum_iso)} &nbsp;${compBadge(g.wettbewerb)}</div>
-          ${fristStr?`<div style="font-size:11px;color:var(--g500);margin-top:3px">&#9201; Entscheidung ${fristStr}</div>`:''}</div>
+          ${fristStr?`<div style="font-size:11px;color:var(--g500);margin-top:3px">⏱ Entscheidung ${fristStr}</div>`:''}</div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm ${dec==='behalten'?'btn-primary':''}" onclick="setTicket('${gid}','behalten')">&#10003; Behalten</button>
-            <button class="btn btn-sm ${dec==='abgeben'?'btn-red':''}" onclick="setTicket('${gid}','abgeben')">&#8599; Abgeben</button>
+            <button class="btn btn-sm ${dec==='behalten'?'btn-primary':''}" onclick="setTicket('${gid}','behalten')">✓ Behalten</button>
+            <button class="btn btn-sm ${dec==='abgeben'?'btn-red':''}" onclick="setTicket('${gid}','abgeben')">↗ Abgeben</button>
           </div>
         </div>
-        ${dec==='abgeben'?`
-          <div class="divider"></div>
-          <div class="success-box"><strong>Fairness-Zuteilung (${sp?.vergabe_verfahren==='los'?'Losverfahren':sp?.vergabe_verfahren==='rotation'?'Rotation':'Wer seltener dran war'}):</strong><br>
-          ${am?`Zugeteilt an <strong>${am.anzeigename||am.name}</strong>`:(reqs.length>0?`${reqs.length} Fan-Anfrage(n) – Zuteilung läuft nach Frist automatisch`:'Noch keine Fan-Anfragen.')}</div>
-          ${phase==='stufe3'||(!am&&reqs.length===0)?`
-          <div style="margin-top:12px">
-            <div style="font-size:12px;color:#6c757d;margin-bottom:6px">&#128101; Stufe 3: Karte an Freund/Familie weitergeben:</div>
-            <div style="display:flex;gap:8px">
-              <input type="text" id="nm-${gid}" placeholder="Name" style="flex:1;padding:8px 12px;border:1.5px solid #dee2e6;border-radius:6px;font-size:13px;font-family:Inter,sans-serif" ${zut?.nichtmitglied?`value="${zut.nichtmitglied}" disabled`:''}>
-              ${!zut?.nichtmitglied?`<button class="btn btn-sm" onclick="giveNonMember('${gid}')">Vergeben</button>`:''}
-            </div>
-            ${zut?.nichtmitglied?`<div style="font-size:12px;color:#0a3622;margin-top:6px">&#10003; Vergeben an: <strong>${zut.nichtmitglied}</strong></div>`:''}
-          </div>`:''}
+        ${dec==='abgeben'?`<div class="divider"></div>
+          <div class="success-box"><strong>Zuteilung (${verf}):</strong> ${am?`Zugeteilt an <strong>${am.anzeigename||am.name}</strong>`:(reqs.length>0?`${reqs.length} Fan-Anfrage(n) – läuft nach Frist automatisch`:'Noch keine Anfragen.')}</div>
+          ${phase==='stufe3'||(!am&&reqs.length===0)?`<div style="margin-top:12px"><div style="font-size:12px;color:#6c757d;margin-bottom:6px">👥 Stufe 3: Karte an Freund/Familie:</div>
+            <div style="display:flex;gap:8px"><input type="text" id="nm-${gid}" placeholder="Name" style="flex:1;padding:8px 12px;border:1.5px solid #dee2e6;border-radius:6px;font-size:13px;font-family:Inter,sans-serif" ${zut?.nichtmitglied?`value="${zut.nichtmitglied}" disabled`:''}>
+            ${!zut?.nichtmitglied?`<button class="btn btn-sm" onclick="giveNonMember('${gid}')">Vergeben</button>`:''}</div>
+            ${zut?.nichtmitglied?`<div style="font-size:12px;color:#0a3622;margin-top:6px">✓ Vergeben an: <strong>${zut.nichtmitglied}</strong></div>`:''}</div>`:''}
         `:''}
       </div>`;
-    });
-  } else if(!currentUser.hsv_mitglied){
-    html+=`<div class="info-box">&#128202; Als Fan-Mitglied kannst du Karten anfragen wenn HSV-Mitglieder diese abgeben. Du erhältst eine E-Mail wenn Karten verfügbar sind.</div>`;
-    if(!games.length) html+='<p style="color:#6c757d">Keine kommenden Spiele.</p>';
-    games.forEach(g=>{
-      const gid=g.api_id||g.id;
-      const freie=(allDecs||[]).filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='abgeben').length;
-      const myReq=reqMap[gid]; const zut=zutMap[gid]; const assigned=zut?.mitglied_id===currentUser.id;
-      const sp=settingsMap[gid]; const phase=sp?.phase;
+    }
+  }else if(!currentUser.hsv_mitglied){
+    html+=`<div class="info-box">📊 Als Fan-Mitglied kannst du Karten anfragen wenn HSV-Mitglieder abgeben. Du erhältst eine E-Mail wenn Karten verfügbar sind.</div>`;
+    if(!games.length)html+='<p style="color:#6c757d">Keine kommenden Spiele.</p>';
+    for(const g of games){
+      const gid=g.api_id||g.id,freie=(allDecs||[]).filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='abgeben').length;
+      const myReq=reqMap[gid],zut=zutMap[gid],assigned=zut?.mitglied_id===currentUser.id;
+      const sp=spMap[gid],phase=sp?.phase;
       html+=`<div class="card ${assigned?'card-blue':''}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
           <div><div style="font-size:14px;font-weight:500">${g.heimteam} vs. ${g.gastteam}</div>
           <div style="font-size:12px;color:#6c757d;margin-top:3px">${fmtDate(g.datum_iso)}</div>
-          <div style="margin-top:6px">${freie>0?`<span class="badge badge-green">&#127915; ${freie} Karte(s) im Pool</span>`:'<span class="badge badge-gray">Keine Karten frei</span>'}</div></div>
-          <div>${assigned?`<span class="badge badge-green" style="font-size:13px;padding:7px 14px">&#127881; Karte erhalten!</span>`
+          <div style="margin-top:6px">${freie>0?`<span class="badge badge-green">🎟 ${freie} Karte(s) im Pool</span>`:'<span class="badge badge-gray">Keine Karten frei</span>'}</div></div>
+          <div>${assigned?`<span class="badge badge-green" style="font-size:13px;padding:7px 14px">🎉 Karte erhalten!</span>`
             :myReq?`<span class="badge badge-bl">Anfrage gestellt</span>`
-            :phase==='stufe2'&&freie>0?`<button class="btn btn-sm btn-primary" onclick="requestCard('${gid}')">Karte anfragen</button>`
-            :freie>0&&!phase?`<button class="btn btn-sm btn-primary" onclick="requestCard('${gid}')">Karte anfragen</button>`:''}</div>
+            :(phase==='stufe2'||(!phase&&freie>0))&&freie>0?`<button class="btn btn-sm btn-primary" onclick="requestCard('${gid}')">Karte anfragen</button>`:''}</div>
         </div>
         ${assigned?`<div class="divider"></div><div class="success-box">Deine Karte wurde zugeteilt! Bitte melde dich beim Kartenverantwortlichen.</div>`:''}
       </div>`;
-    });
-  } else {
-    html='<div class="info-box">Als Admin siehst du alle Zuteilungen im Admin-Bereich → Zuteilungen.</div>';
-  }
+    }
+  }else{html='<div class="info-box">Als Admin siehst du alle Zuteilungen im Admin-Bereich.</div>';}
   el.innerHTML=html;
 }
 
-async function giveNonMember(gid){
-  const name=document.getElementById('nm-'+gid)?.value.trim();
-  if(!name){toast('Bitte Namen eingeben.');return;}
-  const {data:reqs}=await sb.from('kartenanfragen').select('*').eq('spiel_api_id',gid).eq('status','offen');
-  if(reqs&&reqs.length>0){toast('Noch offene Fan-Anfragen vorhanden!');return;}
-  await sb.from('kartenzuteilungen').upsert({spiel_id:gid,spiel_api_id:gid,nichtmitglied:name},{onConflict:'spiel_id'});
-  toast('Karte vergeben an '+name+' ✓'); renderKarten();
-}
+async function giveNonMember(gid){const name=document.getElementById('nm-'+gid)?.value.trim();if(!name){toast('Bitte Namen eingeben.');return;}const{data:reqs}=await sb.from('kartenanfragen').select('*').eq('spiel_api_id',gid).eq('status','offen');if(reqs&&reqs.length>0){toast('Noch offene Fan-Anfragen vorhanden!');return;}await sb.from('kartenzuteilungen').upsert({spiel_id:gid,spiel_api_id:gid,nichtmitglied:name},{onConflict:'spiel_id'});toast('Karte vergeben an '+name+' ✓');renderKarten();}
 
-// ══ STATISTIK ════════════════════════════════════
 function renderStats(){
   const mEl=document.getElementById('stats-metrics'),sEl=document.getElementById('stats-members');
   const total=allMembers.length,hsvC=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin').length,fanC=allMembers.filter(m=>!m.hsv_mitglied).length,totalC=allMembers.reduce((s,m)=>s+m.karten_count,0);
   mEl.innerHTML=`<div class="metric-card"><div class="val">${total}</div><div class="lbl">Mitglieder</div></div><div class="metric-card"><div class="val">${hsvC}</div><div class="lbl">HSV-Mitglieder</div></div><div class="metric-card"><div class="val">${fanC}</div><div class="lbl">Fan-Mitglieder</div></div><div class="metric-card"><div class="val">${totalC}</div><div class="lbl">Karten gesamt</div></div>`;
   const maxC=Math.max(...allMembers.map(m=>m.karten_count),1);
-  sEl.innerHTML=allMembers.filter(m=>m.typ!=='admin').sort((a,b)=>b.karten_count-a.karten_count).map(m=>`<div class="member-row">${avatarHTML(m)}<div class="member-info"><strong>${m.anzeigename||m.name} &nbsp;<span class="badge ${m.hsv_mitglied?'badge-hsv':'badge-fan'}">${m.hsv_mitglied?'HSV':'Fan'}</span></strong><span>${m.karten_count} Karte(s) erhalten${m.email?'&nbsp;·&nbsp;&#128231; '+m.email:''}</span><div class="prog-bar"><div class="prog-bar-fill" style="width:${Math.round(m.karten_count/maxC*100)}%"></div></div></div></div>`).join('');
+  sEl.innerHTML=allMembers.filter(m=>m.typ!=='admin').sort((a,b)=>b.karten_count-a.karten_count).map(m=>`<div class="member-row">${avatarHTML(m)}<div class="member-info"><strong>${m.anzeigename||m.name} &nbsp;<span class="badge ${m.hsv_mitglied?'badge-hsv':'badge-fan'}">${m.hsv_mitglied?'HSV':'Fan'}</span>${!m.benutzername?'&nbsp;<span class="badge badge-orange">Konto ausstehend</span>':''}</strong><span>${m.karten_count} Karte(s) erhalten</span><div class="prog-bar"><div class="prog-bar-fill" style="width:${Math.round(m.karten_count/maxC*100)}%"></div></div></div></div>`).join('');
 }
 
-// ══ PROFIL ════════════════════════════════════════
 function renderProfile(){
-  if(!currentUser) return;
+  if(!currentUser)return;
   const av=document.getElementById('profile-avatar-display');
-  if(currentUser.foto_url){av.innerHTML=`<img src="${currentUser.foto_url}" style="width:100%;height:100%;object-fit:cover">`;av.style.background='none';}
-  else{av.innerHTML=initials(currentUser.name);av.style.background='';}
+  if(currentUser.foto_url){av.innerHTML=`<img src="${currentUser.foto_url}" style="width:100%;height:100%;object-fit:cover">`;av.style.background='none';}else{av.innerHTML=initials(currentUser.name);av.style.background='';}
   document.getElementById('profil-name-display').textContent=currentUser.anzeigename||currentUser.name;
   document.getElementById('profil-sub-display').textContent=currentUser.hsv_mitglied?'HSV-Mitglied · Dauerkarte':'Fan-Mitglied';
   document.getElementById('profil-badge').innerHTML=`<span class="badge ${currentUser.hsv_mitglied?'badge-hsv':'badge-fan'}">${currentUser.hsv_mitglied?'HSV-Mitglied':'Fan-Mitglied'}</span>`;
   document.getElementById('profil-displayname').value=currentUser.anzeigename||currentUser.name;
-  document.getElementById('profil-username').value=currentUser.benutzername;
+  document.getElementById('profil-username').value=currentUser.benutzername||'(noch nicht eingerichtet)';
   document.getElementById('profil-email').value=currentUser.email||'';
 }
-async function handlePhotoUpload(evt){
-  const file=evt.target.files[0]; if(!file) return;
-  if(file.size>2*1024*1024){toast('Max. 2 MB');return;}
-  const reader=new FileReader(); reader.onload=async e=>{ const url=e.target.result; await sb.from('mitglieder').update({foto_url:url}).eq('id',currentUser.id); currentUser.foto_url=url; const idx=allMembers.findIndex(m=>m.id===currentUser.id); if(idx!==-1) allMembers[idx].foto_url=url; renderProfile();renderStats();toast('Foto gespeichert ✓'); }; reader.readAsDataURL(file);
-}
+async function handlePhotoUpload(evt){const file=evt.target.files[0];if(!file)return;if(file.size>2*1024*1024){toast('Max. 2 MB');return;}const reader=new FileReader();reader.onload=async e=>{const url=e.target.result;await sb.from('mitglieder').update({foto_url:url}).eq('id',currentUser.id);currentUser.foto_url=url;const idx=allMembers.findIndex(m=>m.id===currentUser.id);if(idx!==-1)allMembers[idx].foto_url=url;renderProfile();renderStats();toast('Foto gespeichert ✓');};reader.readAsDataURL(file);}
 async function saveProfile(){
-  const dn=document.getElementById('profil-displayname').value.trim();
-  const email=document.getElementById('profil-email').value.trim();
-  const np=document.getElementById('profil-newpass').value;
-  const np2=document.getElementById('profil-newpass2').value;
-  if(!dn){toast('Bitte Anzeigename eingeben.');return;}
-  if(np&&np!==np2){toast('Passwörter stimmen nicht überein!');return;}
-  const upd={anzeigename:dn,email:email||null}; if(np) upd.passwort=np;
-  await sb.from('mitglieder').update(upd).eq('id',currentUser.id);
-  Object.assign(currentUser,upd); document.getElementById('header-name').textContent=dn;
-  document.getElementById('profil-newpass').value=''; document.getElementById('profil-newpass2').value='';
+  const dn=document.getElementById('profil-displayname').value.trim(),email=document.getElementById('profil-email').value.trim(),np=document.getElementById('profil-newpass').value,np2=document.getElementById('profil-newpass2').value;
+  if(!dn){toast('Bitte Anzeigename eingeben.');return;}if(np&&np!==np2){toast('Passwörter stimmen nicht überein!');return;}
+  const upd={anzeigename:dn,email:email||null};if(np)upd.passwort=np;
+  await sb.from('mitglieder').update(upd).eq('id',currentUser.id);Object.assign(currentUser,upd);
+  document.getElementById('header-name').textContent=dn;document.getElementById('profil-newpass').value='';document.getElementById('profil-newpass2').value='';
   await loadMembers();renderProfile();renderStats();toast('Profil gespeichert ✓');
 }
 
-// ══ AUTH ══════════════════════════════════════════
-async function doLogin(){
-  const u=document.getElementById('login-user').value.trim(),p=document.getElementById('login-pass').value;
-  if(!u||!p) return;
-  const {data,error}=await sb.from('mitglieder').select('*').eq('benutzername',u).eq('passwort',p).single();
-  if(error||!data){document.getElementById('login-err').style.display='block';return;}
-  document.getElementById('login-err').style.display='none';
-  currentUser=data;
-  document.getElementById('login-page').style.display='none';
-  document.getElementById('app-shell').style.display='block';
-  document.getElementById('header-name').textContent=data.anzeigename||data.name;
-  if(data.typ==='admin') document.getElementById('admin-nav-btn').style.display='block';
-  await loadMembers(); await fetchHSVGames(); renderStats(); renderProfile();
-}
-document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter') doLogin();});
-function logout(){ currentUser=null;allMembers=[];apiGames=[];dbGames=[]; document.getElementById('login-page').style.display='flex'; document.getElementById('app-shell').style.display='none'; document.getElementById('admin-nav-btn').style.display='none'; document.getElementById('login-user').value=''; document.getElementById('login-pass').value=''; document.querySelectorAll('.nav-inner button').forEach((b,i)=>b.classList.toggle('active',i===0)); document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===0)); }
-
-// ══ NAV ════════════════════════════════════════════
-function showTab(t,btn){ document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.nav-inner button').forEach(b=>b.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); if(btn) btn.classList.add('active'); if(t==='karten') renderKarten(); if(t==='stats') renderStats(); if(t==='profil') renderProfile(); if(t==='admin'){renderAdminMembers();loadEinstellungen();} }
-function adminTab(t,btn){ document.querySelectorAll('.tab-btns button').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); ['admin-mitglieder','admin-spiele','admin-einstellungen','admin-zuteilung'].forEach(id=>document.getElementById(id).style.display='none'); document.getElementById('admin-'+t).style.display='block'; if(t==='mitglieder') renderAdminMembers(); if(t==='spiele') renderAdminSpiele(); if(t==='einstellungen') loadEinstellungen(); if(t==='zuteilung') renderAdminZuteilung(); }
-
-// ══ DATA ═══════════════════════════════════════════
-async function loadMembers(){ const {data}=await sb.from('mitglieder').select('*').order('name'); allMembers=data||[]; }
-
-// ══ ADMIN MITGLIEDER ══════════════════════════════
-function renderAdminMembers(){ const el=document.getElementById('admin-member-list'); el.innerHTML=allMembers.filter(m=>m.typ!=='admin').map(m=>`<div class="member-row">${avatarHTML(m)}<div class="member-info"><strong>${m.anzeigename||m.name} &nbsp;<span class="badge ${m.hsv_mitglied?'badge-hsv':'badge-fan'}">${m.hsv_mitglied?'HSV':'Fan'}</span></strong><span>@${m.benutzername} &nbsp;·&nbsp; ${m.karten_count} Karten &nbsp;·&nbsp; ${m.email||'<span style="color:#dc3545">Keine E-Mail!</span>'}</span></div><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="editMemberCards('${m.id}','${m.anzeigename||m.name}',${m.karten_count})">&#9998;</button><button class="btn btn-sm btn-danger" onclick="removeMember('${m.id}')">&#128465;</button></div></div>`).join(''); }
-async function addMember(){ const name=document.getElementById('new-name').value.trim(),disp=document.getElementById('new-display').value.trim(),user=document.getElementById('new-user').value.trim(),pass=document.getElementById('new-pass').value,email=document.getElementById('new-email').value.trim(),type=document.getElementById('new-type').value; if(!name||!user||!pass){toast('Bitte alle Felder ausfüllen.');return;} const {error}=await sb.from('mitglieder').insert({name,anzeigename:disp||name,benutzername:user,passwort:pass,email:email||null,typ:type,hsv_mitglied:type==='hsv',karten_count:0}); if(error){toast('Fehler: Benutzername vergeben?');return;} toggleForm('admin-add-member-form'); ['new-name','new-display','new-user','new-pass','new-email'].forEach(id=>document.getElementById(id).value=''); await loadMembers();renderAdminMembers();renderStats();toast('Mitglied hinzugefügt ✓'); }
-async function removeMember(id){ if(!confirm('Mitglied wirklich entfernen?')) return; await sb.from('mitglieder').delete().eq('id',id); await loadMembers();renderAdminMembers();renderStats();toast('Mitglied entfernt.'); }
-async function editMemberCards(id,name,current){ const val=prompt(`Kartenanzahl für ${name} (aktuell: ${current}):`,current); if(val===null) return; const n=parseInt(val); if(isNaN(n)||n<0){toast('Ungültige Zahl.');return;} await sb.from('mitglieder').update({karten_count:n}).eq('id',id); await loadMembers();renderAdminMembers();renderStats();toast('Aktualisiert ✓'); }
-
-// ══ ADMIN SPIELE & FRISTEN ════════════════════════
 async function renderAdminSpiele(){
   const el=document.getElementById('admin-spiele-list');
-  const {data:spiele}=await sb.from('spiel_einstellungen').select('*').order('datum_iso');
-  if(!spiele||!spiele.length){el.innerHTML='<p style="color:#6c757d">Noch keine angesetzten Spiele in der Datenbank. Spielplan wird beim nächsten Laden automatisch gefüllt.</p>';return;}
+  const{data:spiele}=await sb.from('spiel_einstellungen').select('*').order('datum_iso');
+  if(!spiele||!spiele.length){el.innerHTML='<p style="color:#6c757d">Noch keine angesetzten Spiele. Wird automatisch beim nächsten Spielplan-Laden gefüllt.</p>';return;}
   el.innerHTML=spiele.map(sp=>`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">
-      <div><div style="font-size:14px;font-weight:500">${sp.heimteam} vs. ${sp.gastteam}</div>
-      <div style="font-size:12px;color:#6c757d">${fmtDate(sp.datum_iso)} &nbsp;${compBadge(sp.wettbewerb)}</div></div>
-      <span class="badge ${sp.phase==='stufe1'?'phase-1':sp.phase==='stufe2'?'phase-2':sp.phase==='stufe3'?'phase-3':'phase-wait'}">${sp.phase==='stufe1'?'&#128274; Stufe 1':sp.phase==='stufe2'?'&#127826; Stufe 2':sp.phase==='stufe3'?'&#128101; Stufe 3':'&#9201; Wartend'}</span>
+      <div><div style="font-size:14px;font-weight:500">${sp.heimteam} vs. ${sp.gastteam}</div><div style="font-size:12px;color:#6c757d">${fmtDate(sp.datum_iso)} &nbsp;${compBadge(sp.wettbewerb)}</div></div>
+      <span class="badge ${sp.phase==='stufe1'?'badge-bl':sp.phase==='stufe2'?'badge-red':sp.phase==='stufe3'?'badge-green':'badge-gray'}">${sp.phase||'wartend'}</span>
     </div>
-    <div class="settings-grid">
-      <div class="form-group"><label style="font-size:11px">Frist Stufe 1 (Pool) bis</label><input type="datetime-local" id="sp-frist1-${sp.id}" value="${sp.frist_pool_bis?sp.frist_pool_bis.slice(0,16):''}"></div>
-      <div class="form-group"><label style="font-size:11px">Frist Stufe 2 (Fan-Bewerbung) bis</label><input type="datetime-local" id="sp-frist2-${sp.id}" value="${sp.frist_fan_bis?sp.frist_fan_bis.slice(0,16):''}"></div>
-      <div class="form-group"><label style="font-size:11px">Freigabe Stufe 3 ab</label><input type="datetime-local" id="sp-frist3-${sp.id}" value="${sp.frist_stufe3_ab?sp.frist_stufe3_ab.slice(0,16):''}"></div>
-      <div class="form-group"><label style="font-size:11px">Vergabeverfahren</label>
-        <select id="sp-verf-${sp.id}">
-          <option value="selten" ${sp.vergabe_verfahren==='selten'?'selected':''}>Wer seltener dran war</option>
-          <option value="los" ${sp.vergabe_verfahren==='los'?'selected':''}>Losverfahren</option>
-          <option value="rotation" ${sp.vergabe_verfahren==='rotation'?'selected':''}>Rotation (Reih um)</option>
-        </select>
-      </div>
+    <div class="grid2">
+      <div class="form-group"><label style="font-size:11px">Frist Stufe 1 (Pool) bis</label><input type="datetime-local" id="sp-f1-${sp.id}" value="${sp.frist_pool_bis?sp.frist_pool_bis.slice(0,16):''}"></div>
+      <div class="form-group"><label style="font-size:11px">Frist Stufe 2 (Fan-Bewerbung) bis</label><input type="datetime-local" id="sp-f2-${sp.id}" value="${sp.frist_fan_bis?sp.frist_fan_bis.slice(0,16):''}"></div>
+      <div class="form-group"><label style="font-size:11px">Freigabe Stufe 3 ab</label><input type="datetime-local" id="sp-f3-${sp.id}" value="${sp.frist_stufe3_ab?sp.frist_stufe3_ab.slice(0,16):''}"></div>
+      <div class="form-group"><label style="font-size:11px">Vergabeverfahren</label><select id="sp-v-${sp.id}"><option value="selten" ${sp.vergabe_verfahren==='selten'?'selected':''}>Wer seltener dran war</option><option value="los" ${sp.vergabe_verfahren==='los'?'selected':''}>Losverfahren</option><option value="rotation" ${sp.vergabe_verfahren==='rotation'?'selected':''}>Rotation</option></select></div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-sm btn-primary" onclick="saveSpielEinstellungen('${sp.id}')">Speichern</button>
-      <button class="btn btn-sm btn-green" onclick="sendManualMail('${sp.id}','stufe1')">&#128231; Mail Stufe 1 senden</button>
-      <button class="btn btn-sm" onclick="sendManualMail('${sp.id}','stufe2')">&#128231; Mail Stufe 2 senden</button>
+      <button class="btn btn-sm btn-green" onclick="sendManualMail('${sp.id}','stufe1')">📧 Mail Stufe 1</button>
+      <button class="btn btn-sm" onclick="sendManualMail('${sp.id}','stufe2')">📧 Mail Stufe 2</button>
     </div>
   </div>`).join('');
 }
-
-async function saveSpielEinstellungen(id){
-  const f1=document.getElementById(`sp-frist1-${id}`)?.value;
-  const f2=document.getElementById(`sp-frist2-${id}`)?.value;
-  const f3=document.getElementById(`sp-frist3-${id}`)?.value;
-  const v=document.getElementById(`sp-verf-${id}`)?.value;
-  await sb.from('spiel_einstellungen').update({frist_pool_bis:f1||null,frist_fan_bis:f2||null,frist_stufe3_ab:f3||null,vergabe_verfahren:v}).eq('id',id);
-  toast('Spieleinstellungen gespeichert ✓'); renderAdminSpiele();
-}
-
-async function sendManualMail(id,typ){
-  const {data:sp}=await sb.from('spiel_einstellungen').select('*').eq('id',id).single();
-  if(!sp){toast('Spiel nicht gefunden.');return;}
-  if(typ==='stufe1') await sendeStufe1Mails(sp);
-  if(typ==='stufe2') await sendeStufe2Mails(sp);
-  toast('Mails versendet ✓');
-}
-
-// ══ ADMIN EINSTELLUNGEN ═══════════════════════════
-async function loadEinstellungen(){
-  const {data}=await sb.from('einstellungen').select('*').eq('id','global').single();
-  if(data){ globalSettings=data; document.getElementById('set-frist-pool').value=data.frist_tage_pool||5; document.getElementById('set-frist-fan').value=data.frist_tage_fan||3; document.getElementById('set-frist-stufe3').value=data.frist_tage_stufe3||1; document.getElementById('set-verfahren').value=data.vergabe_verfahren||'selten'; }
-}
-async function saveEinstellungen(){
-  const upd={frist_tage_pool:parseInt(document.getElementById('set-frist-pool').value)||5,frist_tage_fan:parseInt(document.getElementById('set-frist-fan').value)||3,frist_tage_stufe3:parseInt(document.getElementById('set-frist-stufe3').value)||1,vergabe_verfahren:document.getElementById('set-verfahren').value,updated_at:new Date().toISOString()};
-  await sb.from('einstellungen').upsert({id:'global',...upd});
-  globalSettings=upd; toast('Globale Einstellungen gespeichert ✓');
-}
+async function saveSpielEinstellungen(id){await sb.from('spiel_einstellungen').update({frist_pool_bis:document.getElementById(`sp-f1-${id}`)?.value||null,frist_fan_bis:document.getElementById(`sp-f2-${id}`)?.value||null,frist_stufe3_ab:document.getElementById(`sp-f3-${id}`)?.value||null,vergabe_verfahren:document.getElementById(`sp-v-${id}`)?.value}).eq('id',id);toast('Gespeichert ✓');renderAdminSpiele();}
+async function sendManualMail(id,typ){const{data:sp}=await sb.from('spiel_einstellungen').select('*').eq('id',id).single();if(!sp)return;if(typ==='stufe1')await sendeStufe1Mails(sp);if(typ==='stufe2')await sendeStufe2Mails(sp);toast('Mails versendet ✓');}
+async function loadEinstellungen(){const{data}=await sb.from('einstellungen').select('*').eq('id','global').single();if(data){globalSettings=data;document.getElementById('set-frist-pool').value=data.frist_tage_pool||5;document.getElementById('set-frist-fan').value=data.frist_tage_fan||3;document.getElementById('set-frist-stufe3').value=data.frist_tage_stufe3||1;document.getElementById('set-verfahren').value=data.vergabe_verfahren||'selten';}}
+async function saveEinstellungen(){const upd={frist_tage_pool:parseInt(document.getElementById('set-frist-pool').value)||5,frist_tage_fan:parseInt(document.getElementById('set-frist-fan').value)||3,frist_tage_stufe3:parseInt(document.getElementById('set-frist-stufe3').value)||1,vergabe_verfahren:document.getElementById('set-verfahren').value,updated_at:new Date().toISOString()};await sb.from('einstellungen').upsert({id:'global',...upd});globalSettings=upd;toast('Einstellungen gespeichert ✓');}
 async function renderAdminZuteilung(){
   const el=document.getElementById('admin-zut-list');
-  const {data:zuts}=await sb.from('kartenzuteilungen').select('*,mitglied:mitglieder(*)');
-  const zutMap={}; (zuts||[]).forEach(z=>zutMap[z.spiel_api_id||z.spiel_id]=z);
+  const{data:zuts}=await sb.from('kartenzuteilungen').select('*,mitglied:mitglieder(*)');
+  const zutMap={};(zuts||[]).forEach(z=>zutMap[z.spiel_api_id||z.spiel_id]=z);
   const games=(apiGames.length>0?apiGames:dbGames).filter(g=>g.status!=='FINISHED');
-  el.innerHTML=games.map(g=>{
-    const gid=g.api_id||g.id; const z=zutMap[gid]; const am=z?.mitglied;
-    return `<div class="card"><div style="font-size:14px;font-weight:500;margin-bottom:4px">${g.heimteam} vs. ${g.gastteam} &nbsp;${compBadge(g.wettbewerb)}</div>
-    <div style="font-size:12px;color:#6c757d;margin-bottom:10px">${fmtDate(g.datum_iso||g.datum)}</div>
-    ${am?`<div style="font-size:13px;margin-bottom:10px">Aktuell: <strong>${am.anzeigename||am.name}</strong></div>`:z?.nichtmitglied?`<div style="font-size:13px;margin-bottom:10px">Nichtmitglied: <strong>${z.nichtmitglied}</strong></div>`:`<div style="font-size:13px;color:#6c757d;margin-bottom:10px">Noch keine Zuteilung</div>`}
-    <div style="display:flex;gap:8px">
-      <select id="ov-${gid}" style="flex:1;padding:8px;border:1.5px solid #dee2e6;border-radius:6px;font-size:13px;font-family:Inter,sans-serif">
-        <option value="">– Mitglied wählen –</option>
-        ${allMembers.filter(m=>m.typ!=='admin').map(m=>`<option value="${m.id}">${m.anzeigename||m.name} (${m.karten_count} Karten)</option>`).join('')}
-      </select>
-      <button class="btn btn-sm btn-primary" onclick="overrideAssign('${gid}')">Zuweisen</button>
-    </div></div>`;
-  }).join('');
+  el.innerHTML=games.map(g=>{const gid=g.api_id||g.id,z=zutMap[gid],am=z?.mitglied;return`<div class="card"><div style="font-size:14px;font-weight:500;margin-bottom:4px">${g.heimteam} vs. ${g.gastteam} &nbsp;${compBadge(g.wettbewerb)}</div><div style="font-size:12px;color:#6c757d;margin-bottom:10px">${fmtDate(g.datum_iso||g.datum)}</div>${am?`<div style="font-size:13px;margin-bottom:10px">Aktuell: <strong>${am.anzeigename||am.name}</strong></div>`:z?.nichtmitglied?`<div style="font-size:13px;margin-bottom:10px">Nichtmitglied: <strong>${z.nichtmitglied}</strong></div>`:`<div style="font-size:13px;color:#6c757d;margin-bottom:10px">Noch keine Zuteilung</div>`}<div style="display:flex;gap:8px"><select id="ov-${gid}" style="flex:1;padding:8px;border:1.5px solid #dee2e6;border-radius:6px;font-size:13px;font-family:Inter,sans-serif"><option value="">– Mitglied wählen –</option>${allMembers.filter(m=>m.typ!=='admin').map(m=>`<option value="${m.id}">${m.anzeigename||m.name} (${m.karten_count} Karten)</option>`).join('')}</select><button class="btn btn-sm btn-primary" onclick="overrideAssign('${gid}')">Zuweisen</button></div></div>`;}).join('');
 }
-async function overrideAssign(gid){
-  const sel=document.getElementById('ov-'+gid)?.value; if(!sel){toast('Bitte Mitglied wählen.');return;}
-  const {data:old}=await sb.from('kartenzuteilungen').select('*').eq('spiel_api_id',gid).single();
-  if(old?.mitglied_id){const om=allMembers.find(m=>m.id===old.mitglied_id);if(om&&om.karten_count>0) await sb.from('mitglieder').update({karten_count:om.karten_count-1}).eq('id',om.id);}
-  await sb.from('kartenzuteilungen').delete().eq('spiel_api_id',gid);
-  await sb.from('kartenzuteilungen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:sel});
-  const nm=allMembers.find(m=>m.id===sel); if(nm) await sb.from('mitglieder').update({karten_count:nm.karten_count+1}).eq('id',sel);
-  await loadMembers();renderAdminZuteilung();renderStats();toast('Zuteilung gespeichert ✓');
-}
+async function overrideAssign(gid){const sel=document.getElementById('ov-'+gid)?.value;if(!sel){toast('Bitte Mitglied wählen.');return;}const{data:old}=await sb.from('kartenzuteilungen').select('*').eq('spiel_api_id',gid).single();if(old?.mitglied_id){const om=allMembers.find(m=>m.id===old.mitglied_id);if(om&&om.karten_count>0)await sb.from('mitglieder').update({karten_count:om.karten_count-1}).eq('id',om.id);}await sb.from('kartenzuteilungen').delete().eq('spiel_api_id',gid);await sb.from('kartenzuteilungen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:sel});const nm=allMembers.find(m=>m.id===sel);if(nm)await sb.from('mitglieder').update({karten_count:nm.karten_count+1}).eq('id',sel);await loadMembers();renderAdminZuteilung();renderStats();toast('Zuteilung gespeichert ✓');}
+
 checkUrlParams();
 </script>
 </body>
