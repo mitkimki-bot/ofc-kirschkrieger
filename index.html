@@ -318,7 +318,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 <script>
 const SUPA_URL='https://hrqlmmptmijbxjpwbpnc.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhycWxtbXB0bWlqYnhqcHdicG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDI1ODksImV4cCI6MjA5NTkxODU4OX0.nnUCGbdNaHJiZV74VjVZDMrhT9pHlaqs97lEiBNws4w';
-const RESEND_KEY='re_f9uk2NDh_8MnArR12snaRUbxS8YZQfWMX';
+// Kein Resend mehr – Mails laufen über Gmail + Supabase mail_queue
 const HSV_ID=175;
 const PROXY='https://api.allorigins.win/get?url=';
 const APP_URL=window.location.origin+window.location.pathname.replace(/index\.html$/,'');
@@ -474,8 +474,16 @@ async function sendResetMail(){
 
 // ── MAIL SENDEN ──────────────────────────────────────
 async function sendEmail(to,subject,html){
-  subject=`[${to}] ${subject}`;  // Gmail-Script Tag
-  try{await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${RESEND_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:'OFC Kirschrieger <onboarding@resend.dev>',to:[to],subject,html})});}catch(e){console.log('Mail-Fehler:',e);}
+  // Kein Resend – Mail in Supabase-Queue speichern
+  // Google Apps Script sendet sie alle 5 Minuten via Gmail
+  if(!to||!to.includes('@')){console.log('Keine gültige E-Mail:',to);return;}
+  try{
+    await sb.from('mail_queue').insert({an:to,betreff:betreff_mit_tag(to,subject),html:html,status:'offen'});
+    console.log('Mail in Queue gespeichert für:',to);
+  }catch(e){console.log('Queue-Fehler:',e);}
+}
+function betreff_mit_tag(email,betreff){
+  return betreff; // Gmail-Script braucht kein Tag mehr - sendet direkt
 }
 
 // ── NAV ──────────────────────────────────────────────
