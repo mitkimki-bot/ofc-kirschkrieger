@@ -590,30 +590,27 @@ function isOfficiallyScheduled(matches){if(!matches||matches.length<2)return tru
 
 async function fetchHSVGames(force=false){
   const el=document.getElementById('games-list'),st=document.getElementById('api-status');
-  el.innerHTML='<div class="loading"><div class="spinner"></div><br>Lade...</div>';
-  const cached=sessionStorage.getItem('hsv_games'),cachedAt=sessionStorage.getItem('hsv_games_at');
-  if(!force&&cached&&cachedAt&&(Date.now()-parseInt(cachedAt))<3600000){apiGames=JSON.parse(cached);st.className='api-status ok';st.textContent='✓ Spielplan aus Cache';await checkNewAnsetzungen();renderGames();return;}
+  el.innerHTML='<div class="loading"><div class="spinner"></div><br>Lade Spielplan...</div>';
   try{
-    const url=`https://api.football-data.org/v4/teams/${HSV_ID}/matches?limit=40`;
-    // Direkt mit API-Key – kein Proxy nötig
-    const res=await fetch(url,{
-      headers:{
-        'X-Auth-Token': FDAPI_KEY,
-        'X-Unfold-Goals': 'true'
-      },
-      signal:AbortSignal.timeout(10000)
-    });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    if(data.matches){
-      const byMd={};data.matches.forEach(m=>{if(m.matchday){if(!byMd[m.matchday])byMd[m.matchday]=[];byMd[m.matchday].push(m);}});
-      apiGames=data.matches.map(m=>({id:'m_'+m.id,api_id:String(m.id),heimteam:m.homeTeam.name,gastteam:m.awayTeam.name,datum_iso:m.utcDate,wettbewerb:m.competition.name,status:m.status,matchday:m.matchday,score:m.score?.fullTime?`${m.score.fullTime.home??'–'}:${m.score.fullTime.away??'–'}`:null,spielort:m.homeTeam.id===HSV_ID?'Heimspiel':'Auswärtsspiel',offiziell:m.matchday&&byMd[m.matchday]?isOfficiallyScheduled(byMd[m.matchday]):true})).sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
-      sessionStorage.setItem('hsv_games',JSON.stringify(apiGames));sessionStorage.setItem('hsv_games_at',Date.now().toString());
-      st.className='api-status ok';st.textContent=`✓ ${apiGames.length} Spiele von football-data.org`;
-      await checkNewAnsetzungen();
-    }else throw new Error();
-  }catch(e){st.className='api-status err';st.textContent='⚠ API nicht erreichbar';const{data}=await sb.from('spiel_einstellungen').select('*').order('datum_iso');dbGames=data||[];apiGames=[];}
-  renderGames();
+    const{data,error}=await sb.from('hsv_spiele').select('*').order('datum_iso');
+    if(error||!data||!data.length) throw new Error('Leer');
+    apiGames=data.map(s=>({
+      id:'m_'+s.api_id, api_id:s.api_id,
+      heimteam:s.heimteam, gastteam:s.gastteam,
+      datum_iso:s.datum_iso, wettbewerb:s.wettbewerb,
+      status:s.status, score:s.ergebnis,
+      spielort:s.spielort, offiziell:s.offiziell,
+      matchday:s.matchday
+    }));
+    st.className='api-status ok';
+    st.textContent=`✓ ${apiGames.length} HSV-Spiele geladen`;
+    await checkNewAnsetzungen();
+    renderGames();
+  }catch(e){
+    st.className='api-status err';
+    st.textContent='⚠ Noch keine Spieldaten – Google Script einmalig ausführen';
+    el.innerHTML='<div class="warn-box" style="margin-top:10px">Der Spielplan wird vom Google Apps Script alle 6 Stunden automatisch geladen. Bitte einmalig <strong>testAlles()</strong> im Google Script manuell ausführen um sofort Daten zu bekommen.</div>';
+  }
 }
 
 async function checkNewAnsetzungen(){
