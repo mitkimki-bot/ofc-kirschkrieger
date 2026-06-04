@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OFC Kirschrieger – Mitgliederportal</title>
+<title>OFC Kirschkrieger – Mitgliederportal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Inter:wght@400;500&display=swap');
@@ -104,7 +104,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 <!-- ═══ LOGIN PAGE ═══ -->
 <div id="page-login" class="full-page active">
   <div class="logo-top"><img src="logo.jpg" alt="OFC" onerror="this.style.display='none'"></div>
-  <div class="club-name">OFC Kirschrieger</div>
+  <div class="club-name">OFC Kirschkrieger</div>
   <div class="club-sub">Offizieller Fanclub · Hamburger SV</div>
   <div class="full-page-card">
     <div class="card-head-dark"><h2>&#127826; Mitglieder-Login</h2></div>
@@ -123,7 +123,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 <!-- ═══ PASSWORT VERGESSEN PAGE ═══ -->
 <div id="page-forgot" class="full-page">
   <div class="logo-top"><img src="logo.jpg" alt="OFC" onerror="this.style.display='none'"></div>
-  <div class="club-name">OFC Kirschrieger</div>
+  <div class="club-name">OFC Kirschkrieger</div>
   <div class="club-sub">Passwort zurücksetzen</div>
   <div class="full-page-card">
     <div class="card-head-dark"><h2>&#128274; Passwort zurücksetzen</h2></div>
@@ -145,7 +145,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 <!-- ═══ SETUP / RESET PAGE (via Link) ═══ -->
 <div id="page-setup" class="full-page">
   <div class="logo-top"><img src="logo.jpg" alt="OFC" onerror="this.style.display='none'"></div>
-  <div class="club-name">OFC Kirschrieger</div>
+  <div class="club-name">OFC Kirschkrieger</div>
   <div id="setup-subtitle" class="club-sub">Konto einrichten</div>
   <div class="full-page-card">
     <div class="card-head-dark"><h2 id="setup-title">&#128100; Konto einrichten</h2></div>
@@ -174,7 +174,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
   <header class="app-header">
     <div class="header-inner">
       <div class="header-logo"><img src="logo.jpg" alt="Logo" onerror="this.style.display='none'"></div>
-      <div class="header-title"><h1>OFC Kirschrieger</h1><p>Offizieller Fanclub · Hamburger SV &#127826;</p></div>
+      <div class="header-title"><h1>OFC Kirschkrieger</h1><p>Offizieller Fanclub · Hamburger SV &#127826;</p></div>
       <div class="header-user">
         <div class="header-user-name" id="header-name"></div>
         <button class="btn-logout" onclick="logout()">&#8594; Abmelden</button>
@@ -320,7 +320,7 @@ const SUPA_URL='https://hrqlmmptmijbxjpwbpnc.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhycWxtbXB0bWlqYnhqcHdicG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDI1ODksImV4cCI6MjA5NTkxODU4OX0.nnUCGbdNaHJiZV74VjVZDMrhT9pHlaqs97lEiBNws4w';
 // Kein Resend mehr – Mails laufen über Gmail + Supabase mail_queue
 const HSV_ID=175;
-const PROXY='https://api.allorigins.win/get?url=';
+const PROXY='https://corsproxy.io/?';
 const APP_URL=window.location.origin+window.location.pathname.replace(/index\.html$/,'');
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
@@ -458,16 +458,16 @@ async function sendResetMail(){
   const gueltigBis=new Date(Date.now()+24*3600*1000).toISOString();
   await sb.from('auth_tokens').insert({mitglied_id:member.id,token,typ:'reset',gueltig_bis:gueltigBis});
   const link=`${APP_URL}?action=reset&token=${token}`;
-  await sendEmail(member.email,'OFC Kirschrieger – Passwort zurücksetzen',
+  await sendEmail(member.email,'OFC Kirschkrieger – Passwort zurücksetzen',
     `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1></div>
+      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div>
       <div style="padding:24px">
         <p>Hallo <strong>${member.anzeigename||member.name}</strong>,</p>
         <p style="margin:12px 0">du hast ein neues Passwort angefordert. Klicke auf den Button um ein neues Passwort zu setzen:</p>
         <a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:8px 0">&#128274; Neues Passwort setzen</a>
         <p style="font-size:12px;color:#adb5bd;margin-top:16px">Dieser Link ist 24 Stunden gültig. Falls du kein neues Passwort angefordert hast, ignoriere diese Mail.</p>
       </div>
-      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
+      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div>
     </div>`
   );
 }
@@ -536,17 +536,17 @@ async function sendWelcomeMail(member){
   const gueltigBis=new Date(Date.now()+24*3600*1000).toISOString();
   await sb.from('auth_tokens').insert({mitglied_id:member.id,token,typ:'setup',gueltig_bis:gueltigBis});
   const link=`${APP_URL}?action=setup&token=${token}`;
-  await sendEmail(member.email,'Willkommen beim OFC Kirschrieger! Konto einrichten',
+  await sendEmail(member.email,'Willkommen beim OFC Kirschkrieger! Konto einrichten',
     `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1><p style="color:rgba(255,255,255,.7);margin:4px 0 0;font-size:13px">Offizieller Fanclub · Hamburger SV</p></div>
+      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1><p style="color:rgba(255,255,255,.7);margin:4px 0 0;font-size:13px">Offizieller Fanclub · Hamburger SV</p></div>
       <div style="padding:24px">
         <p style="font-size:16px">Willkommen <strong>${member.anzeigename||member.name}</strong>! &#127826;</p>
-        <p style="margin:12px 0;color:#495057">Du wurdest als ${member.hsv_mitglied?'HSV-Mitglied (Dauerkarte)':'Fan-Mitglied'} zum OFC Kirschrieger Mitgliederportal eingeladen.</p>
+        <p style="margin:12px 0;color:#495057">Du wurdest als ${member.hsv_mitglied?'HSV-Mitglied (Dauerkarte)':'Fan-Mitglied'} zum OFC Kirschkrieger Mitgliederportal eingeladen.</p>
         <p style="margin-bottom:20px;color:#495057">Klicke auf den Button um deinen Benutzernamen und dein Passwort einzurichten:</p>
         <a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px">&#128100; Konto einrichten</a>
         <p style="font-size:12px;color:#adb5bd;margin-top:20px">Dieser Link ist 24 Stunden gültig. Danach wende dich an den Admin für einen neuen Link.</p>
       </div>
-      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger · Offizieller HSV Fanclub</p></div>
+      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger · Offizieller HSV Fanclub</p></div>
     </div>`
   );
 }
@@ -566,16 +566,16 @@ async function resetMemberPassword(id,email){
   const gueltigBis=new Date(Date.now()+24*3600*1000).toISOString();
   await sb.from('auth_tokens').insert({mitglied_id:id,token,typ:'reset',gueltig_bis:gueltigBis});
   const link=`${APP_URL}?action=reset&token=${token}`;
-  await sendEmail(email,'OFC Kirschrieger – Passwort zurücksetzen',
+  await sendEmail(email,'OFC Kirschkrieger – Passwort zurücksetzen',
     `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1></div>
+      <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div>
       <div style="padding:24px">
         <p>Hallo <strong>${m.anzeigename||m.name}</strong>,</p>
         <p style="margin:12px 0">Der Admin hat einen Passwort-Reset für dich ausgelöst:</p>
         <a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:8px 0">&#128274; Neues Passwort setzen</a>
         <p style="font-size:12px;color:#adb5bd;margin-top:16px">Dieser Link ist 24 Stunden gültig.</p>
       </div>
-      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
+      <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div>
     </div>`
   );
   toast('Passwort-Reset-Mail gesendet ✓');
@@ -595,7 +595,7 @@ async function fetchHSVGames(force=false){
   try{
     const url=`https://api.football-data.org/v4/teams/${HSV_ID}/matches?limit=40`;
     const res=await fetch(`${PROXY}${encodeURIComponent(url)}`);
-    const data=JSON.parse((await res.json()).contents);
+    const data=await res.json();
     if(data.matches){
       const byMd={};data.matches.forEach(m=>{if(m.matchday){if(!byMd[m.matchday])byMd[m.matchday]=[];byMd[m.matchday].push(m);}});
       apiGames=data.matches.map(m=>({id:'m_'+m.id,api_id:String(m.id),heimteam:m.homeTeam.name,gastteam:m.awayTeam.name,datum_iso:m.utcDate,wettbewerb:m.competition.name,status:m.status,matchday:m.matchday,score:m.score?.fullTime?`${m.score.fullTime.home??'–'}:${m.score.fullTime.away??'–'}`:null,spielort:m.homeTeam.id===HSV_ID?'Heimspiel':'Auswärtsspiel',offiziell:m.matchday&&byMd[m.matchday]?isOfficiallyScheduled(byMd[m.matchday]):true})).sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
@@ -655,7 +655,7 @@ async function sendeStufe1Mails(spiel){
     const abgLink=`${APP_URL}?dec=abgeben&mid=${m.id}&sid=${spiel.spiel_api_id}`;
     await sendEmail(m.email,`⚽ HSV: ${spiel.heimteam} vs. ${spiel.gastteam} – Karte behalten oder abgeben?`,
       `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-        <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1></div>
+        <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div>
         <div style="padding:24px">
           <p>Hey <strong>${m.anzeigename||m.name}</strong>,</p>
           <p style="margin:12px 0">das Spiel <strong>${spiel.heimteam} vs. ${spiel.gastteam}</strong> ist offiziell angesetzt!</p>
@@ -670,7 +670,7 @@ async function sendeStufe1Mails(spiel){
           </tr></table>
           <p style="font-size:12px;color:#adb5bd;margin-top:16px">⚠ Kein Klick bis zur Frist = Karte geht automatisch in den Pool.</p>
         </div>
-        <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
+        <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div>
       </div>`
     );
     await sb.from('mail_log').insert({spiel_api_id:spiel.spiel_api_id,mitglied_id:m.id,typ:'stufe1'}).catch(()=>{});
@@ -689,14 +689,14 @@ async function sendeStufe2Mails(spiel){
     if(already)continue;
     await sendEmail(m.email,`🎟 ${freie} Karte(n) verfügbar – HSV: ${spiel.heimteam} vs. ${spiel.gastteam}`,
       `<div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-        <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschrieger</h1></div>
+        <div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div>
         <div style="padding:24px">
           <p>Hey <strong>${m.anzeigename||m.name}</strong>,</p>
           <p style="margin:12px 0">Es sind <strong>${freie} Karte(n)</strong> für <strong>${spiel.heimteam} vs. ${spiel.gastteam}</strong> (${fmtDate(spiel.datum_iso)}) verfügbar!</p>
           <p style="color:#495057;font-size:13px;margin-bottom:20px">Bewirb dich bis <strong>${fristStr}</strong> in der App:</p>
           <a href="${APP_URL}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">🎟 Zur App – Karte anfragen</a>
         </div>
-        <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschrieger</p></div>
+        <div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div>
       </div>`
     );
     await sb.from('mail_log').insert({spiel_api_id:spiel.spiel_api_id,mitglied_id:m.id,typ:'stufe2'}).catch(()=>{});
@@ -716,7 +716,7 @@ async function fuehreVergabeAus(sp){
     await sb.from('kartenzuteilungen').insert({spiel_id:sp.spiel_api_id,spiel_api_id:sp.spiel_api_id,mitglied_id:w.mitglied_id});
     await sb.from('kartenanfragen').update({status:'zugeteilt'}).eq('id',w.id);
     await sb.from('mitglieder').update({karten_count:(w.mitglied?.karten_count||0)+1}).eq('id',w.mitglied_id);
-    if(w.mitglied?.email){await sendEmail(w.mitglied.email,`🎉 Du hast eine Karte – HSV: ${sp.heimteam} vs. ${sp.gastteam}`,`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px"><h2 style="color:#0046AD">🎉 Glückwunsch ${w.mitglied.anzeigename||w.mitglied.name}!</h2><p>Du hast eine Karte für <strong>${sp.heimteam} vs. ${sp.gastteam}</strong> (${fmtDate(sp.datum_iso)}) erhalten!</p><p style="margin-top:12px;color:#495057">Bitte melde dich beim Kartenverantwortlichen des OFC Kirschrieger.</p></div>`);await sb.from('mail_log').insert({spiel_api_id:sp.spiel_api_id,mitglied_id:w.mitglied_id,typ:'zuteilung'}).catch(()=>{});}
+    if(w.mitglied?.email){await sendEmail(w.mitglied.email,`🎉 Du hast eine Karte – HSV: ${sp.heimteam} vs. ${sp.gastteam}`,`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px"><h2 style="color:#0046AD">🎉 Glückwunsch ${w.mitglied.anzeigename||w.mitglied.name}!</h2><p>Du hast eine Karte für <strong>${sp.heimteam} vs. ${sp.gastteam}</strong> (${fmtDate(sp.datum_iso)}) erhalten!</p><p style="margin-top:12px;color:#495057">Bitte melde dich beim Kartenverantwortlichen des OFC Kirschkrieger.</p></div>`);await sb.from('mail_log').insert({spiel_api_id:sp.spiel_api_id,mitglied_id:w.mitglied_id,typ:'zuteilung'}).catch(()=>{});}
   }
   await loadMembers();
 }
