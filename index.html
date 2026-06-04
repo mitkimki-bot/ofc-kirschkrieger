@@ -318,7 +318,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 <script>
 const SUPA_URL='https://hrqlmmptmijbxjpwbpnc.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhycWxtbXB0bWlqYnhqcHdicG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNDI1ODksImV4cCI6MjA5NTkxODU4OX0.nnUCGbdNaHJiZV74VjVZDMrhT9pHlaqs97lEiBNws4w';
-const RESEND_KEY='re_5PFHwnc6_3w7wLNoo7r6ttXCDpMGiP4Ht';
+const RESEND_KEY='re_f9uk2NDh_8MnArR12snaRUbxS8YZQfWMX';
 const HSV_ID=175;
 const PROXY='https://api.allorigins.win/get?url=';
 const APP_URL=window.location.origin+window.location.pathname.replace(/index\.html$/,'');
@@ -474,6 +474,7 @@ async function sendResetMail(){
 
 // ── MAIL SENDEN ──────────────────────────────────────
 async function sendEmail(to,subject,html){
+  subject=`[${to}] ${subject}`;  // Gmail-Script Tag
   try{await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${RESEND_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:'OFC Kirschrieger <onboarding@resend.dev>',to:[to],subject,html})});}catch(e){console.log('Mail-Fehler:',e);}
 }
 
