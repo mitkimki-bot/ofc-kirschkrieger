@@ -472,16 +472,24 @@ function setFilter(f,btn){gameFilter=f;document.querySelectorAll('.filter-btn').
 // ── AUTH ─────────────────────────────────────────────────
 async function doLogin(){
   const u=document.getElementById('login-user').value.trim(),p=document.getElementById('login-pass').value;
-  if(!u||!p)return;
+  if(!u||!p){toast('Bitte Benutzername und Passwort eingeben.');return;}
   const{data,error}=await sb.from('mitglieder').select('*').eq('benutzername',u).eq('passwort',p).single();
-  if(error||!data){document.getElementById('login-err').style.display='block';return;}
+  if(error||!data){
+    console.log('Login-Fehler:',error);
+    document.getElementById('login-err').style.display='block';
+    return;
+  }
   document.getElementById('login-err').style.display='none';
   currentUser=data;showApp();
   document.getElementById('header-name').textContent=displayName(data);
   if(data.typ==='admin')document.getElementById('admin-nav-btn').style.display='block';
   await loadMembers();await fetchGames();renderStats();renderProfile();
 }
-document.addEventListener('DOMContentLoaded',()=>{const lp=document.getElementById('login-pass');if(lp)lp.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});});
+document.addEventListener('DOMContentLoaded',()=>{
+  const lp=document.getElementById('login-pass');
+  if(lp)lp.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  checkUrlParams();
+});
 function logout(){currentUser=null;allMembers=[];apiGames=[];showPage('page-login');document.getElementById('admin-nav-btn').style.display='none';document.getElementById('login-user').value='';document.getElementById('login-pass').value='';}
 
 async function sendResetMail(){
@@ -961,7 +969,6 @@ async function generatePDFForSpiel(spielApiId, spielName, datumIso){
   toast(\'PDF erstellt: \'+filename);
 }
 
-checkUrlParams();
 </script>
 </body>
 </html>
