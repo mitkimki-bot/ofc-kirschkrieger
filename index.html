@@ -400,6 +400,17 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         </div>
         <button class="btn btn-primary" onclick="saveProfile()">Profil speichern</button>
       </div>
+
+      <!-- DAUERKARTEN-ANTRAG (nur für Fan-Mitglieder) -->
+      <div id="dauerkarte-antrag-box" class="card" style="display:none;border-left:4px solid #e67e22;border-radius:0 var(--radius) var(--radius) 0">
+        <div class="section-heading" style="font-size:15px;border-color:#e67e22">HSV-Dauerkarte beantragen</div>
+        <p style="font-size:13px;color:var(--g700);margin-bottom:14px">Wenn du inzwischen eine HSV-Mitgliedschaft mit Dauerkarte hast, kannst du hier eine Änderung beantragen. Der Admin prüft und bestätigt die Änderung.</p>
+        <div class="grid2">
+          <div class="form-group"><label>Mitgliedsnummer (optional)</label><input type="text" id="antrag-mgnr" placeholder="z.B. 12345"></div>
+        </div>
+        <div id="antrag-success" class="success-box" style="display:none;margin-bottom:12px">Antrag gesendet! Der Admin wird deine Anfrage prüfen.</div>
+        <button class="btn btn-orange" onclick="beantrageDauerkarte()">Dauerkarte beantragen</button>
+      </div>
     </div>
 
     <!-- ADMIN -->
@@ -443,6 +454,12 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
           </div>
         </div>
         <div id="admin-member-list"><div class="loading"><div class="spinner"></div></div></div>
+        
+        <!-- DAUERKARTEN-ANTRÄGE -->
+        <div id="dauerkarte-antraege-section" style="margin-top:20px;display:none">
+          <div class="section-heading" style="font-size:15px;border-color:#e67e22">Dauerkarten-Anträge</div>
+          <div id="dauerkarte-antraege-list"></div>
+        </div>
       </div>
 
       <!-- AUSSTEHENDE REGISTRIERUNGEN -->
@@ -1089,6 +1106,32 @@ function renderProfile(){
   document.getElementById('profil-email').value=currentUser.email||'';
   document.getElementById('profil-opt-spieltag').checked=currentUser.opt_spieltag!==false;
   document.getElementById('profil-opt-info').checked=currentUser.opt_hsv_info!==false;
+  // Dauerkarten-Antrag nur für Fan-Mitglieder anzeigen
+  const antragBox=document.getElementById('dauerkarte-antrag-box');
+  if(antragBox) antragBox.style.display=currentUser.hsv_mitglied?'none':'block';
+}
+
+async function beantrageDauerkarte(){
+  const mgnr=document.getElementById('antrag-mgnr').value.trim();
+  const successEl=document.getElementById('antrag-success');
+  successEl.style.display='none';
+
+  // Antrag in Supabase speichern
+  await sb.from('dauerkarten_antraege').insert({
+    mitglied_id:currentUser.id,
+    mitgliedsnummer:mgnr||null,
+    status:'ausstehend',
+    erstellt_am:new Date().toISOString()
+  });
+
+  // Admin benachrichtigen
+  const admin=allMembers.find(m=>m.typ==='admin');
+  if(admin&&admin.email){
+    await queueMail(admin.email,'OFC Kirschkrieger – Dauerkarten-Antrag',
+      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><h2>Dauerkarten-Antrag</h2><p style="margin:12px 0">Mitglied <strong>${displayName(currentUser)}</strong> (${currentUser.email}) hat eine HSV-Dauerkarte beantragt.</p>${mgnr?`<p>Mitgliedsnummer: <strong>${mgnr}</strong></p>`:''}<p style="margin-top:16px;color:#495057">Bitte prüfe und bestätige im Admin-Bereich unter "Mitglieder".</p></div></div>`
+    );
+  }
+  successEl.style.display='block';
 }
 
 async function handlePhotoUpload(evt){
@@ -1195,7 +1238,46 @@ async function generateDokumentePDF(){
 }
 
 // ══ ADMIN MITGLIEDER ══════════════════════════════════
+async function loadDauerkartAntraege(){
+  const{data}=await sb.from('dauerkarten_antraege').select('*,mitglied:mitglieder(*)').eq('status','ausstehend').order('erstellt_am');
+  const section=document.getElementById('dauerkarte-antraege-section');
+  const el=document.getElementById('dauerkarte-antraege-list');
+  if(!data||!data.length){if(section)section.style.display='none';return;}
+  if(section)section.style.display='block';
+  el.innerHTML=data.map(a=>`
+    <div class="card card-orange">
+      <div style="font-size:14px;font-weight:500">${displayName(a.mitglied)} (@${a.mitglied.benutzername||'-'})</div>
+      <div style="font-size:12px;color:#6c757d;margin-top:3px">${a.mitglied.email} · Beantragt: ${new Date(a.erstellt_am).toLocaleDateString('de-DE')}</div>
+      ${a.mitgliedsnummer?`<div style="font-size:12px;color:#6c757d">Mitgliedsnummer: <strong>${a.mitgliedsnummer}</strong></div>`:''}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-sm btn-green" onclick="approveDauerkarte('${a.id}','${a.mitglied_id}','${a.mitgliedsnummer||''}')">Genehmigen</button>
+        <button class="btn btn-sm btn-danger" onclick="rejectDauerkarte('${a.id}','${a.mitglied.email}','${displayName(a.mitglied)}')">Ablehnen</button>
+      </div>
+    </div>`).join('');
+}
+
+async function approveDauerkarte(id,mitgliedId,mgnr){
+  await sb.from('mitglieder').update({typ:'hsv',hsv_mitglied:true,mitgliedsnummer:mgnr||null}).eq('id',mitgliedId);
+  await sb.from('dauerkarten_antraege').update({status:'genehmigt'}).eq('id',id);
+  const m=allMembers.find(x=>x.id===mitgliedId);
+  if(m&&m.email){
+    await queueMail(m.email,'OFC Kirschkrieger – Dauerkarte bestätigt',
+      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">Deine HSV-Dauerkarte wurde bestätigt! Du bist ab sofort als HSV-Mitglied in der App registriert und nimmst am Kartenprozess teil.</p></div></div>`
+    );
+  }
+  await loadMembers();loadDauerkartAntraege();renderAdminMembers();toast('Dauerkarte genehmigt ✓');
+}
+
+async function rejectDauerkarte(id,email,name){
+  await sb.from('dauerkarten_antraege').update({status:'abgelehnt'}).eq('id',id);
+  await queueMail(email,'OFC Kirschkrieger – Dauerkarten-Antrag',
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${name}</strong>,</p><p style="margin:12px 0;color:#495057">Dein Dauerkarten-Antrag konnte leider nicht bestätigt werden. Bitte wende dich an den Admin.</p></div></div>`
+  );
+  loadDauerkartAntraege();toast('Antrag abgelehnt.');
+}
+
 function renderAdminMembers(){
+  loadDauerkartAntraege();
   const el=document.getElementById('admin-member-list');
   el.innerHTML=allMembers.filter(m=>m.typ!=='admin').map(m=>`
     <div class="member-row">
