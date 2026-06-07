@@ -2,6 +2,10 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<!-- OFC Kirschkrieger v2.1 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OFC Kirschkrieger</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -898,20 +902,20 @@ async function generatePDFForSpiel(spielApiId, spielName, datumIso){
 
   // Header
   doc.setFillColor(0,70,173);
-  doc.rect(0,0,210,40,\'F\');
+  doc.rect(0,0,210,40,'F');
   doc.setTextColor(255,255,255);
-  doc.setFontSize(18);doc.setFont(\'helvetica\',\'bold\');
-  doc.text(\'OFC Kirschkrieger\',14,18);
-  doc.setFontSize(11);doc.setFont(\'helvetica\',\'normal\');
-  doc.text(\'Offizieller HSV Fanclub – HSV-Meldung\',14,28);
+  doc.setFontSize(18);doc.setFont('helvetica','bold');
+  doc.text('OFC Kirschkrieger',14,18);
+  doc.setFontSize(11);doc.setFont('helvetica','normal');
+  doc.text('Offizieller HSV Fanclub – HSV-Meldung',14,28);
   doc.setFontSize(10);
-  doc.text(`Erstellt: ${new Date().toLocaleDateString(\'de-DE\')}`,14,36);
+  doc.text(`Erstellt: ${new Date().toLocaleDateString('de-DE')}`,14,36);
 
   // Spiel Info
   doc.setTextColor(0,0,0);
-  doc.setFontSize(14);doc.setFont(\'helvetica\',\'bold\');
+  doc.setFontSize(14);doc.setFont('helvetica','bold');
   doc.text(spielName,14,55);
-  doc.setFontSize(10);doc.setFont(\'helvetica\',\'normal\');
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
   if(datumIso)doc.text(fmtDate(datumIso),14,63);
 
   let y=75;
@@ -919,21 +923,21 @@ async function generatePDFForSpiel(spielApiId, spielName, datumIso){
   function addSection(title,rows,color){
     if(!rows.length)return;
     doc.setFillColor(...color);
-    doc.rect(14,y-6,182,8,\'F\');
+    doc.rect(14,y-6,182,8,'F');
     doc.setTextColor(255,255,255);
-    doc.setFontSize(10);doc.setFont(\'helvetica\',\'bold\');
+    doc.setFontSize(10);doc.setFont('helvetica','bold');
     doc.text(title+` (${rows.length})`,16,y);
     y+=10;
-    doc.setTextColor(0,0,0);doc.setFont(\'helvetica\',\'normal\');
+    doc.setTextColor(0,0,0);doc.setFont('helvetica','normal');
     rows.forEach((row,i)=>{
       if(y>270){doc.addPage();y=20;}
       doc.setFillColor(i%2===0?248:255,i%2===0?249:255,i%2===0?250:255);
-      doc.rect(14,y-4,182,8,\'F\');
+      doc.rect(14,y-4,182,8,'F');
       doc.setFontSize(9);
       const m=row.mitglied||row;
-      const name=m.name||\'–\';
-      const user=m.benutzername?`@${m.benutzername}`:\'\';
-      const mgnr=m.mitgliedsnummer?`Nr. ${m.mitgliedsnummer}`:\'\';
+      const name=m.name||'–';
+      const user=m.benutzername?`@${m.benutzername}`:'';
+      const mgnr=m.mitgliedsnummer?`Nr. ${m.mitgliedsnummer}`:'';
       doc.text(`${i+1}. ${name} ${user}`,16,y);
       if(mgnr)doc.text(mgnr,160,y);
       y+=8;
@@ -942,31 +946,31 @@ async function generatePDFForSpiel(spielApiId, spielName, datumIso){
   }
 
   // Behalten OFC
-  const behOFC=(decs||[]).filter(d=>d.entscheidung===\'behalten_ofc\');
-  addSection(\'Karte behalten (über OFC)\',behOFC,[0,100,50]);
+  const behOFC=(decs||[]).filter(d=>d.entscheidung==='behalten_ofc');
+  addSection('Karte behalten (über OFC)',behOFC,[0,100,50]);
 
   // Behalten + Extra
-  const behExtra=(decs||[]).filter(d=>d.entscheidung===\'behalten_extra\');
-  addSection(\'Karte behalten + Extra Karte (über OFC)\',behExtra,[0,100,50]);
+  const behExtra=(decs||[]).filter(d=>d.entscheidung==='behalten_extra');
+  addSection('Karte behalten + Extra Karte (über OFC)',behExtra,[0,100,50]);
 
   // Abgaben + Zuteilungen
-  const abgaben=(decs||[]).filter(d=>d.entscheidung===\'abgeben\');
-  addSection(\'Karte abgegeben – Zuteilungen\',zuts||[],[0,70,173]);
+  const abgaben=(decs||[]).filter(d=>d.entscheidung==='abgeben');
+  addSection('Karte abgegeben – Zuteilungen',zuts||[],[0,70,173]);
 
   // Ohne OFC
-  const ohneOFC=(decs||[]).filter(d=>d.entscheidung===\'behalten_ohne\');
-  addSection(\'Karte ohne OFC (selbst kaufen)\',ohneOFC,[150,150,150]);
+  const ohneOFC=(decs||[]).filter(d=>d.entscheidung==='behalten_ohne');
+  addSection('Karte ohne OFC (selbst kaufen)',ohneOFC,[150,150,150]);
 
   // Footer
   doc.setFillColor(13,13,13);
-  doc.rect(0,285,210,12,\'F\');
+  doc.rect(0,285,210,12,'F');
   doc.setTextColor(255,255,255);
   doc.setFontSize(8);
-  doc.text(\'OFC Kirschkrieger · Vertraulich · Nur für internen Gebrauch\',14,293);
+  doc.text('OFC Kirschkrieger · Vertraulich · Nur für internen Gebrauch',14,293);
 
-  const filename=`OFC_HSV_Meldung_${spielName.replace(/[^a-zA-Z0-9]/g,\'_\')}.pdf`;
+  const filename=`OFC_HSV_Meldung_${spielName.replace(/[^a-zA-Z0-9]/g,'_')}.pdf`;
   doc.save(filename);
-  toast(\'PDF erstellt: \'+filename);
+  toast('PDF erstellt: '+filename);
 }
 
 </script>
