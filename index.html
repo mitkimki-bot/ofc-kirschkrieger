@@ -1280,7 +1280,7 @@ function renderAdminMembers(){
   loadDauerkartAntraege();
   const el=document.getElementById('admin-member-list');
   el.innerHTML=allMembers.filter(m=>m.typ!=='admin').map(m=>`
-    <div class="member-row">
+    <div class="member-row" id="member-row-${m.id}">
       ${avatarHTML(m)}
       <div class="member-info">
         <strong>${displayName(m)} &nbsp;<span class="badge ${m.hsv_mitglied?'badge-hsv':'badge-fan'}">${m.hsv_mitglied?'HSV':'Fan'}</span>${!m.benutzername?'&nbsp;<span class="badge badge-orange">Konto ausstehend</span>':''}</strong>
@@ -1313,16 +1313,66 @@ async function addMember(){
 
 async function editMember(id){
   const m=allMembers.find(x=>x.id===id);if(!m)return;
-  const mgnr=prompt(`Mitgliedsnummer fuer ${displayName(m)} (aktuell: ${m.mitgliedsnummer||'keine'}):`,m.mitgliedsnummer||'');
-  if(mgnr===null)return;
-  const karten=prompt(`Kartenanzahl (aktuell: ${m.karten_count}):`,m.karten_count);
-  if(karten===null)return;
-  const n=parseInt(karten);if(isNaN(n)||n<0){toast('Ungueltige Zahl.');return;}
-  const typ=prompt(`Typ (aktuell: ${m.typ}) - Eingabe: hsv oder fan`,m.typ);
-  if(typ===null)return;
-  if(typ!=='hsv'&&typ!=='fan'){toast('Nur hsv oder fan erlaubt.');return;}
-  await sb.from('mitglieder').update({mitgliedsnummer:mgnr||null,karten_count:n,typ,hsv_mitglied:typ==='hsv'}).eq('id',id);
-  await loadMembers();renderAdminMembers();renderStats();toast('Aktualisiert');
+
+  // Inline-Editor direkt in der Karte anzeigen
+  const el=document.getElementById('edit-member-'+id);
+  if(el){el.style.display=el.style.display==='none'?'block':'none';return;}
+
+  // Editor erstellen
+  const row=document.getElementById('member-row-'+id);
+  if(!row)return;
+  const editor=document.createElement('div');
+  editor.id='edit-member-'+id;
+  editor.style.cssText='background:var(--g50);border-radius:var(--radius-sm);padding:14px;margin-top:10px;border:1px solid var(--g200)';
+  editor.innerHTML=`
+    <div class="grid2" style="margin-bottom:10px">
+      <div class="form-group" style="margin:0">
+        <label style="font-size:11px">Typ</label>
+        <select id="edit-typ-${id}" style="width:100%;padding:7px;border:1.5px solid var(--g300);border-radius:var(--radius-sm);font-size:13px;font-family:Inter,sans-serif">
+          <option value="fan" ${m.typ==='fan'?'selected':''}>Fan-Mitglied</option>
+          <option value="hsv" ${m.typ==='hsv'?'selected':''}>HSV-Mitglied (Dauerkarte)</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label style="font-size:11px">Mitgliedsnummer</label>
+        <input type="text" id="edit-mgnr-${id}" value="${m.mitgliedsnummer||''}" placeholder="optional" style="width:100%;padding:7px;border:1.5px solid var(--g300);border-radius:var(--radius-sm);font-size:13px;font-family:Inter,sans-serif">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label style="font-size:11px">Kartenanzahl</label>
+        <input type="number" id="edit-karten-${id}" value="${m.karten_count}" min="0" style="width:100%;padding:7px;border:1.5px solid var(--g300);border-radius:var(--radius-sm);font-size:13px;font-family:Inter,sans-serif">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label style="font-size:11px">E-Mail</label>
+        <input type="email" id="edit-email-${id}" value="${m.email||''}" style="width:100%;padding:7px;border:1.5px solid var(--g300);border-radius:var(--radius-sm);font-size:13px;font-family:Inter,sans-serif">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm btn-primary" onclick="saveMemberEdit('${id}')">Speichern</button>
+      <button class="btn btn-sm" onclick="document.getElementById('edit-member-${id}').style.display='none'">Abbrechen</button>
+    </div>`;
+  row.appendChild(editor);
+}
+
+async function saveMemberEdit(id){
+  const typ=document.getElementById(`edit-typ-${id}`).value;
+  const mgnr=document.getElementById(`edit-mgnr-${id}`).value.trim();
+  const karten=parseInt(document.getElementById(`edit-karten-${id}`).value)||0;
+  const email=document.getElementById(`edit-email-${id}`).value.trim();
+  await sb.from('mitglieder').update({
+    typ, hsv_mitglied:typ==='hsv',
+    mitgliedsnummer:mgnr||null,
+    karten_count:karten,
+    email:email||null
+  }).eq('id',id);
+  // Wenn von Fan zu HSV geändert - Benachrichtigung an Mitglied
+  const m=allMembers.find(x=>x.id===id);
+  if(m&&m.typ!==typ&&typ==='hsv'&&email){
+    await queueMail(email,'OFC Kirschkrieger – Dein Status wurde aktualisiert',
+      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">Dein Status wurde auf <strong>HSV-Mitglied (Dauerkarte)</strong> aktualisiert. Du nimmst ab sofort am Kartenprozess über den OFC teil.</p></div></div>`
+    );
+  }
+  document.getElementById('edit-member-'+id).style.display='none';
+  await loadMembers();renderAdminMembers();renderStats();toast('Gespeichert ✓');
 }
 
 async function removeMember(id){
