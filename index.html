@@ -7,7 +7,6 @@
 <title>OFC Kirschkrieger</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Inter:wght@400;500&display=swap');
@@ -575,14 +574,21 @@ function genToken(){return Math.random().toString(36).slice(2)+Math.random().toS
 const DEC_LABELS={'behalten_ofc':'Behalten (OFC)','behalten_extra':'Behalten + Extra Karte','behalten_ohne':'Ohne OFC (selbst kaufen)','abgeben':'Abgeben'};
 const DEC_COLORS={'behalten_ofc':'#0046AD','behalten_extra':'#198754','behalten_ohne':'#e67e22','abgeben':'#CC0000'};
 
-// ══ PASSWORT HASHING ══════════════════════════════════
+// ══ PASSWORT HASHING (Web Crypto API) ════════════════
 async function hashPassword(pw){
-  return bcrypt.hashSync(pw,10);
+  const encoder=new TextEncoder();
+  const data=encoder.encode(pw);
+  const hashBuffer=await crypto.subtle.digest('SHA-256',data);
+  const hashArray=Array.from(new Uint8Array(hashBuffer));
+  return 'sha256:'+hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-function verifyPassword(pw,hash){
-  if(hash && hash.startsWith('$2')){
-    return bcrypt.compareSync(pw,hash);
+async function verifyPassword(pw,hash){
+  if(!hash)return false;
+  if(hash.startsWith('sha256:')){
+    const newHash=await hashPassword(pw);
+    return newHash===hash;
   }
+  // Legacy Klartext
   return pw===hash;
 }
 
@@ -698,7 +704,7 @@ async function doLogin(){
   const p=document.getElementById('login-pass').value;
   if(!u||!p){toast('Bitte Benutzername und Passwort eingeben.');return;}
   const{data,error}=await sb.from('mitglieder').select('*').eq('benutzername',u).eq('status','aktiv').single();
-  if(error||!data||!verifyPassword(p,data.passwort)){
+  if(error||!data||!await verifyPassword(p,data.passwort)){
     document.getElementById('login-err').style.display='block';return;
   }
   document.getElementById('login-err').style.display='none';
