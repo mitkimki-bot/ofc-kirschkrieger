@@ -385,6 +385,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
           <div class="form-group"><label>Anzeigename</label><input type="text" id="profil-displayname"></div>
           <div class="form-group"><label>Benutzername</label><input type="text" id="profil-username" disabled style="background:#f8f9fa;color:#6c757d"></div>
           <div class="form-group"><label>E-Mail</label><input type="email" id="profil-email"></div>
+          <div class="form-group"><label>Mitgliedsnummer (HSV)</label><input type="text" id="profil-mgnr" placeholder="optional"><div class="form-hint">Deine HSV-Mitgliedsnummer falls vorhanden</div></div>
           <div class="form-group"><label>Neues Passwort</label><input type="password" id="profil-newpass" placeholder="Leer = unverändert"></div>
           <div class="form-group"><label>Passwort bestätigen</label><input type="password" id="profil-newpass2"></div>
 
@@ -1109,6 +1110,8 @@ function renderProfile(){
   document.getElementById('profil-opt-info').checked=currentUser.opt_hsv_info!==false;
   const mgnrEl=document.getElementById('profil-mgnr-display');
   if(mgnrEl)mgnrEl.textContent=currentUser.mitgliedsnummer?'Mitgliedsnummer: '+currentUser.mitgliedsnummer:'';
+  const mgnrInput=document.getElementById('profil-mgnr');
+  if(mgnrInput)mgnrInput.value=currentUser.mitgliedsnummer||'';
   // Dauerkarten-Antrag nur für Fan-Mitglieder anzeigen
   const antragBox=document.getElementById('dauerkarte-antrag-box');
   if(antragBox) antragBox.style.display=currentUser.hsv_mitglied?'none':'block';
@@ -1162,7 +1165,8 @@ async function saveProfile(){
     const optI=document.getElementById('profil-opt-info').checked;
     if(!dn){toast('Bitte Anzeigename eingeben.');return;}
     if(np&&np!==np2){toast('Passwoerter stimmen nicht ueberein!');return;}
-    const upd={anzeigename:dn,email:email||null,opt_spieltag:optS,opt_hsv_info:optI};
+    const mgnr=document.getElementById('profil-mgnr')&&document.getElementById('profil-mgnr').value.trim();
+    const upd={anzeigename:dn,email:email||null,opt_spieltag:optS,opt_hsv_info:optI,mitgliedsnummer:mgnr||null};
     if(np){upd.passwort=await hashPassword(np);}
     const{error}=await sb.from('mitglieder').update(upd).eq('id',currentUser.id);
     if(error){toast('Fehler: '+error.message);return;}
