@@ -199,6 +199,13 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <div class="form-group"><label>E-Mail *</label><input type="email" id="reg-email"></div>
         <div class="form-group"><label>Passwort *</label><input type="password" id="reg-pass" placeholder="Mindestens 6 Zeichen"></div>
         <div class="form-group"><label>Passwort bestätigen *</label><input type="password" id="reg-pass2"></div>
+        <div class="opt-in-row" style="margin-bottom:8px">
+          <input type="checkbox" id="reg-hsv-member" onchange="toggleHSVFields()">
+          <label for="reg-hsv-member" style="font-size:13px;cursor:pointer;font-weight:500">Ich habe eine HSV-Mitgliedschaft (Dauerkarte)</label>
+        </div>
+        <div id="reg-hsv-fields" style="display:none;background:var(--g50);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;border:1px solid var(--g200)">
+          <div class="form-group" style="margin-bottom:0"><label>HSV-Mitgliedsnummer</label><input type="text" id="reg-mgnr" placeholder="z.B. 12345"><div class="form-hint">Optional – kann auch später eingetragen werden</div></div>
+        </div>'''
         <div style="margin-bottom:14px">
           <strong style="font-size:13px;display:block;margin-bottom:8px">Benachrichtigungen:</strong>
           <div class="opt-in-row">
@@ -720,6 +727,11 @@ function logout(){
 }
 
 // ══ REGISTRIERUNG ═════════════════════════════════════
+function toggleHSVFields(){
+  const checked=document.getElementById('reg-hsv-member').checked;
+  document.getElementById('reg-hsv-fields').style.display=checked?'block':'none';
+}
+
 async function doRegister(){
   const name=document.getElementById('reg-name').value.trim();
   const user=document.getElementById('reg-user').value.trim();
@@ -744,8 +756,12 @@ async function doRegister(){
   if(exReg){errEl.textContent='Benutzername bereits vergeben.';errEl.style.display='block';return;}
 
   const hash=await hashPassword(pass);
+  const isHSV=document.getElementById('reg-hsv-member').checked;
+  const mgnr=document.getElementById('reg-mgnr')&&document.getElementById('reg-mgnr').value.trim();
   const{error}=await sb.from('registrierungen').insert({
     name,benutzername:user,email,passwort:hash,
+    typ:isHSV?'hsv':'fan',
+    mitgliedsnummer:mgnr||null,
     opt_spieltag:optSpiel,opt_hsv_info:optInfo,
     status:'ausstehend'
   });
