@@ -752,7 +752,7 @@ async function doRegister(){
   // Prüfen ob Benutzername vergeben
   const{data:exUser}=await sb.from('mitglieder').select('id').eq('benutzername',user).single();
   if(exUser){errEl.textContent='Benutzername bereits vergeben.';errEl.style.display='block';return;}
-  const{data:exReg}=await sb.from('registrierungen').select('id').eq('benutzername',user).single();
+  const{data:exReg}=await sb.from('registrierungen').select('id,status').eq('benutzername',user).neq('status','abgelehnt').single();
   if(exReg){errEl.textContent='Benutzername bereits vergeben.';errEl.style.display='block';return;}
 
   const hash=await hashPassword(pass);
