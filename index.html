@@ -378,14 +378,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
           <div class="form-group"><label>E-Mail</label><input type="email" id="profil-email"></div>
           <div class="form-group"><label>Neues Passwort</label><input type="password" id="profil-newpass" placeholder="Leer = unverändert"></div>
           <div class="form-group"><label>Passwort bestätigen</label><input type="password" id="profil-newpass2"></div>
-          <div class="form-group"><label>Gewünschte Karten pro Spiel</label>
-            <select id="profil-karten-wunsch">
-              <option value="1">1 Karte</option>
-              <option value="2">2 Karten</option>
-              <option value="3">3 Karten</option>
-              <option value="4">4 Karten</option>
-            </select>
-          </div>
+
         </div>
         <div class="divider"></div>
         <strong style="font-size:13px;display:block;margin-bottom:10px">Benachrichtigungen:</strong>
@@ -1060,7 +1053,6 @@ function renderProfile(){
   document.getElementById('profil-displayname').value=currentUser.anzeigename||currentUser.name;
   document.getElementById('profil-username').value=currentUser.benutzername||'(ausstehend)';
   document.getElementById('profil-email').value=currentUser.email||'';
-  document.getElementById('profil-karten-wunsch').value=currentUser.karten_wunsch||1;
   document.getElementById('profil-opt-spieltag').checked=currentUser.opt_spieltag!==false;
   document.getElementById('profil-opt-info').checked=currentUser.opt_hsv_info!==false;
 }
@@ -1085,12 +1077,12 @@ async function saveProfile(){
   const email=document.getElementById('profil-email').value.trim();
   const np=document.getElementById('profil-newpass').value;
   const np2=document.getElementById('profil-newpass2').value;
-  const kw=parseInt(document.getElementById('profil-karten-wunsch').value)||1;
+  
   const optS=document.getElementById('profil-opt-spieltag').checked;
   const optI=document.getElementById('profil-opt-info').checked;
   if(!dn){toast('Bitte Anzeigename eingeben.');return;}
   if(np&&np!==np2){toast('Passwoerter stimmen nicht ueberein!');return;}
-  const upd={anzeigename:dn,email:email||null,karten_wunsch:kw,opt_spieltag:optS,opt_hsv_info:optI};
+  const upd={anzeigename:dn,email:email||null,opt_spieltag:optS,opt_hsv_info:optI};
   if(np){upd.passwort=await hashPassword(np);}
   await sb.from('mitglieder').update(upd).eq('id',currentUser.id);
   Object.assign(currentUser,upd);
