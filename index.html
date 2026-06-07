@@ -7,6 +7,7 @@
 <title>OFC Kirschkrieger</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Inter:wght@400;500&display=swap');
@@ -568,11 +569,12 @@ const DEC_COLORS={'behalten_ofc':'#0046AD','behalten_extra':'#198754','behalten_
 
 // ══ PASSWORT HASHING ══════════════════════════════════
 async function hashPassword(pw){
-  // Einfaches hashing ohne externe Bibliothek
-  // TODO: bcrypt wenn Bibliothek stabil geladen
-  return pw; // vorerst Klartext, wird spaeter verbessert
+  return bcrypt.hashSync(pw,10);
 }
 function verifyPassword(pw,hash){
+  if(hash && hash.startsWith('$2')){
+    return bcrypt.compareSync(pw,hash);
+  }
   return pw===hash;
 }
 
@@ -748,7 +750,12 @@ async function doRegister(){
     status:'ausstehend'
   });
 
-  if(error){errEl.textContent='Fehler bei der Registrierung. Bitte versuche es erneut.';errEl.style.display='block';return;}
+  if(error){
+    console.log('Registrierungsfehler:',error);
+    errEl.textContent='Fehler: '+error.message;
+    errEl.style.display='block';
+    return;
+  }
 
   // Admin benachrichtigen
   const admin=allMembers.find(m=>m.typ==='admin');
