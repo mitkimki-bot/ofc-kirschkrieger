@@ -403,16 +403,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <button class="btn btn-primary" onclick="saveProfile()">Profil speichern</button>
       </div>
 
-      <!-- DAUERKARTEN-ANTRAG (nur für Fan-Mitglieder) -->
-      <div id="dauerkarte-antrag-box" class="card" style="display:none;border-left:4px solid #e67e22;border-radius:0 var(--radius) var(--radius) 0">
-        <div class="section-heading" style="font-size:15px;border-color:#e67e22">HSV-Dauerkarte beantragen</div>
-        <p style="font-size:13px;color:var(--g700);margin-bottom:14px">Wenn du inzwischen eine HSV-Mitgliedschaft mit Dauerkarte hast, kannst du hier eine Änderung beantragen. Der Admin prüft und bestätigt die Änderung.</p>
-        <div class="grid2">
-          <div class="form-group"><label>Mitgliedsnummer (optional)</label><input type="text" id="antrag-mgnr" placeholder="z.B. 12345"></div>
-        </div>
-        <div id="antrag-success" class="success-box" style="display:none;margin-bottom:12px">Antrag gesendet! Der Admin wird deine Anfrage prüfen.</div>
-        <button class="btn btn-orange" onclick="beantrageDauerkarte()">Dauerkarte beantragen</button>
-      </div>
+
     </div>
 
     <!-- ADMIN -->
@@ -1112,9 +1103,7 @@ function renderProfile(){
   if(mgnrEl)mgnrEl.textContent=currentUser.mitgliedsnummer?'Mitgliedsnummer: '+currentUser.mitgliedsnummer:'';
   const mgnrInput=document.getElementById('profil-mgnr');
   if(mgnrInput)mgnrInput.value=currentUser.mitgliedsnummer||'';
-  // Dauerkarten-Antrag nur für Fan-Mitglieder anzeigen
-  const antragBox=document.getElementById('dauerkarte-antrag-box');
-  if(antragBox) antragBox.style.display=currentUser.hsv_mitglied?'none':'block';
+
 }
 
 async function beantrageDauerkarte(){
@@ -1170,11 +1159,34 @@ async function saveProfile(){
     if(np){upd.passwort=await hashPassword(np);}
     const{error}=await sb.from('mitglieder').update(upd).eq('id',currentUser.id);
     if(error){toast('Fehler: '+error.message);return;}
+
+    // Mitgliedsnummer neu eingetragen + noch kein HSV-Mitglied → Antrag auslösen
+    const hatteKeineMgnr=!currentUser.mitgliedsnummer;
+    const hatJetztMgnr=!!mgnr;
+    if(hatteKeineMgnr&&hatJetztMgnr&&!currentUser.hsv_mitglied){
+      // Dauerkarten-Antrag automatisch erstellen
+      await sb.from('dauerkarten_antraege').insert({
+        mitglied_id:currentUser.id,
+        mitgliedsnummer:mgnr,
+        status:'ausstehend'
+      });
+      // Admin benachrichtigen
+      const admin=allMembers.find(m=>m.typ==='admin');
+      if(admin&&admin.email){
+        await queueMail(admin.email,'OFC Kirschkrieger – Dauerkarten-Antrag',
+          `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><h2>Dauerkarten-Antrag</h2><p style="margin:12px 0">Mitglied <strong>${displayName(currentUser)}</strong> (${currentUser.email||''}) hat eine Mitgliedsnummer eingetragen: <strong>${mgnr}</strong></p><p style="color:#495057">Bitte prüfe und bestätige im Admin-Bereich unter "Mitglieder".</p></div></div>`
+        );
+      }
+      toast('Profil gespeichert – Dauerkarten-Antrag wurde automatisch gestellt ✓');
+    } else {
+      toast('Profil gespeichert ✓');
+    }
+
     Object.assign(currentUser,upd);
     document.getElementById('header-name').textContent=displayName(currentUser);
     document.getElementById('profil-newpass').value='';
     document.getElementById('profil-newpass2').value='';
-    await loadMembers();renderProfile();renderStats();toast('Profil gespeichert ✓');
+    await loadMembers();renderProfile();renderStats();
   }catch(e){
     toast('Fehler: '+e.message);
     console.log('saveProfile Fehler:',e);
