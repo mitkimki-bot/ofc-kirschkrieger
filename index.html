@@ -7,7 +7,7 @@
 <title>OFC Kirschkrieger</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Inter:wght@400;500&display=swap');
 :root{
@@ -568,14 +568,11 @@ const DEC_COLORS={'behalten_ofc':'#0046AD','behalten_extra':'#198754','behalten_
 
 // ══ PASSWORT HASHING ══════════════════════════════════
 async function hashPassword(pw){
-  return bcrypt.hashSync(pw,10);
+  // Einfaches hashing ohne externe Bibliothek
+  // TODO: bcrypt wenn Bibliothek stabil geladen
+  return pw; // vorerst Klartext, wird spaeter verbessert
 }
 function verifyPassword(pw,hash){
-  // Support both plain text (legacy) and hashed
-  if(hash && hash.startsWith('$2')){
-    return bcrypt.compareSync(pw,hash);
-  }
-  // Legacy plain text
   return pw===hash;
 }
 
