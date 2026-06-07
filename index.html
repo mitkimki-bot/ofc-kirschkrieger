@@ -376,6 +376,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
           <div>
             <div style="font-size:18px;font-weight:500" id="profil-name-display"></div>
             <div style="font-size:13px;color:#6c757d;margin-top:2px" id="profil-sub-display"></div>
+            <div style="margin-top:4px;font-size:12px;color:#6c757d" id="profil-mgnr-display"></div>
             <div style="margin-top:8px" id="profil-badge"></div>
           </div>
         </div>
@@ -1106,6 +1107,8 @@ function renderProfile(){
   document.getElementById('profil-email').value=currentUser.email||'';
   document.getElementById('profil-opt-spieltag').checked=currentUser.opt_spieltag!==false;
   document.getElementById('profil-opt-info').checked=currentUser.opt_hsv_info!==false;
+  const mgnrEl=document.getElementById('profil-mgnr-display');
+  if(mgnrEl)mgnrEl.textContent=currentUser.mitgliedsnummer?'Mitgliedsnummer: '+currentUser.mitgliedsnummer:'';
   // Dauerkarten-Antrag nur für Fan-Mitglieder anzeigen
   const antragBox=document.getElementById('dauerkarte-antrag-box');
   if(antragBox) antragBox.style.display=currentUser.hsv_mitglied?'none':'block';
