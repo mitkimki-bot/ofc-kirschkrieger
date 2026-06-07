@@ -224,9 +224,10 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <div id="reg-err" class="error-box" style="display:none;margin-bottom:12px"></div>
         <button class="btn btn-primary btn-full" onclick="doRegister()">Registrierung absenden</button>
       </div>
-      <div id="reg-success" class="success-box" style="display:none">
-        <strong>Registrierung erfolgreich!</strong><br>
-        Dein Konto wird vom Admin geprüft. Du erhältst eine E-Mail sobald dein Konto freigeschaltet ist.
+      <div id="reg-success" style="display:none;background:#d1e7dd;border:2px solid #198754;border-radius:var(--radius);padding:20px;text-align:center">
+        <div style="font-size:32px;margin-bottom:10px">&#10003;</div>
+        <strong style="font-size:16px;color:#0a3622;display:block;margin-bottom:8px">Registrierung erfolgreich!</strong>
+        <p style="font-size:13px;color:#0a3622">Dein Konto wird vom Admin geprüft.<br>Du erhältst eine E-Mail sobald dein Konto freigeschaltet ist.</p>
       </div>
       <div style="text-align:center;margin-top:14px">
         <button class="btn-link" onclick="showPage('page-login')">Zurück zum Login</button>
@@ -782,7 +783,9 @@ async function doRegister(){
   }
 
   document.getElementById('reg-form').style.display='none';
-  document.getElementById('reg-success').style.display='block';
+  const successEl=document.getElementById('reg-success');
+  successEl.style.display='block';
+  successEl.scrollIntoView({behavior:'smooth'});
 }
 
 // ══ PASSWORT VERGESSEN ════════════════════════════════
