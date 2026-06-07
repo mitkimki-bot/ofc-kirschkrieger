@@ -776,6 +776,9 @@ async function doRegister(){
   const hash=await hashPassword(pass);
   const isHSV=document.getElementById('reg-hsv-member').checked;
   const mgnr=document.getElementById('reg-mgnr')&&document.getElementById('reg-mgnr').value.trim();
+  // Abgelehnte Registrierung mit gleichem Benutzernamen zuerst löschen
+  await sb.from('registrierungen').delete().eq('benutzername',user).eq('status','abgelehnt');
+
   const{error}=await sb.from('registrierungen').insert({
     name,benutzername:user,email,passwort:hash,
     typ:isHSV?'hsv':'fan',
