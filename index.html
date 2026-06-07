@@ -752,10 +752,10 @@ async function doRegister(){
   if(!agb){errEl.textContent='Bitte akzeptiere die Regeln und Datenschutzerklärung.';errEl.style.display='block';return;}
 
   // Prüfen ob Benutzername vergeben
-  const{data:exUser}=await sb.from('mitglieder').select('id').eq('benutzername',user).single();
-  if(exUser){errEl.textContent='Benutzername bereits vergeben.';errEl.style.display='block';return;}
-  const{data:exReg}=await sb.from('registrierungen').select('id,status').eq('benutzername',user).neq('status','abgelehnt').single();
-  if(exReg){errEl.textContent='Benutzername bereits vergeben.';errEl.style.display='block';return;}
+  const{data:exUsers}=await sb.from('mitglieder').select('id').eq('benutzername',user);
+  if(exUsers&&exUsers.length>0){errEl.textContent='Benutzername bereits vergeben.';errEl.style.display='block';return;}
+  const{data:exRegs}=await sb.from('registrierungen').select('id,status').eq('benutzername',user).neq('status','abgelehnt');
+  if(exRegs&&exRegs.length>0){errEl.textContent='Benutzername bereits vergeben.';errEl.style.display='block';return;}
 
   const hash=await hashPassword(pass);
   const isHSV=document.getElementById('reg-hsv-member').checked;
