@@ -734,6 +734,7 @@ function toggleHSVFields(){
 }
 
 async function doRegister(){
+  try {
   const name=document.getElementById('reg-name').value.trim();
   const user=document.getElementById('reg-user').value.trim();
   const email=document.getElementById('reg-email').value.trim();
@@ -786,9 +787,13 @@ async function doRegister(){
   const successEl=document.getElementById('reg-success');
   successEl.style.display='block';
   successEl.scrollIntoView({behavior:'smooth'});
+  } catch(e) {
+    console.log('Registrierungsfehler:', e);
+    const errEl=document.getElementById('reg-err');
+    errEl.textContent='Fehler: '+e.message;
+    errEl.style.display='block';
+  }
 }
-
-// ══ PASSWORT VERGESSEN ════════════════════════════════
 async function sendResetMail(){
   const email=document.getElementById('forgot-email').value.trim();
   document.getElementById('forgot-form').style.display='none';
