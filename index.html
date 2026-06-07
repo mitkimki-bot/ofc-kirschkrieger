@@ -123,11 +123,11 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
   <div class="club-name">OFC Kirschkrieger</div>
   <div class="club-sub">Offizieller Fanclub · Hamburger SV</div>
   <div class="full-page-card">
-    <div class="card-head-dark"><h2>🍒 Mitglieder-Login</h2></div>
+    <div class="card-head-dark"><h2>&bull; Mitglieder-Login</h2></div>
     <div class="card-body">
       <div class="form-group"><label>Benutzername</label><input type="text" id="login-user" autocomplete="username"></div>
       <div class="form-group"><label>Passwort</label><input type="password" id="login-pass" autocomplete="current-password"></div>
-      <div id="login-err" class="error-box" style="display:none;margin-bottom:12px">⚠ Ungültige Anmeldedaten.</div>
+      <div id="login-err" class="error-box" style="display:none;margin-bottom:12px">(!) Ungültige Anmeldedaten.</div>
       <button class="btn btn-primary btn-full" onclick="doLogin()">Anmelden</button>
       <div style="text-align:center;margin-top:14px"><button class="btn-link" onclick="showPage('page-forgot')">Passwort vergessen?</button></div>
     </div>
@@ -139,7 +139,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
   <div class="logo-top"><img src="logo.jpg" alt="OFC" onerror="this.style.display='none'"></div>
   <div class="club-name">OFC Kirschkrieger</div>
   <div class="full-page-card">
-    <div class="card-head-dark"><h2>🔒 Passwort zurücksetzen</h2></div>
+    <div class="card-head-dark"><h2> Passwort zurücksetzen</h2></div>
     <div class="card-body">
       <div id="forgot-form">
         <p style="font-size:13px;color:var(--g700);margin-bottom:16px">Gib deine E-Mail-Adresse ein – du erhältst einen Reset-Link (24 Stunden gültig).</p>
@@ -147,7 +147,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <div id="forgot-err" class="error-box" style="display:none;margin-bottom:12px"></div>
         <button class="btn btn-primary btn-full" onclick="sendResetMail()">Reset-Link senden</button>
       </div>
-      <div id="forgot-success" class="success-box" style="display:none">✓ Reset-Link gesendet! Prüfe deine E-Mails.</div>
+      <div id="forgot-success" class="success-box" style="display:none">&#10003; Reset-Link gesendet! Prüfe deine E-Mails.</div>
       <div style="text-align:center;margin-top:14px"><button class="btn-link" onclick="showPage('page-login')">← Zurück zum Login</button></div>
     </div>
   </div>
@@ -159,7 +159,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
   <div class="club-name">OFC Kirschkrieger</div>
   <div id="setup-subtitle" class="club-sub">Konto einrichten</div>
   <div class="full-page-card">
-    <div class="card-head-dark"><h2 id="setup-title">👤 Konto einrichten</h2></div>
+    <div class="card-head-dark"><h2 id="setup-title"> Konto einrichten</h2></div>
     <div class="card-body">
       <div id="setup-loading" class="loading"><div class="spinner"></div></div>
       <div id="setup-form" style="display:none">
@@ -174,8 +174,8 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <div id="setup-err" class="error-box" style="display:none;margin-bottom:12px"></div>
         <button class="btn btn-primary btn-full" onclick="submitSetup()">Speichern & Anmelden</button>
       </div>
-      <div id="setup-success" class="success-box" style="display:none">✓ Gespeichert! Du wirst weitergeleitet...</div>
-      <div id="setup-invalid" class="error-box" style="display:none">⚠ Link ungültig oder abgelaufen. Wende dich an den Admin.</div>
+      <div id="setup-success" class="success-box" style="display:none">&#10003; Gespeichert! Du wirst weitergeleitet...</div>
+      <div id="setup-invalid" class="error-box" style="display:none">(!) Link ungültig oder abgelaufen. Wende dich an den Admin.</div>
     </div>
   </div>
 </div>
@@ -185,7 +185,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
   <header class="app-header">
     <div class="header-inner">
       <div class="header-logo"><img src="logo.jpg" alt="Logo" onerror="this.style.display='none'"></div>
-      <div class="header-title"><h1>OFC Kirschkrieger</h1><p>Offizieller Fanclub · Hamburger SV 🍒</p></div>
+      <div class="header-title"><h1>OFC Kirschkrieger</h1><p>Offizieller Fanclub · Hamburger SV &bull;</p></div>
       <div class="header-user">
         <div class="header-user-name" id="header-name"></div>
         <button class="btn-logout" onclick="logout()">→ Abmelden</button>
@@ -194,10 +194,10 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
   </header>
   <nav class="app-nav">
     <div class="nav-inner">
-      <button class="active" onclick="showTab('spiele',this)">📅 Spielplan</button>
-      <button onclick="showTab('karten',this)">🎟 Karten</button>
-      <button onclick="showTab('stats',this)">📊 Statistik</button>
-      <button onclick="showTab('profil',this)">👤 Mein Profil</button>
+      <button class="active" onclick="showTab('spiele',this)"> Spielplan</button>
+      <button onclick="showTab('karten',this)"> Karten</button>
+      <button onclick="showTab('stats',this)"> Statistik</button>
+      <button onclick="showTab('profil',this)"> Mein Profil</button>
       <button id="admin-nav-btn" onclick="showTab('admin',this)" style="display:none">⚙ Admin</button>
     </div>
   </nav>
@@ -206,7 +206,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
     <!-- SPIELPLAN -->
     <div id="tab-spiele" class="section active">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
-        <div class="section-heading" style="margin-bottom:0;border:none">📅 HSV Spielplan</div>
+        <div class="section-heading" style="margin-bottom:0;border:none"> HSV Spielplan</div>
         <button class="btn btn-sm" onclick="fetchGames(true)">↻ Aktualisieren</button>
       </div>
       <div class="filter-row">
@@ -222,21 +222,21 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 
     <!-- KARTEN -->
     <div id="tab-karten" class="section">
-      <div class="section-heading">🎟 Kartenverwaltung</div>
+      <div class="section-heading"> Kartenverwaltung</div>
       <div id="karten-content"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
     <!-- STATISTIK -->
     <div id="tab-stats" class="section">
-      <div class="section-heading">📊 Übersicht</div>
+      <div class="section-heading"> Übersicht</div>
       <div class="metrics-grid" id="stats-metrics"></div>
-      <div class="section-heading" style="margin-top:8px">👥 Kartenverteilung</div>
+      <div class="section-heading" style="margin-top:8px"> Kartenverteilung</div>
       <div id="stats-members"></div>
     </div>
 
     <!-- PROFIL -->
     <div id="tab-profil" class="section">
-      <div class="section-heading">👤 Mein Profil</div>
+      <div class="section-heading"> Mein Profil</div>
       <div class="card">
         <div class="profile-header">
           <div class="profile-photo-wrap">
@@ -271,7 +271,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <button onclick="adminTab('dfb',this)">DFB-Pokal</button>
         <button onclick="adminTab('einstellungen',this)">Einstellungen</button>
         <button onclick="adminTab('zuteilung',this)">Zuteilungen</button>
-        <button onclick="adminTab('pdf',this)">📄 HSV-Meldung</button>
+        <button onclick="adminTab('pdf',this)"> HSV-Meldung</button>
       </div>
 
       <!-- MITGLIEDER -->
@@ -296,7 +296,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
           </div>
           <div id="add-member-err" class="error-box" style="display:none;margin-bottom:12px"></div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm btn-primary" onclick="addMember()">✉ Einladen</button>
+            <button class="btn btn-sm btn-primary" onclick="addMember()"> Einladen</button>
             <button class="btn btn-sm" onclick="toggleForm('admin-add-member-form')">Abbrechen</button>
           </div>
         </div>
@@ -311,7 +311,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 
       <!-- DFB-POKAL -->
       <div id="admin-dfb" style="display:none">
-        <div class="info-box">🏆 DFB-Pokal Spiele manuell eintragen und Prozess auslösen.</div>
+        <div class="info-box"> DFB-Pokal Spiele manuell eintragen und Prozess auslösen.</div>
         <div class="card">
           <div class="section-heading" style="font-size:15px">Neues DFB-Pokal Spiel</div>
           <div class="grid2">
@@ -347,7 +347,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
       <!-- EINSTELLUNGEN -->
       <div id="admin-einstellungen" style="display:none">
         <div class="card">
-          <div class="section-heading" style="font-size:15px">🌍 Globale Standards</div>
+          <div class="section-heading" style="font-size:15px"> Globale Standards</div>
           <div class="grid2">
             <div class="form-group"><label>Frist Pool (Tage vor Spiel)</label><input type="number" id="set-frist-pool" min="1" max="30" value="5"><div class="form-hint">Stufe 1: bis wann entscheiden</div></div>
             <div class="form-group"><label>Frist Fan-Bewerbung (Tage nach Pool)</label><input type="number" id="set-frist-fan" min="1" max="10" value="3"><div class="form-hint">Stufe 2: wie lange Bewerbung offen</div></div>
@@ -371,7 +371,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
 
       <!-- PDF HSV-MELDUNG -->
       <div id="admin-pdf" style="display:none">
-        <div class="info-box">📄 Erstelle die offizielle HSV-Meldung mit allen Karteninhabern als PDF.</div>
+        <div class="info-box"> Erstelle die offizielle HSV-Meldung mit allen Karteninhabern als PDF.</div>
         <div id="pdf-spiel-list"></div>
       </div>
 
@@ -400,10 +400,10 @@ function genToken(){return Math.random().toString(36).slice(2)+Math.random().toS
 
 // ── ENTSCHEIDUNGS-LABELS ──────────────────────────────────
 const DEC_LABELS={
-  'behalten_ofc':'✓ Behalten (OFC)',
-  'behalten_extra':'✓+ Extra Karte',
+  'behalten_ofc':'&#10003; Behalten (OFC)',
+  'behalten_extra':'&#10003;+ Extra Karte',
   'behalten_ohne':'○ Ohne OFC (selbst kaufen)',
-  'abgeben':'↗ Abgeben'
+  'abgeben':'>> Abgeben'
 };
 const DEC_COLORS={
   'behalten_ofc':'#0046AD',
@@ -420,7 +420,7 @@ async function checkUrlParams(){
     showPage('page-setup');
     document.getElementById('setup-loading').style.display='block';
     document.getElementById('setup-form').style.display='none';
-    if(action==='reset'){document.getElementById('setup-user-group').style.display='none';document.getElementById('setup-title').textContent='🔒 Neues Passwort setzen';}
+    if(action==='reset'){document.getElementById('setup-user-group').style.display='none';document.getElementById('setup-title').textContent=' Neues Passwort setzen';}
     const{data:tok}=await sb.from('auth_tokens').select('*,mitglied:mitglieder(*)').eq('token',token).eq('typ',action).eq('verwendet',false).single();
     document.getElementById('setup-loading').style.display='none';
     if(!tok||new Date(tok.gueltig_bis)<new Date()){document.getElementById('setup-invalid').style.display='block';return;}
@@ -439,12 +439,12 @@ async function handleMailDecision(dec,mid,sid){
   // Prüfen ob Frist noch läuft
   const{data:sp}=await sb.from('spiel_einstellungen').select('*').eq('spiel_api_id',sid).single();
   if(sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date()){
-    document.body.innerHTML=`<div style="min-height:100vh;background:#0046AD;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px"><div style="background:#fff;border-radius:12px;padding:32px;max-width:380px;text-align:center"><div style="font-size:48px;margin-bottom:16px">⏰</div><h2 style="color:#CC0000;margin-bottom:10px">Frist abgelaufen</h2><p style="color:#495057">Die Entscheidungsfrist für dieses Spiel ist abgelaufen.</p><a href="${APP_URL}" style="display:inline-block;margin-top:20px;background:#0046AD;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none">Zur App</a></div></div>`;
+    document.body.innerHTML=`<div style="min-height:100vh;background:#0046AD;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px"><div style="background:#fff;border-radius:12px;padding:32px;max-width:380px;text-align:center"><div style="font-size:48px;margin-bottom:16px">(!)</div><h2 style="color:#CC0000;margin-bottom:10px">Frist abgelaufen</h2><p style="color:#495057">Die Entscheidungsfrist für dieses Spiel ist abgelaufen.</p><a href="${APP_URL}" style="display:inline-block;margin-top:20px;background:#0046AD;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none">Zur App</a></div></div>`;
     return;
   }
   await sb.from('kartenentscheidungen').upsert({spiel_id:sid,spiel_api_id:sid,mitglied_id:mid,entscheidung:dec},{onConflict:'spiel_id,mitglied_id'});
   const label=DEC_LABELS[dec]||dec;
-  document.body.innerHTML=`<div style="min-height:100vh;background:#0046AD;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px"><div style="background:#fff;border-radius:12px;padding:32px;max-width:380px;text-align:center"><div style="font-size:48px;margin-bottom:16px">${dec==='abgeben'?'↗':'✅'}</div><h2 style="color:#0046AD;margin-bottom:10px">${label}</h2><p style="color:#495057">Deine Entscheidung wurde gespeichert.</p><a href="${APP_URL}" style="display:inline-block;margin-top:20px;background:#0046AD;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none">Zur App</a></div></div>`;
+  document.body.innerHTML=`<div style="min-height:100vh;background:#0046AD;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px"><div style="background:#fff;border-radius:12px;padding:32px;max-width:380px;text-align:center"><div style="font-size:48px;margin-bottom:16px">${dec==='abgeben'?'>>':'✅'}</div><h2 style="color:#0046AD;margin-bottom:10px">${label}</h2><p style="color:#495057">Deine Entscheidung wurde gespeichert.</p><a href="${APP_URL}" style="display:inline-block;margin-top:20px;background:#0046AD;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none">Zur App</a></div></div>`;
 }
 
 async function submitSetup(){
@@ -506,7 +506,7 @@ async function sendResetMail(){
   await sb.from('auth_tokens').insert({mitglied_id:member.id,token,typ:'reset',gueltig_bis:gueltigBis});
   const link=`${APP_URL}?action=reset&token=${token}`;
   await queueMail(member.email,'OFC Kirschkrieger – Passwort zurücksetzen',
-    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(member)}</strong>,</p><p style="margin:12px 0">Klicke auf den Button um dein Passwort zurückzusetzen:</p><a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">🔒 Neues Passwort setzen</a><p style="font-size:12px;color:#adb5bd;margin-top:16px">Gültig für 24 Stunden.</p></div></div>`
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(member)}</strong>,</p><p style="margin:12px 0">Klicke auf den Button um dein Passwort zurückzusetzen:</p><a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold"> Neues Passwort setzen</a><p style="font-size:12px;color:#adb5bd;margin-top:16px">Gültig für 24 Stunden.</p></div></div>`
   );
 }
 
@@ -531,10 +531,10 @@ async function fetchGames(force=false){
     const{data:dfb}=await sb.from('spiel_einstellungen').select('*').eq('wettbewerb','DFB-Pokal').order('datum_iso');
     const dfbGames=(dfb||[]).map(s=>({id:'dfb_'+s.id,api_id:'dfb_'+s.id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:'DFB-Pokal',status:'SCHEDULED',score:null,spielort:s.spielort,offiziell:true,matchday:null,is_dfb:true}));
     apiGames=[...data.map(s=>({id:'m_'+s.api_id,api_id:s.api_id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:s.wettbewerb,status:s.status,score:s.ergebnis,spielort:s.spielort,offiziell:s.offiziell,matchday:s.matchday})),...dfbGames].sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
-    st.className='api-status ok';st.textContent=`✓ ${apiGames.length} Spiele geladen`;
+    st.className='api-status ok';st.textContent=`&#10003; ${apiGames.length} Spiele geladen`;
     renderGames();
   }catch(e){
-    st.className='api-status err';st.textContent='⚠ Noch keine Spieldaten – Google Script ausführen';
+    st.className='api-status err';st.textContent='(!) Noch keine Spieldaten – Google Script ausführen';
     el.innerHTML='<div class="warn-box">Noch keine Spiele synchronisiert. Bitte <strong>testAlles()</strong> im Google Apps Script ausführen.</div>';
   }
 }
@@ -579,17 +579,17 @@ async function renderGames(){
             ${isNochNicht?'<span class="badge badge-orange">⏱ Uhrzeit noch nicht fix</span>':''}
             ${isFinished&&g.score?`<span class="badge badge-gray">${g.score}</span>`:''}
             ${!isFinished&&!isNochNicht?`<span class="badge badge-green">${beh_ofc+beh_ext} OFC</span><span class="badge badge-orange">${beh_oh} ohne OFC</span><span class="badge badge-red">${abg} abgegeben</span><span class="badge badge-gray">${off} offen</span>`:''}
-            ${phase==='stufe2'?'<span class="badge" style="background:#f8d7da;color:#842029">🍒 Fan-Bewerbung offen</span>':''}
-            ${phase==='stufe3'?'<span class="badge" style="background:#d1e7dd;color:#0a3622">👥 Freigabe Freunde</span>':''}
+            ${phase==='stufe2'?'<span class="badge" style="background:#f8d7da;color:#842029">&bull; Fan-Bewerbung offen</span>':''}
+            ${phase==='stufe3'?'<span class="badge" style="background:#d1e7dd;color:#0a3622"> Freigabe Freunde</span>':''}
           </div>
           ${fristStr&&!isFinished?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">⏱ ${fristStr}${fristAbgelaufen?' – ABGELAUFEN':''}</div>`:''}
         </div>
         ${!isFinished&&!isNochNicht&&isHsv&&!fristAbgelaufen?`
         <div style="display:flex;flex-direction:column;gap:5px;min-width:140px">
-          <button class="ticket-btn ${myDec==='behalten_ofc'?'active-behalten_ofc':''}" onclick="setTicket('${gid}','behalten_ofc')">✓ Behalten (OFC)</button>
-          <button class="ticket-btn ${myDec==='behalten_extra'?'active-behalten_extra':''}" onclick="setTicket('${gid}','behalten_extra')">✓+ Extra Karte</button>
+          <button class="ticket-btn ${myDec==='behalten_ofc'?'active-behalten_ofc':''}" onclick="setTicket('${gid}','behalten_ofc')">&#10003; Behalten (OFC)</button>
+          <button class="ticket-btn ${myDec==='behalten_extra'?'active-behalten_extra':''}" onclick="setTicket('${gid}','behalten_extra')">&#10003;+ Extra Karte</button>
           <button class="ticket-btn ${myDec==='behalten_ohne'?'active-behalten_ohne':''}" onclick="setTicket('${gid}','behalten_ohne')">○ Ohne OFC</button>
-          <button class="ticket-btn ${myDec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">↗ Abgeben</button>
+          <button class="ticket-btn ${myDec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">>> Abgeben</button>
           ${myDec?`<button class="btn btn-sm" style="font-size:11px" onclick="resetTicket('${gid}')">✕ Zurücksetzen</button>`:''}
         </div>`:''}
         ${!isFinished&&!isNochNicht&&isFan&&(phase==='stufe2'||abg>0)?`<div><button class="btn btn-sm btn-primary" onclick="requestCard('${gid}')">Karte anfragen</button></div>`:''}
@@ -614,7 +614,7 @@ async function requestCard(gid){
   const{data:ex}=await sb.from('kartenanfragen').select('*').eq('spiel_api_id',gid).eq('mitglied_id',currentUser.id).single();
   if(ex){toast('Du hast bereits eine Anfrage gestellt.');return;}
   await sb.from('kartenanfragen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,status:'offen'});
-  toast('Kartenanfrage gestellt ✓');renderGames();
+  toast('Kartenanfrage gestellt &#10003;');renderGames();
 }
 
 // ── KARTEN ───────────────────────────────────────────────
@@ -635,7 +635,7 @@ async function renderKarten(){
   let html='';
 
   if(currentUser.hsv_mitglied&&currentUser.typ!=='admin'){
-    html+=`<div class="info-box">🔒 Als Dauerkartenbesitzer kannst du pro Spiel wählen wie du deine Karte nutzen möchtest.</div>
+    html+=`<div class="info-box"> Als Dauerkartenbesitzer kannst du pro Spiel wählen wie du deine Karte nutzen möchtest.</div>
     <div class="decision-legend">
       <div class="legend-item"><div class="legend-dot" style="background:#0046AD"></div><span>Behalten (OFC)</span></div>
       <div class="legend-item"><div class="legend-dot" style="background:#198754"></div><span>Behalten + Extra</span></div>
@@ -657,20 +657,20 @@ async function renderKarten(){
           ${fristStr&&!fristAbgelaufen?`<div style="font-size:11px;color:var(--g500);margin-top:3px">⏱ Entscheidung ${fristStr}</div>`:''}
           ${fristAbgelaufen?`<div style="font-size:11px;color:#842029;margin-top:3px">⏱ Frist abgelaufen</div>`:''}</div>
           ${!fristAbgelaufen?`<div style="display:flex;flex-direction:column;gap:4px">
-            <button class="ticket-btn ${dec==='behalten_ofc'?'active-behalten_ofc':''}" onclick="setTicket('${gid}','behalten_ofc')">✓ Behalten (OFC)</button>
-            <button class="ticket-btn ${dec==='behalten_extra'?'active-behalten_extra':''}" onclick="setTicket('${gid}','behalten_extra')">✓+ Extra Karte</button>
+            <button class="ticket-btn ${dec==='behalten_ofc'?'active-behalten_ofc':''}" onclick="setTicket('${gid}','behalten_ofc')">&#10003; Behalten (OFC)</button>
+            <button class="ticket-btn ${dec==='behalten_extra'?'active-behalten_extra':''}" onclick="setTicket('${gid}','behalten_extra')">&#10003;+ Extra Karte</button>
             <button class="ticket-btn ${dec==='behalten_ohne'?'active-behalten_ohne':''}" onclick="setTicket('${gid}','behalten_ohne')">○ Ohne OFC</button>
-            <button class="ticket-btn ${dec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">↗ Abgeben</button>
+            <button class="ticket-btn ${dec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">>> Abgeben</button>
             ${dec?`<button class="btn btn-sm" style="font-size:11px;margin-top:2px" onclick="resetTicket('${gid}')">✕ Zurücksetzen</button>`:''}
           </div>`:`<span class="badge badge-gray">Frist abgelaufen</span>`}
         </div>
         ${dec?`<div class="divider"></div><div style="font-size:12px">Deine Wahl: <strong style="color:${DEC_COLORS[dec]}">${DEC_LABELS[dec]}</strong></div>`:''}
         ${dec==='abgeben'?`<div class="success-box" style="margin-top:10px"><strong>Zuteilung (${verf}):</strong> ${am?`Zugeteilt an <strong>${displayName(am)}</strong>`:(reqs.length>0?`${reqs.length} Anfrage(n) – Zuteilung läuft nach Frist automatisch`:'Noch keine Anfragen.')}</div>
-        ${phase==='stufe3'||(!am&&reqs.length===0)?`<div style="margin-top:10px"><div style="font-size:12px;color:#6c757d;margin-bottom:6px">👥 Stufe 3: Karte an Freund/Familie:</div><div style="display:flex;gap:8px"><input type="text" id="nm-${gid}" placeholder="Name" style="flex:1;padding:8px 12px;border:1.5px solid #dee2e6;border-radius:6px;font-size:13px;font-family:Inter,sans-serif" ${zut?.nichtmitglied?`value="${zut.nichtmitglied}" disabled`:''}>${!zut?.nichtmitglied?`<button class="btn btn-sm" onclick="giveNonMember('${gid}')">Vergeben</button>`:''}</div>${zut?.nichtmitglied?`<div style="font-size:12px;color:#0a3622;margin-top:6px">✓ Vergeben an: <strong>${zut.nichtmitglied}</strong></div>`:''}</div>`:''}`:''}
+        ${phase==='stufe3'||(!am&&reqs.length===0)?`<div style="margin-top:10px"><div style="font-size:12px;color:#6c757d;margin-bottom:6px"> Stufe 3: Karte an Freund/Familie:</div><div style="display:flex;gap:8px"><input type="text" id="nm-${gid}" placeholder="Name" style="flex:1;padding:8px 12px;border:1.5px solid #dee2e6;border-radius:6px;font-size:13px;font-family:Inter,sans-serif" ${zut?.nichtmitglied?`value="${zut.nichtmitglied}" disabled`:''}>${!zut?.nichtmitglied?`<button class="btn btn-sm" onclick="giveNonMember('${gid}')">Vergeben</button>`:''}</div>${zut?.nichtmitglied?`<div style="font-size:12px;color:#0a3622;margin-top:6px">&#10003; Vergeben an: <strong>${zut.nichtmitglied}</strong></div>`:''}</div>`:''}`:''}
       </div>`;
     }
   } else if(!currentUser.hsv_mitglied){
-    html+=`<div class="info-box">📊 Als Fan-Mitglied kannst du Karten anfragen wenn HSV-Mitglieder abgeben. Du erhältst eine E-Mail wenn Karten verfügbar sind.</div>`;
+    html+=`<div class="info-box"> Als Fan-Mitglied kannst du Karten anfragen wenn HSV-Mitglieder abgeben. Du erhältst eine E-Mail wenn Karten verfügbar sind.</div>`;
     if(!games.length)html+='<p style="color:#6c757d">Keine kommenden Spiele.</p>';
     for(const g of games){
       const gid=g.api_id;
@@ -681,8 +681,8 @@ async function renderKarten(){
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
           <div><div style="font-size:14px;font-weight:500">${g.heimteam} vs. ${g.gastteam}</div>
           <div style="font-size:12px;color:#6c757d;margin-top:3px">${fmtDate(g.datum_iso)}</div>
-          <div style="margin-top:6px">${freie>0?`<span class="badge badge-green">🎟 ${freie} Karte(s) im Pool</span>`:'<span class="badge badge-gray">Keine Karten frei</span>'}</div></div>
-          <div>${assigned?`<span class="badge badge-green" style="font-size:13px;padding:7px 14px">🎉 Karte erhalten!</span>`
+          <div style="margin-top:6px">${freie>0?`<span class="badge badge-green"> ${freie} Karte(s) im Pool</span>`:'<span class="badge badge-gray">Keine Karten frei</span>'}</div></div>
+          <div>${assigned?`<span class="badge badge-green" style="font-size:13px;padding:7px 14px">>> Karte erhalten!</span>`
             :myReq?`<span class="badge badge-bl">Anfrage gestellt</span>`
             :(phase==='stufe2'||(!phase&&freie>0))&&freie>0?`<button class="btn btn-sm btn-primary" onclick="requestCard('${gid}')">Karte anfragen</button>`:''}</div>
         </div>
@@ -695,7 +695,7 @@ async function renderKarten(){
   el.innerHTML=html;
 }
 
-async function giveNonMember(gid){const name=document.getElementById('nm-'+gid)?.value.trim();if(!name){toast('Bitte Namen eingeben.');return;}const{data:reqs}=await sb.from('kartenanfragen').select('*').eq('spiel_api_id',gid).eq('status','offen');if(reqs&&reqs.length>0){toast('Noch offene Fan-Anfragen!');return;}await sb.from('kartenzuteilungen').upsert({spiel_id:gid,spiel_api_id:gid,nichtmitglied:name},{onConflict:'spiel_id'});toast('Karte vergeben an '+name+' ✓');renderKarten();}
+async function giveNonMember(gid){const name=document.getElementById('nm-'+gid)?.value.trim();if(!name){toast('Bitte Namen eingeben.');return;}const{data:reqs}=await sb.from('kartenanfragen').select('*').eq('spiel_api_id',gid).eq('status','offen');if(reqs&&reqs.length>0){toast('Noch offene Fan-Anfragen!');return;}await sb.from('kartenzuteilungen').upsert({spiel_id:gid,spiel_api_id:gid,nichtmitglied:name},{onConflict:'spiel_id'});toast('Karte vergeben an '+name+' &#10003;');renderKarten();}
 
 // ── STATISTIK ─────────────────────────────────────────────
 function renderStats(){
@@ -719,7 +719,7 @@ function renderProfile(){
   document.getElementById('profil-username').value=currentUser.benutzername||'(ausstehend)';
   document.getElementById('profil-email').value=currentUser.email||'';
 }
-async function handlePhotoUpload(evt){const file=evt.target.files[0];if(!file)return;if(file.size>2*1024*1024){toast('Max. 2 MB');return;}const reader=new FileReader();reader.onload=async e=>{const url=e.target.result;await sb.from('mitglieder').update({foto_url:url}).eq('id',currentUser.id);currentUser.foto_url=url;const idx=allMembers.findIndex(m=>m.id===currentUser.id);if(idx!==-1)allMembers[idx].foto_url=url;renderProfile();renderStats();toast('Foto gespeichert ✓');};reader.readAsDataURL(file);}
+async function handlePhotoUpload(evt){const file=evt.target.files[0];if(!file)return;if(file.size>2*1024*1024){toast('Max. 2 MB');return;}const reader=new FileReader();reader.onload=async e=>{const url=e.target.result;await sb.from('mitglieder').update({foto_url:url}).eq('id',currentUser.id);currentUser.foto_url=url;const idx=allMembers.findIndex(m=>m.id===currentUser.id);if(idx!==-1)allMembers[idx].foto_url=url;renderProfile();renderStats();toast('Foto gespeichert &#10003;');};reader.readAsDataURL(file);}
 async function saveProfile(){
   const dn=document.getElementById('profil-displayname').value.trim(),email=document.getElementById('profil-email').value.trim(),np=document.getElementById('profil-newpass').value,np2=document.getElementById('profil-newpass2').value;
   if(!dn){toast('Bitte Anzeigename eingeben.');return;}if(np&&np!==np2){toast('Passwörter stimmen nicht überein!');return;}
@@ -727,13 +727,13 @@ async function saveProfile(){
   await sb.from('mitglieder').update(upd).eq('id',currentUser.id);Object.assign(currentUser,upd);
   document.getElementById('header-name').textContent=displayName(currentUser);
   document.getElementById('profil-newpass').value='';document.getElementById('profil-newpass2').value='';
-  await loadMembers();renderProfile();renderStats();toast('Profil gespeichert ✓');
+  await loadMembers();renderProfile();renderStats();toast('Profil gespeichert &#10003;');
 }
 
 // ── ADMIN MITGLIEDER ─────────────────────────────────────
 function renderAdminMembers(){
   const el=document.getElementById('admin-member-list');
-  el.innerHTML=allMembers.filter(m=>m.typ!=='admin').map(m=>`<div class="member-row">${avatarHTML(m)}<div class="member-info"><strong>${displayName(m)} &nbsp;<span class="badge ${m.hsv_mitglied?'badge-hsv':'badge-fan'}">${m.hsv_mitglied?'HSV':'Fan'}</span>${!m.benutzername?'&nbsp;<span class="badge badge-orange">Konto ausstehend</span>':''}</strong><span>@${m.benutzername||'–'} · ${m.email||'<span style="color:#dc3545">Keine E-Mail</span>'} · ${m.karten_count} Karten${m.mitgliedsnummer?' · Nr. '+m.mitgliedsnummer:''}</span></div><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-sm" onclick="resendInvite('${m.id}')" title="Einladung senden">✉</button><button class="btn btn-sm" onclick="resetMemberPassword('${m.id}','${m.email||''}')" title="Passwort zurücksetzen">🔒</button><button class="btn btn-sm" onclick="editMember('${m.id}')" title="Bearbeiten">✎</button><button class="btn btn-sm btn-danger" onclick="removeMember('${m.id}')" title="Entfernen">🗑</button></div></div>`).join('');
+  el.innerHTML=allMembers.filter(m=>m.typ!=='admin').map(m=>`<div class="member-row">${avatarHTML(m)}<div class="member-info"><strong>${displayName(m)} &nbsp;<span class="badge ${m.hsv_mitglied?'badge-hsv':'badge-fan'}">${m.hsv_mitglied?'HSV':'Fan'}</span>${!m.benutzername?'&nbsp;<span class="badge badge-orange">Konto ausstehend</span>':''}</strong><span>@${m.benutzername||'–'} · ${m.email||'<span style="color:#dc3545">Keine E-Mail</span>'} · ${m.karten_count} Karten${m.mitgliedsnummer?' · Nr. '+m.mitgliedsnummer:''}</span></div><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-sm" onclick="resendInvite('${m.id}')" title="Einladung senden"></button><button class="btn btn-sm" onclick="resetMemberPassword('${m.id}','${m.email||''}')" title="Passwort zurücksetzen"></button><button class="btn btn-sm" onclick="editMember('${m.id}')" title="Bearbeiten">✎</button><button class="btn btn-sm btn-danger" onclick="removeMember('${m.id}')" title="Entfernen">🗑</button></div></div>`).join('');
 }
 
 async function addMember(){
@@ -745,7 +745,7 @@ async function addMember(){
   await sendWelcomeMail(newM);
   toggleForm('admin-add-member-form');
   ['new-name','new-display','new-email','new-mgnr'].forEach(id=>document.getElementById(id).value='');
-  await loadMembers();renderAdminMembers();renderStats();toast('Mitglied eingeladen ✓');
+  await loadMembers();renderAdminMembers();renderStats();toast('Mitglied eingeladen &#10003;');
 }
 
 async function editMember(id){
@@ -757,7 +757,7 @@ async function editMember(id){
   const n=parseInt(karten);
   if(isNaN(n)||n<0){toast('Ungültige Zahl.');return;}
   await sb.from('mitglieder').update({mitgliedsnummer:mgnr||null,karten_count:n}).eq('id',id);
-  await loadMembers();renderAdminMembers();renderStats();toast('Aktualisiert ✓');
+  await loadMembers();renderAdminMembers();renderStats();toast('Aktualisiert &#10003;');
 }
 
 async function removeMember(id){if(!confirm('Mitglied wirklich entfernen?'))return;await sb.from('mitglieder').delete().eq('id',id);await loadMembers();renderAdminMembers();renderStats();toast('Mitglied entfernt.');}
@@ -767,11 +767,11 @@ async function sendWelcomeMail(member){
   await sb.from('auth_tokens').insert({mitglied_id:member.id,token,typ:'setup',gueltig_bis:gueltigBis});
   const link=`${APP_URL}?action=setup&token=${token}`;
   await queueMail(member.email,'Willkommen beim OFC Kirschkrieger! Konto einrichten',
-    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p style="font-size:16px">Willkommen <strong>${member.anzeigename||member.name}</strong>! 🍒</p><p style="margin:12px 0;color:#495057">Du wurdest als ${member.hsv_mitglied?'HSV-Mitglied (Dauerkarte)':'Fan-Mitglied'} eingeladen.</p><p style="margin-bottom:20px;color:#495057">Klicke hier um deinen Benutzernamen und Passwort einzurichten:</p><a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold">👤 Konto einrichten</a><p style="font-size:12px;color:#adb5bd;margin-top:20px">Gültig für 24 Stunden.</p></div><div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger · Offizieller HSV Fanclub</p></div></div>`
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p style="font-size:16px">Willkommen <strong>${member.anzeigename||member.name}</strong>! &bull;</p><p style="margin:12px 0;color:#495057">Du wurdest als ${member.hsv_mitglied?'HSV-Mitglied (Dauerkarte)':'Fan-Mitglied'} eingeladen.</p><p style="margin-bottom:20px;color:#495057">Klicke hier um deinen Benutzernamen und Passwort einzurichten:</p><a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold"> Konto einrichten</a><p style="font-size:12px;color:#adb5bd;margin-top:20px">Gültig für 24 Stunden.</p></div><div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger · Offizieller HSV Fanclub</p></div></div>`
   );
 }
 
-async function resendInvite(id){const m=allMembers.find(x=>x.id===id);if(!m?.email){toast('Keine E-Mail!');return;}await sendWelcomeMail(m);toast('Einladung gesendet ✓');}
+async function resendInvite(id){const m=allMembers.find(x=>x.id===id);if(!m?.email){toast('Keine E-Mail!');return;}await sendWelcomeMail(m);toast('Einladung gesendet &#10003;');}
 async function resetMemberPassword(id,email){
   if(!email){toast('Keine E-Mail!');return;}
   const m=allMembers.find(x=>x.id===id);if(!m)return;
@@ -779,9 +779,9 @@ async function resetMemberPassword(id,email){
   await sb.from('auth_tokens').insert({mitglied_id:id,token,typ:'reset',gueltig_bis:gueltigBis});
   const link=`${APP_URL}?action=reset&token=${token}`;
   await queueMail(email,'OFC Kirschkrieger – Passwort zurücksetzen',
-    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">Klicke hier um dein Passwort zurückzusetzen:</p><a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">🔒 Passwort zurücksetzen</a><p style="font-size:12px;color:#adb5bd;margin-top:16px">Gültig 24 Stunden.</p></div></div>`
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">Klicke hier um dein Passwort zurückzusetzen:</p><a href="${link}" style="display:inline-block;background:#0046AD;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold"> Passwort zurücksetzen</a><p style="font-size:12px;color:#adb5bd;margin-top:16px">Gültig 24 Stunden.</p></div></div>`
   );
-  toast('Reset-Mail gesendet ✓');
+  toast('Reset-Mail gesendet &#10003;');
 }
 
 // ── ADMIN SPIELE & FRISTEN ────────────────────────────────
@@ -803,16 +803,16 @@ async function renderAdminSpiele(){
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-sm btn-primary" onclick="saveSpielEinstellungen('${sp.id}')">Speichern</button>
-      <button class="btn btn-sm btn-green" onclick="sendManualMail('${sp.id}','stufe1')">✉ Mail Stufe 1</button>
-      <button class="btn btn-sm" onclick="sendManualMail('${sp.id}','stufe2')">✉ Mail Stufe 2</button>
-      <button class="btn btn-sm btn-primary" onclick="generatePDFForSpiel('${sp.spiel_api_id}','${sp.heimteam} vs. ${sp.gastteam}')">📄 PDF</button>
+      <button class="btn btn-sm btn-green" onclick="sendManualMail('${sp.id}','stufe1')"> Mail Stufe 1</button>
+      <button class="btn btn-sm" onclick="sendManualMail('${sp.id}','stufe2')"> Mail Stufe 2</button>
+      <button class="btn btn-sm btn-primary" onclick="generatePDFForSpiel('${sp.spiel_api_id}','${sp.heimteam} vs. ${sp.gastteam}')"> PDF</button>
     </div>
   </div>`).join('');
 }
 
 async function saveSpielEinstellungen(id){
   await sb.from('spiel_einstellungen').update({frist_pool_bis:document.getElementById(`sp-f1-${id}`)?.value||null,frist_fan_bis:document.getElementById(`sp-f2-${id}`)?.value||null,frist_stufe3_ab:document.getElementById(`sp-f3-${id}`)?.value||null,vergabe_verfahren:document.getElementById(`sp-v-${id}`)?.value}).eq('id',id);
-  toast('Gespeichert ✓');renderAdminSpiele();
+  toast('Gespeichert &#10003;');renderAdminSpiele();
 }
 
 async function sendManualMail(id,typ){
@@ -824,12 +824,12 @@ async function sendManualMail(id,typ){
     for(const m of hsvM){
       const behLink=`${APP_URL}?dec=behalten_ofc&mid=${m.id}&sid=${sp.spiel_api_id}`;
       const abgLink=`${APP_URL}?dec=abgeben&mid=${m.id}&sid=${sp.spiel_api_id}`;
-      await queueMail(m.email,`⚽ HSV: ${sp.heimteam} vs. ${sp.gastteam} – Karte?`,
-        `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hey <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">${sp.heimteam} vs. ${sp.gastteam} – ${fmtDate(sp.datum_iso)}</p><p style="margin-bottom:16px;color:#495057;font-size:13px">Bitte entscheide${sp.frist_pool_bis?` bis ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE')}`:''} wie du deine Karte nutzen möchtest:</p><table width="100%"><tr><td style="padding:4px"><a href="${behLink}" style="display:block;background:#0046AD;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center;font-weight:bold;font-size:13px">✓ Behalten (OFC)</a></td><td style="padding:4px"><a href="${abgLink}" style="display:block;background:#CC0000;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center;font-weight:bold;font-size:13px">↗ Abgeben</a></td></tr></table><p style="font-size:12px;color:#adb5bd;margin-top:14px">Weitere Optionen (Extra Karte, Ohne OFC) in der App.</p></div></div>`
+      await queueMail(m.email,`HSV: HSV: ${sp.heimteam} vs. ${sp.gastteam} – Karte?`,
+        `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hey <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">${sp.heimteam} vs. ${sp.gastteam} – ${fmtDate(sp.datum_iso)}</p><p style="margin-bottom:16px;color:#495057;font-size:13px">Bitte entscheide${sp.frist_pool_bis?` bis ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE')}`:''} wie du deine Karte nutzen möchtest:</p><table width="100%"><tr><td style="padding:4px"><a href="${behLink}" style="display:block;background:#0046AD;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center;font-weight:bold;font-size:13px">&#10003; Behalten (OFC)</a></td><td style="padding:4px"><a href="${abgLink}" style="display:block;background:#CC0000;color:#fff;padding:10px;border-radius:8px;text-decoration:none;text-align:center;font-weight:bold;font-size:13px">>> Abgeben</a></td></tr></table><p style="font-size:12px;color:#adb5bd;margin-top:14px">Weitere Optionen (Extra Karte, Ohne OFC) in der App.</p></div></div>`
       );
     }
   }
-  toast('Mails in Queue gespeichert ✓');
+  toast('Mails in Queue gespeichert &#10003;');
 }
 
 // ── DFB-POKAL ────────────────────────────────────────────
@@ -842,8 +842,8 @@ async function renderDFBSpiele(){
     <div style="font-size:12px;color:#6c757d">${fmtDate(sp.datum_iso)} · ${sp.spielort}</div>
     <div style="font-size:11px;color:#6c757d;margin-top:4px">Phase: ${sp.phase||'wartend'} · Verfahren: ${sp.vergabe_verfahren}</div>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn btn-sm btn-green" onclick="sendManualMail('${sp.id}','stufe1')">✉ Mails auslösen</button>
-      <button class="btn btn-sm btn-primary" onclick="generatePDFForSpiel('${sp.spiel_api_id}','${sp.heimteam} vs. ${sp.gastteam}')">📄 PDF</button>
+      <button class="btn btn-sm btn-green" onclick="sendManualMail('${sp.id}','stufe1')"> Mails auslösen</button>
+      <button class="btn btn-sm btn-primary" onclick="generatePDFForSpiel('${sp.spiel_api_id}','${sp.heimteam} vs. ${sp.gastteam}')"> PDF</button>
     </div>
   </div>`).join('');
 }
@@ -860,12 +860,12 @@ async function addDFBSpiel(){
   await sendManualMail(sp.id,'stufe1');
   ['dfb-away','dfb-date','dfb-runde','dfb-frist1','dfb-frist2','dfb-frist3'].forEach(id=>document.getElementById(id).value='');
   await renderDFBSpiele();
-  toast('DFB-Pokal Spiel gespeichert & Mails ausgelöst ✓');
+  toast('DFB-Pokal Spiel gespeichert & Mails ausgelöst &#10003;');
 }
 
 // ── EINSTELLUNGEN ────────────────────────────────────────
 async function loadEinstellungen(){const{data}=await sb.from('einstellungen').select('*').eq('id','global').single();if(data){globalSettings=data;document.getElementById('set-frist-pool').value=data.frist_tage_pool||5;document.getElementById('set-frist-fan').value=data.frist_tage_fan||3;document.getElementById('set-frist-stufe3').value=data.frist_tage_stufe3||1;document.getElementById('set-verfahren').value=data.vergabe_verfahren||'selten';}}
-async function saveEinstellungen(){const upd={frist_tage_pool:parseInt(document.getElementById('set-frist-pool').value)||5,frist_tage_fan:parseInt(document.getElementById('set-frist-fan').value)||3,frist_tage_stufe3:parseInt(document.getElementById('set-frist-stufe3').value)||1,vergabe_verfahren:document.getElementById('set-verfahren').value,updated_at:new Date().toISOString()};await sb.from('einstellungen').upsert({id:'global',...upd});globalSettings=upd;toast('Einstellungen gespeichert ✓');}
+async function saveEinstellungen(){const upd={frist_tage_pool:parseInt(document.getElementById('set-frist-pool').value)||5,frist_tage_fan:parseInt(document.getElementById('set-frist-fan').value)||3,frist_tage_stufe3:parseInt(document.getElementById('set-frist-stufe3').value)||1,vergabe_verfahren:document.getElementById('set-verfahren').value,updated_at:new Date().toISOString()};await sb.from('einstellungen').upsert({id:'global',...upd});globalSettings=upd;toast('Einstellungen gespeichert &#10003;');}
 
 // ── ZUTEILUNGEN ──────────────────────────────────────────
 async function renderAdminZuteilung(){
@@ -875,7 +875,7 @@ async function renderAdminZuteilung(){
   const games=apiGames.filter(g=>g.status!=='FINISHED');
   el.innerHTML=games.map(g=>{const gid=g.api_id,z=zutMap[gid],am=z?.mitglied;return`<div class="card"><div style="font-size:14px;font-weight:500;margin-bottom:4px">${g.heimteam} vs. ${g.gastteam} ${compBadge(g.wettbewerb)}</div><div style="font-size:12px;color:#6c757d;margin-bottom:10px">${fmtDate(g.datum_iso)}</div>${am?`<div style="font-size:13px;margin-bottom:10px">Zugeteilt: <strong>${displayName(am)}</strong></div>`:z?.nichtmitglied?`<div style="font-size:13px;margin-bottom:10px">Nichtmitglied: <strong>${z.nichtmitglied}</strong></div>`:`<div style="font-size:13px;color:#6c757d;margin-bottom:10px">Noch keine Zuteilung</div>`}<div style="display:flex;gap:8px"><select id="ov-${gid}" style="flex:1;padding:8px;border:1.5px solid #dee2e6;border-radius:6px;font-size:13px;font-family:Inter,sans-serif"><option value="">– Mitglied wählen –</option>${allMembers.filter(m=>m.typ!=='admin').map(m=>`<option value="${m.id}">${displayName(m)} (${m.karten_count} Karten)</option>`).join('')}</select><button class="btn btn-sm btn-primary" onclick="overrideAssign('${gid}')">Zuweisen</button></div></div>`;}).join('');
 }
-async function overrideAssign(gid){const sel=document.getElementById('ov-'+gid)?.value;if(!sel){toast('Bitte Mitglied wählen.');return;}const{data:old}=await sb.from('kartenzuteilungen').select('*').eq('spiel_api_id',gid).single();if(old?.mitglied_id){const om=allMembers.find(m=>m.id===old.mitglied_id);if(om&&om.karten_count>0)await sb.from('mitglieder').update({karten_count:om.karten_count-1}).eq('id',om.id);}await sb.from('kartenzuteilungen').delete().eq('spiel_api_id',gid);await sb.from('kartenzuteilungen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:sel});const nm=allMembers.find(m=>m.id===sel);if(nm)await sb.from('mitglieder').update({karten_count:nm.karten_count+1}).eq('id',sel);await loadMembers();renderAdminZuteilung();renderStats();toast('Zuteilung gespeichert ✓');}
+async function overrideAssign(gid){const sel=document.getElementById('ov-'+gid)?.value;if(!sel){toast('Bitte Mitglied wählen.');return;}const{data:old}=await sb.from('kartenzuteilungen').select('*').eq('spiel_api_id',gid).single();if(old?.mitglied_id){const om=allMembers.find(m=>m.id===old.mitglied_id);if(om&&om.karten_count>0)await sb.from('mitglieder').update({karten_count:om.karten_count-1}).eq('id',om.id);}await sb.from('kartenzuteilungen').delete().eq('spiel_api_id',gid);await sb.from('kartenzuteilungen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:sel});const nm=allMembers.find(m=>m.id===sel);if(nm)await sb.from('mitglieder').update({karten_count:nm.karten_count+1}).eq('id',sel);await loadMembers();renderAdminZuteilung();renderStats();toast('Zuteilung gespeichert &#10003;');}
 
 // ── PDF HSV-MELDUNG ───────────────────────────────────────
 async function renderPDFSection(){
@@ -887,7 +887,7 @@ async function renderPDFSection(){
       <div style="font-size:14px;font-weight:500">${sp.heimteam} vs. ${sp.gastteam}</div>
       <div style="font-size:12px;color:#6c757d">${fmtDate(sp.datum_iso)} · ${compBadge(sp.wettbewerb)}</div>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="generatePDFForSpiel('${sp.spiel_api_id}','${sp.heimteam} vs. ${sp.gastteam}','${sp.datum_iso}')">📄 PDF erstellen</button>
+    <button class="btn btn-primary btn-sm" onclick="generatePDFForSpiel('${sp.spiel_api_id}','${sp.heimteam} vs. ${sp.gastteam}','${sp.datum_iso}')"> PDF erstellen</button>
   </div>`).join('');
 }
 
