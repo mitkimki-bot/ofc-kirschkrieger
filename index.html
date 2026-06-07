@@ -1150,23 +1150,28 @@ async function handlePhotoUpload(evt){
 }
 
 async function saveProfile(){
-  const dn=document.getElementById('profil-displayname').value.trim();
-  const email=document.getElementById('profil-email').value.trim();
-  const np=document.getElementById('profil-newpass').value;
-  const np2=document.getElementById('profil-newpass2').value;
-  
-  const optS=document.getElementById('profil-opt-spieltag').checked;
-  const optI=document.getElementById('profil-opt-info').checked;
-  if(!dn){toast('Bitte Anzeigename eingeben.');return;}
-  if(np&&np!==np2){toast('Passwoerter stimmen nicht ueberein!');return;}
-  const upd={anzeigename:dn,email:email||null,opt_spieltag:optS,opt_hsv_info:optI};
-  if(np){upd.passwort=await hashPassword(np);}
-  await sb.from('mitglieder').update(upd).eq('id',currentUser.id);
-  Object.assign(currentUser,upd);
-  document.getElementById('header-name').textContent=displayName(currentUser);
-  document.getElementById('profil-newpass').value='';
-  document.getElementById('profil-newpass2').value='';
-  await loadMembers();renderProfile();renderStats();toast('Profil gespeichert');
+  try{
+    const dn=document.getElementById('profil-displayname').value.trim();
+    const email=document.getElementById('profil-email').value.trim();
+    const np=document.getElementById('profil-newpass').value;
+    const np2=document.getElementById('profil-newpass2').value;
+    const optS=document.getElementById('profil-opt-spieltag').checked;
+    const optI=document.getElementById('profil-opt-info').checked;
+    if(!dn){toast('Bitte Anzeigename eingeben.');return;}
+    if(np&&np!==np2){toast('Passwoerter stimmen nicht ueberein!');return;}
+    const upd={anzeigename:dn,email:email||null,opt_spieltag:optS,opt_hsv_info:optI};
+    if(np){upd.passwort=await hashPassword(np);}
+    const{error}=await sb.from('mitglieder').update(upd).eq('id',currentUser.id);
+    if(error){toast('Fehler: '+error.message);return;}
+    Object.assign(currentUser,upd);
+    document.getElementById('header-name').textContent=displayName(currentUser);
+    document.getElementById('profil-newpass').value='';
+    document.getElementById('profil-newpass2').value='';
+    await loadMembers();renderProfile();renderStats();toast('Profil gespeichert ✓');
+  }catch(e){
+    toast('Fehler: '+e.message);
+    console.log('saveProfile Fehler:',e);
+  }
 }
 
 // ══ INFO & REGELN ═════════════════════════════════════
