@@ -312,7 +312,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
       <button onclick="showTab('karten',this)">Karten</button>
       <button onclick="showTab('stats',this)">Statistik</button>
       <button onclick="showTab('info',this)">Info & Regeln</button>
-      <button onclick="showTab('bewerbungen',this)">HSV Karten</button>
+      <button id="hsv-karten-nav-btn" onclick="showTab('bewerbungen',this)" style="display:none">HSV Karten</button>
       <button onclick="showTab('profil',this)">Mein Profil</button>
       <button id="admin-nav-btn" onclick="showTab('admin',this)" style="display:none">Admin</button>
     </div>
@@ -749,7 +749,10 @@ async function doLogin(){
   document.getElementById('login-err').style.display='none';
   currentUser=data;
   document.getElementById('header-name').textContent=displayName(data);
-  if(data.typ==='admin')document.getElementById('admin-nav-btn').style.display='block';
+  if(data.typ==='admin'){
+    document.getElementById('admin-nav-btn').style.display='block';
+    document.getElementById('hsv-karten-nav-btn').style.display='block';
+  }
   await loadMembers();
   await fetchGames();
   renderStats();
@@ -1154,8 +1157,19 @@ async function renderGames(){
   const{data:sps}=await sb.from('spiel_einstellungen').select('*');
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
 
+  // HSV Bewerbungen laden
+  const{data:hsvBews}=await sb.from('hsv_bewerbungen').select('*').eq('status','offen');
+  const hsvBewMap={};
+  (hsvBews||[]).forEach(b=>{
+    // Gegner-Name mit Spieltag verknüpfen
+    hsvBewMap[b.gegner]=b;
+  });
+
   el.innerHTML=filtered.map(g=>{
     const gid=g.api_id,dec=allDec||[];
+    // HSV Bewerbung für dieses Spiel suchen (Gegner-Match)
+    const hsvBew=Object.values(hsvBewMap).find(b=>g.gastteam&&g.gastteam.includes(b.gegner)||g.heimteam&&g.heimteam.includes(b.gegner))||null;
+    const hsvBewFristStr=hsvBew?new Date(new Date(hsvBew.bewerbungsfrist).setDate(new Date(hsvBew.bewerbungsfrist).getDate()-7)).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
     const beh_ofc=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_ofc').length;
     const beh_ext=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_extra').length;
     const beh_oh=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_ohne').length;
@@ -1183,6 +1197,7 @@ async function renderGames(){
             ${phase==='stufe3'?'<span class="badge badge-green">Freigabe Freunde</span>':''}
           </div>
           ${fristStr&&!isFinished?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">${fristStr}${fristAbgelaufen?' - ABGELAUFEN':''}</div>`:''}
+          ${hsvBew&&!isFinished?`<div style="font-size:11px;font-weight:500;color:#842029;margin-top:4px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis ${hsvBewFristStr} entscheiden</div>`:''}
         </div>
         ${!isFinished&&!isNochNicht&&isHsv&&!fristAbgelaufen?`
         <div style="min-width:150px">
