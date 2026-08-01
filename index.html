@@ -1159,17 +1159,12 @@ async function renderGames(){
 
   // HSV Bewerbungen laden
   const{data:hsvBews}=await sb.from('hsv_bewerbungen').select('*').eq('status','offen');
-  const hsvBewMap={};
-  (hsvBews||[]).forEach(b=>{
-    // Gegner-Name mit Spieltag verknüpfen
-    hsvBewMap[b.gegner]=b;
-  });
 
   el.innerHTML=filtered.map(g=>{
     const gid=g.api_id,dec=allDec||[];
-    // HSV Bewerbung für dieses Spiel suchen (Gegner-Match)
-    const hsvBew=Object.values(hsvBewMap).find(b=>g.gastteam&&g.gastteam.includes(b.gegner)||g.heimteam&&g.heimteam.includes(b.gegner))||null;
-    const hsvBewFristStr=hsvBew?new Date(new Date(hsvBew.bewerbungsfrist).setDate(new Date(hsvBew.bewerbungsfrist).getDate()-7)).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
+    const hsvBew=hsvBews&&hsvBews.find(b=>(g.gastteam||'').includes(b.gegner)||(g.heimteam||'').includes(b.gegner));
+    let hsvBewFristStr='';
+    if(hsvBew&&hsvBew.bewerbungsfrist){const hf=new Date(hsvBew.bewerbungsfrist);hf.setDate(hf.getDate()-7);hsvBewFristStr=hf.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});}
     const beh_ofc=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_ofc').length;
     const beh_ext=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_extra').length;
     const beh_oh=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_ohne').length;
