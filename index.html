@@ -810,17 +810,17 @@ async function renderBewerbungen(){
           (losTyp==='dauerkarte'?'Dauerkarte – beantragt':losTyp==='los_gewonnen'?'Los gewonnen – beantragt':'Leider nicht gezogen')+'</div>':'')+
         (!istAbgelaufen&&!myAnt&&isHsv?
           '<div style="display:flex;flex-direction:column;gap:4px;margin-top:10px;max-width:200px">'+
-            '<button class="ticket-btn" onclick="antworteHSV(''+b.id+'','behalten_ofc')">Behalten (OFC)</button>'+
-            '<button class="ticket-btn" onclick="antworteHSV(''+b.id+'','behalten_extra')">Behalten + Extra</button>'+
-            '<button class="ticket-btn" onclick="antworteHSV(''+b.id+'','behalten_ohne')">Ohne OFC</button>'+
-            '<button class="ticket-btn" onclick="antworteHSV(''+b.id+'','abgeben')">Karte abgeben</button>'+
+            '<button class="ticket-btn" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;behalten_ofc&quot;)">Behalten (OFC)</button>'+
+            '<button class="ticket-btn" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;behalten_extra&quot;)">Behalten + Extra</button>'+
+            '<button class="ticket-btn" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;behalten_ohne&quot;)">Ohne OFC</button>'+
+            '<button class="ticket-btn" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;abgeben&quot;)">Karte abgeben</button>'+
           '</div>':'')+
         (!istAbgelaufen&&!myAnt&&isFan?
           '<div style="display:flex;gap:8px;margin-top:10px">'+
-            '<button class="btn btn-sm btn-primary" onclick="antworteHSV(''+b.id+'','ja')">Ja, dabei!</button>'+
-            '<button class="btn btn-sm" onclick="antworteHSV(''+b.id+'','nein')">Nein, danke</button>'+
+            '<button class="btn btn-sm btn-primary" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;ja&quot;)">Ja, dabei!</button>'+
+            '<button class="btn btn-sm" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;nein&quot;)">Nein, danke</button>'+
           '</div>':'')+
-        (myAnt&&!istAbgelaufen?'<button class="btn btn-sm" style="margin-top:8px" onclick="resetBewerbung(''+b.id+'')">Zurücksetzen</button>':'')+
+        (myAnt&&!istAbgelaufen?'<button class="btn btn-sm" style="margin-top:8px" onclick="resetBewerbung(&quot;'+b.id+'&quot;)">Zurücksetzen</button>':'')+
       '</div>';
     }).join('');
   }catch(e){
@@ -1157,14 +1157,8 @@ async function renderGames(){
   const{data:sps}=await sb.from('spiel_einstellungen').select('*');
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
 
-  // HSV Bewerbungen laden
-  const{data:hsvBews}=await sb.from('hsv_bewerbungen').select('*').eq('status','offen');
-
   el.innerHTML=filtered.map(g=>{
     const gid=g.api_id,dec=allDec||[];
-    const hsvBew=hsvBews&&hsvBews.find(b=>(g.gastteam||'').includes(b.gegner)||(g.heimteam||'').includes(b.gegner));
-    let hsvBewFristStr='';
-    if(hsvBew&&hsvBew.bewerbungsfrist){const hf=new Date(hsvBew.bewerbungsfrist);hf.setDate(hf.getDate()-7);hsvBewFristStr=hf.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});}
     const beh_ofc=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_ofc').length;
     const beh_ext=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_extra').length;
     const beh_oh=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_ohne').length;
@@ -1192,7 +1186,7 @@ async function renderGames(){
             ${phase==='stufe3'?'<span class="badge badge-green">Freigabe Freunde</span>':''}
           </div>
           ${fristStr&&!isFinished?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">${fristStr}${fristAbgelaufen?' - ABGELAUFEN':''}</div>`:''}
-          ${hsvBew&&!isFinished?`<div style="font-size:11px;font-weight:500;color:#842029;margin-top:4px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis ${hsvBewFristStr} entscheiden</div>`:''}
+
         </div>
         ${!isFinished&&!isNochNicht&&isHsv&&!fristAbgelaufen?`
         <div style="min-width:150px">
