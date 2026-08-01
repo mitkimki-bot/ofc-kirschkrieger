@@ -1147,11 +1147,13 @@ async function fetchGames(force=false){
 async function renderGames(){
   const el=document.getElementById('games-list');
   if(!apiGames.length){el.innerHTML='<p style="color:#6c757d;text-align:center;padding:20px">Keine Spiele.</p>';return;}
-  let filtered=apiGames;
-  if(gameFilter==='upcoming')filtered=apiGames.filter(g=>g.status!=='FINISHED'&&g.status!=='POSTPONED');
-  if(gameFilter==='finished')filtered=apiGames.filter(g=>g.status==='FINISHED');
-  if(gameFilter==='BL1')filtered=apiGames.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
-  if(gameFilter==='DFB')filtered=apiGames.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
+  // Nur aktuelle Saison: Spiele nicht älter als 30 Tage
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-30);
+  let filtered=apiGames.filter(g=>new Date(g.datum_iso)>=cutoff);
+  if(gameFilter==='upcoming')filtered=filtered.filter(g=>g.status!=='FINISHED'&&g.status!=='POSTPONED');
+  if(gameFilter==='finished')filtered=filtered.filter(g=>g.status==='FINISHED');
+  if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
+  if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
   const{data:allDec}=await sb.from('kartenentscheidungen').select('*');
   const{data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
   const myDecMap={};(myDecs||[]).forEach(d=>myDecMap[d.spiel_api_id||d.spiel_id]=d.entscheidung);
