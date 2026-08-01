@@ -1109,6 +1109,7 @@ function setFilter(f,btn){
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderGames();
+  setTimeout(ladeHSVBewerbungsFristen, 500);
 }
 
 // ══ DATA ══════════════════════════════════════════════
@@ -1136,6 +1137,7 @@ async function fetchGames(force=false){
     apiGames=[...data.map(s=>({id:'m_'+s.api_id,api_id:s.api_id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:s.wettbewerb,status:s.status,score:s.ergebnis,spielort:s.spielort,offiziell:s.offiziell,matchday:s.matchday})),...dfbGames].sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
     st.className='api-status ok';st.textContent=`${apiGames.length} Spiele geladen`;
     renderGames();
+    setTimeout(ladeHSVBewerbungsFristen, 500);
   }catch(e){
     st.className='api-status err';st.textContent='Noch keine Spieldaten';
     el.innerHTML='<div class="warn-box">Noch keine Spiele. Bitte Google Script ausfuehren.</div>';
@@ -1201,6 +1203,37 @@ async function renderGames(){
       ${myDec?`<div class="divider"></div><div style="font-size:12px;color:#6c757d">Deine Wahl: <strong style="color:${DEC_COLORS[myDec]}">${DEC_LABELS[myDec]}</strong></div>`:''}
     </div>`;
   }).join('')||'<p style="color:#6c757d;text-align:center;padding:20px">Keine Spiele.</p>';
+}
+
+async function ladeHSVBewerbungsFristen(){
+  try{
+    const{data:hsvBews}=await sb.from('hsv_bewerbungen').select('*').in('status',['offen','beantragt']);
+    if(!hsvBews||!hsvBews.length)return;
+    // Für jedes Spiel im Spielplan prüfen ob es eine HSV-Bewerbung gibt
+    hsvBews.forEach(b=>{
+      const internFrist=new Date(b.bewerbungsfrist);
+      internFrist.setDate(internFrist.getDate()-7);
+      const fristStr=internFrist.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+      const istAbgelaufen=new Date(b.bewerbungsfrist)<new Date();
+      if(istAbgelaufen)return;
+      // Alle Spiel-Karten im DOM suchen die diesen Gegner enthalten
+      document.querySelectorAll('#games-list .card').forEach(card=>{
+        const text=card.textContent||'';
+        if(text.includes(b.gegner)){
+          // Prüfen ob bereits angezeigt
+          if(card.querySelector('.hsv-bew-frist'))return;
+          const div=document.createElement('div');
+          div.className='hsv-bew-frist';
+          div.style.cssText='font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block';
+          div.textContent='HSV-Bewerbung: bis '+fristStr+' entscheiden';
+          // Nach den Badges einfügen
+          const badgeDiv=card.querySelector('[style*="display:flex;gap:6px"]');
+          if(badgeDiv)badgeDiv.after(div);
+          else card.appendChild(div);
+        }
+      });
+    });
+  }catch(e){console.log('HSV Fristen Fehler:',e);}
 }
 
 async function setTicket(gid,dec){
