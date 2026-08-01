@@ -767,86 +767,65 @@ async function renderBewerbungen(){
   const el=document.getElementById('bewerbungen-content');
   el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
   try{
-  const{data:bews,error:bewErr}=await sb.from('hsv_bewerbungen').select('*').order('bewerbungsfrist');
-  if(bewErr){el.innerHTML='<div class="error-box">Fehler: '+bewErr.message+'</div>';return;}
-  if(!bews||!bews.length){
-    el.innerHTML='<div class="info-box">Noch keine HSV Kartenanfragen. Das Google Script prüft automatisch alle 6 Stunden die HSV-Seite auf neue Bewerbungsformulare.</div>';
-    return;
-  }
-  const{data:myAntworten}=currentUser?await sb.from('hsv_bewerbung_antworten').select('*').eq('mitglied_id',currentUser.id):{data:[]};
-  const myMap={};(myAntworten||[]).forEach(a=>myMap[a.bewerbung_id]=a.antwort);
-  const{data:losErg}=currentUser?await sb.from('hsv_losverfahren').select('*').eq('mitglied_id',currentUser.id):{data:[]};
-  const losMap={};(losErg||[]).forEach(l=>losMap[l.bewerbung_id]=l.typ);
+    const{data:bews,error}=await sb.from('hsv_bewerbungen').select('*').order('bewerbungsfrist');
+    if(error){el.innerHTML='<div class="error-box">DB Fehler: '+error.message+'</div>';return;}
+    if(!bews||!bews.length){el.innerHTML='<div class="info-box">Noch keine HSV Kartenanfragen.</div>';return;}
 
-  const ANT_LABELS={
-    'behalten_ofc':'Behalten (OFC)',
-    'behalten_extra':'Behalten + Extra',
-    'behalten_ohne':'Ohne OFC',
-    'abgeben':'Karte abgeben',
-    'ja':'Ja, dabei!',
-    'nein':'Nein, danke'
-  };
-  const ANT_COLORS={
-    'behalten_ofc':'#0046AD','behalten_extra':'#198754',
-    'behalten_ohne':'#e67e22','abgeben':'#CC0000',
-    'ja':'#0046AD','nein':'#6c757d'
-  };
+    const{data:myAntworten}=currentUser?await sb.from('hsv_bewerbung_antworten').select('*').eq('mitglied_id',currentUser.id):{data:[]};
+    const myMap={};(myAntworten||[]).forEach(a=>myMap[a.bewerbung_id]=a.antwort);
+    const{data:losErg}=currentUser?await sb.from('hsv_losverfahren').select('*').eq('mitglied_id',currentUser.id):{data:[]};
+    const losMap={};(losErg||[]).forEach(l=>losMap[l.bewerbung_id]=l.typ);
 
-  el.innerHTML=bews.map(b=>{
-    const frist=new Date(b.bewerbungsfrist);
-    const istAbgelaufen=frist<new Date();
-    const tageVerbleibend=Math.ceil((frist-new Date())/(1000*60*60*24));
-    const myAnt=myMap[b.id];
-    const losTyp=losMap[b.id];
+    const ANT_LABELS={'behalten_ofc':'Behalten (OFC)','behalten_extra':'Behalten + Extra','behalten_ohne':'Ohne OFC','abgeben':'Karte abgeben','ja':'Ja, dabei!','nein':'Nein, danke'};
+    const ANT_COLORS={'behalten_ofc':'#0046AD','behalten_extra':'#198754','behalten_ohne':'#e67e22','abgeben':'#CC0000','ja':'#0046AD','nein':'#6c757d'};
+
     const isHsv=currentUser&&currentUser.hsv_mitglied&&currentUser.typ!=='admin';
     const isFan=currentUser&&!currentUser.hsv_mitglied&&currentUser.typ!=='admin';
 
-    return`<div class="card ${b.status==='beantragt'?'card-green':b.status==='zugeteilt'?'card-blue':istAbgelaufen?'card-gray':'card-red'}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
-        <div>
-          <div style="font-size:15px;font-weight:500">HSV vs. ${b.gegner}</div>
-          <div style="font-size:12px;color:#6c757d;margin-top:3px">${b.heimspiel?'Heimspiel':'Auswärtsspiel'} | ${b.datum_text||''}</div>
-          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-            <span class="badge ${b.status==='offen'?'badge-red':b.status==='beantragt'?'badge-green':'badge-gray'}">${b.status==='offen'?'Offen':b.status==='beantragt'?'Beantragt':'Zugeteilt'}</span>
-            ${!istAbgelaufen&&tageVerbleibend<=7?`<span class="badge badge-orange">Nur noch ${tageVerbleibend} Tag(e)!</span>`:''}
-            ${b.karten_beantragt?`<span class="badge badge-bl">${b.karten_beantragt} Karten beantragt</span>`:''}
-            ${b.karten_zugeteilt?`<span class="badge badge-green">${b.karten_zugeteilt} Karten zugeteilt</span>`:''}
-          </div>
-          <div style="font-size:11px;color:${istAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">
-            HSV-Bewerbungsfrist: ${b.frist_text||''}${istAbgelaufen?' – ABGELAUFEN':''}
-          </div>
-          ${!istAbgelaufen&&b.bewerbungsfrist?`<div style="font-size:12px;font-weight:500;color:#842029;margin-top:4px;background:#fff3cd;padding:4px 8px;border-radius:4px;display:inline-block">
-            Bitte bis ${fmtFrist(interneFrist(b.bewerbungsfrist))} entscheiden (7 Tage vor HSV-Frist)
-          </div>`:''}
-          ${b.bewerbungslink?`<div style="margin-top:6px"><a href="${b.bewerbungslink}" target="_blank" style="font-size:12px;color:#0046AD">HSV Bewerbungsformular öffnen</a></div>`:''}
-        </div>
-        <div>
-          ${myAnt?`<div style="font-size:12px;color:#6c757d;margin-bottom:6px">Deine Antwort: <strong style="color:${ANT_COLORS[myAnt]}">${ANT_LABELS[myAnt]}</strong></div>`:''}
-          ${losTyp?`<div style="font-size:12px;padding:6px 12px;border-radius:6px;background:${losTyp==='los_gewonnen'||losTyp==='dauerkarte'?'#d1e7dd':'#f8d7da'};color:${losTyp==='los_gewonnen'||losTyp==='dauerkarte'?'#0a3622':'#842029'}">
-            ${losTyp==='dauerkarte'?'Dauerkarte – beantragt':losTyp==='los_gewonnen'?'Los gewonnen – beantragt':'Leider nicht gezogen'}
-          </div>`:''}
-          ${!istAbgelaufen&&!myAnt&&isHsv?`
-            <div style="display:flex;flex-direction:column;gap:4px;min-width:150px">
-              <button class="ticket-btn" onclick="antworteHSV('${b.id}','behalten_ofc')">Behalten (OFC)</button>
-              <button class="ticket-btn" onclick="antworteHSV('${b.id}','behalten_extra')">Behalten + Extra</button>
-              <button class="ticket-btn" onclick="antworteHSV('${b.id}','behalten_ohne')">Ohne OFC</button>
-              <button class="ticket-btn" onclick="antworteHSV('${b.id}','abgeben')">Karte abgeben</button>
-            </div>`:''}
-          ${!istAbgelaufen&&!myAnt&&isFan?`
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-sm btn-primary" onclick="antworteHSV('${b.id}','ja')">Ja, dabei!</button>
-              <button class="btn btn-sm" onclick="antworteHSV('${b.id}','nein')">Nein, danke</button>
-            </div>`:''}
-          ${myAnt&&!istAbgelaufen?`<button class="btn btn-sm" style="margin-top:6px" onclick="resetBewerbung('${b.id}')">Zurücksetzen</button>`:''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+    el.innerHTML=bews.map(b=>{
+      const frist=new Date(b.bewerbungsfrist);
+      const istAbgelaufen=frist<new Date();
+      const tageVerbleibend=Math.ceil((frist-new Date())/(1000*60*60*24));
+      const myAnt=myMap[b.id];
+      const losTyp=losMap[b.id];
+      const internFrist=new Date(frist);
+      internFrist.setDate(internFrist.getDate()-7);
+      const internFristStr=internFrist.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+
+      return '<div class="card '+(b.status==='beantragt'?'card-green':istAbgelaufen?'card-gray':'card-red')+'">'+
+        '<div style="font-size:15px;font-weight:500">HSV vs. '+b.gegner+'</div>'+
+        '<div style="font-size:12px;color:#6c757d;margin-top:3px">'+(b.heimspiel?'Heimspiel':'Auswärtsspiel')+' | '+(b.datum_text||'')+'</div>'+
+        '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'+
+          '<span class="badge '+(b.status==='offen'?'badge-red':b.status==='beantragt'?'badge-green':'badge-gray')+'">'+(b.status==='offen'?'Offen':b.status==='beantragt'?'Beantragt':'Zugeteilt')+'</span>'+
+          (!istAbgelaufen&&tageVerbleibend<=7?'<span class="badge badge-orange">Nur noch '+tageVerbleibend+' Tag(e)!</span>':'')+
+        '</div>'+
+        '<div style="font-size:11px;color:'+(istAbgelaufen?'#842029':'var(--g500)')+';margin-top:4px">HSV-Bewerbungsfrist: '+(b.frist_text||'')+(istAbgelaufen?' – ABGELAUFEN':'')+'</div>'+
+        (!istAbgelaufen&&b.bewerbungsfrist?'<div style="font-size:12px;font-weight:500;color:#842029;margin-top:6px;background:#fff3cd;padding:5px 10px;border-radius:4px;display:inline-block">Bitte bis '+internFristStr+' entscheiden</div>':'')+
+        (b.bewerbungslink?'<div style="margin-top:6px"><a href="'+b.bewerbungslink+'" target="_blank" style="font-size:12px;color:#0046AD">HSV Bewerbungsformular öffnen</a></div>':'')+
+        (myAnt?'<div style="font-size:12px;color:#6c757d;margin-top:8px">Deine Antwort: <strong style="color:'+(ANT_COLORS[myAnt]||'#495057')+'">'+ANT_LABELS[myAnt]+'</strong></div>':'')+
+        (losTyp?'<div style="font-size:12px;padding:6px 12px;border-radius:6px;margin-top:6px;background:'+(losTyp==='los_gewonnen'||losTyp==='dauerkarte'?'#d1e7dd':'#f8d7da')+';color:'+(losTyp==='los_gewonnen'||losTyp==='dauerkarte'?'#0a3622':'#842029')+'">'+
+          (losTyp==='dauerkarte'?'Dauerkarte – beantragt':losTyp==='los_gewonnen'?'Los gewonnen – beantragt':'Leider nicht gezogen')+'</div>':'')+
+        (!istAbgelaufen&&!myAnt&&isHsv?
+          '<div style="display:flex;flex-direction:column;gap:4px;margin-top:10px;max-width:200px">'+
+            '<button class="ticket-btn" onclick="antworteHSV(''+b.id+'','behalten_ofc')">Behalten (OFC)</button>'+
+            '<button class="ticket-btn" onclick="antworteHSV(''+b.id+'','behalten_extra')">Behalten + Extra</button>'+
+            '<button class="ticket-btn" onclick="antworteHSV(''+b.id+'','behalten_ohne')">Ohne OFC</button>'+
+            '<button class="ticket-btn" onclick="antworteHSV(''+b.id+'','abgeben')">Karte abgeben</button>'+
+          '</div>':'')+
+        (!istAbgelaufen&&!myAnt&&isFan?
+          '<div style="display:flex;gap:8px;margin-top:10px">'+
+            '<button class="btn btn-sm btn-primary" onclick="antworteHSV(''+b.id+'','ja')">Ja, dabei!</button>'+
+            '<button class="btn btn-sm" onclick="antworteHSV(''+b.id+'','nein')">Nein, danke</button>'+
+          '</div>':'')+
+        (myAnt&&!istAbgelaufen?'<button class="btn btn-sm" style="margin-top:8px" onclick="resetBewerbung(''+b.id+'')">Zurücksetzen</button>':'')+
+      '</div>';
+    }).join('');
   }catch(e){
-    document.getElementById('bewerbungen-content').innerHTML='<div class="error-box">Fehler beim Laden: '+e.message+'</div>';
+    el.innerHTML='<div class="error-box">Fehler: '+e.message+'</div>';
     console.log('renderBewerbungen Fehler:',e);
   }
 }
+
 
 async function antworteHSV(bewId,antwort){
   const labels={behalten_ofc:'Behalten (OFC)',behalten_extra:'Behalten + Extra',behalten_ohne:'Ohne OFC',abgeben:'Karte abgeben',ja:'Ja, dabei!',nein:'Nein, danke'};
