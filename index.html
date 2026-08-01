@@ -766,7 +766,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 async function renderBewerbungen(){
   const el=document.getElementById('bewerbungen-content');
   el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
-  const{data:bews}=await sb.from('hsv_bewerbungen').select('*').order('bewerbungsfrist');
+  try{
+  const{data:bews,error:bewErr}=await sb.from('hsv_bewerbungen').select('*').order('bewerbungsfrist');
+  if(bewErr){el.innerHTML='<div class="error-box">Fehler: '+bewErr.message+'</div>';return;}
   if(!bews||!bews.length){
     el.innerHTML='<div class="info-box">Noch keine HSV Kartenanfragen. Das Google Script prüft automatisch alle 6 Stunden die HSV-Seite auf neue Bewerbungsformulare.</div>';
     return;
@@ -840,6 +842,10 @@ async function renderBewerbungen(){
       </div>
     </div>`;
   }).join('');
+  }catch(e){
+    document.getElementById('bewerbungen-content').innerHTML='<div class="error-box">Fehler beim Laden: '+e.message+'</div>';
+    console.log('renderBewerbungen Fehler:',e);
+  }
 }
 
 async function antworteHSV(bewId,antwort){
