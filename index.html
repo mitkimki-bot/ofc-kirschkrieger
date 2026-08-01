@@ -598,6 +598,15 @@ function toggleForm(id){
 function addDays(iso,d){const dt=new Date(iso);dt.setDate(dt.getDate()-d);return dt.toISOString().slice(0,16);}
 function genToken(){return Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)+Date.now().toString(36);}
 
+function interneFrist(bewerbungsfrist){
+  const f=new Date(bewerbungsfrist);
+  f.setDate(f.getDate()-7);
+  return f;
+}
+function fmtFrist(d){
+  return d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
 const DEC_LABELS={'behalten_ofc':'Behalten (OFC)','behalten_extra':'Behalten + Extra Karte','behalten_ohne':'Ohne OFC (selbst kaufen)','abgeben':'Abgeben'};
 const DEC_COLORS={'behalten_ofc':'#0046AD','behalten_extra':'#198754','behalten_ohne':'#e67e22','abgeben':'#CC0000'};
 
@@ -802,8 +811,11 @@ async function renderBewerbungen(){
             ${b.karten_zugeteilt?`<span class="badge badge-green">${b.karten_zugeteilt} Karten zugeteilt</span>`:''}
           </div>
           <div style="font-size:11px;color:${istAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">
-            Bewerbungsfrist: ${b.frist_text||''}${istAbgelaufen?' – ABGELAUFEN':''}
+            HSV-Bewerbungsfrist: ${b.frist_text||''}${istAbgelaufen?' – ABGELAUFEN':''}
           </div>
+          ${!istAbgelaufen&&b.bewerbungsfrist?`<div style="font-size:12px;font-weight:500;color:#842029;margin-top:4px;background:#fff3cd;padding:4px 8px;border-radius:4px;display:inline-block">
+            Bitte bis ${fmtFrist(interneFrist(b.bewerbungsfrist))} entscheiden (7 Tage vor HSV-Frist)
+          </div>`:''}
           ${b.bewerbungslink?`<div style="margin-top:6px"><a href="${b.bewerbungslink}" target="_blank" style="font-size:12px;color:#0046AD">HSV Bewerbungsformular öffnen</a></div>`:''}
         </div>
         <div>
