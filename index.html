@@ -853,12 +853,16 @@ async function resetBewerbung(bewId){
 async function renderAdminHSVBewerbungen(){
   const el=document.getElementById('admin-hsv-bew-list');
   el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  console.log('renderAdminHSVBewerbungen START');
   try{
+    console.log('Lade Bewerbungen...');
     const{data:bews,error}=await sb.from('hsv_bewerbungen').select('*').order('spieltag');
+    console.log('Bewerbungen geladen:', bews?.length, error);
     if(error){el.innerHTML='<div class="error-box">Fehler: '+error.message+'</div>';return;}
     if(!bews||!bews.length){el.innerHTML='<p style="color:#6c757d">Noch keine Bewerbungen.</p>';return;}
-
+    console.log('Lade Antworten...');
     const{data:alleAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)');
+    console.log('Antworten geladen:', alleAntworten?.length);
     const hsvMitglieder=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin');
     const alleFans=allMembers.filter(m=>!m.hsv_mitglied&&m.typ!=='admin');
 
