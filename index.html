@@ -780,8 +780,16 @@ async function renderBewerbungen(){
     if(error){el.innerHTML='<div class="error-box">DB Fehler: '+error.message+'</div>';return;}
     if(!bews||!bews.length){el.innerHTML='<div class="info-box">Noch keine HSV Kartenanfragen.</div>';return;}
 
-    const{data:myAntworten}=currentUser?await sb.from('hsv_bewerbung_antworten').select('*').eq('mitglied_id',currentUser.id):{data:[]};
-    const myMap={};(myAntworten||[]).forEach(a=>myMap[a.bewerbung_id]=a.antwort);
+    // Lese aus kartenentscheidungen (gleiche Tabelle wie Spielplan)
+    const{data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
+    // Mappe bewerbung_id -> entscheidung über spiel_api_id
+    const myMap={};
+    if(bews&&myDecs){
+      bews.forEach(b=>{
+        const dec=(myDecs||[]).find(d=>d.spiel_api_id===b.spiel_api_id||d.spiel_id===b.spiel_api_id);
+        if(dec)myMap[b.id]=dec.entscheidung;
+      });
+    }
     const{data:losErg}=currentUser?await sb.from('hsv_losverfahren').select('*').eq('mitglied_id',currentUser.id):{data:[]};
     const losMap={};(losErg||[]).forEach(l=>losMap[l.bewerbung_id]=l.typ);
 
@@ -844,9 +852,11 @@ async function antworteHSV(bewId,antwort){
 
 async function resetBewerbung(bewId){
   if(!confirm('Antwort wirklich zurücksetzen?'))return;
-  await sb.from('hsv_bewerbung_antworten').delete().eq('bewerbung_id',bewId).eq('mitglied_id',currentUser.id);
+  const{data:bew}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  if(!bew)return;
+  await sb.from('kartenentscheidungen').delete().eq('spiel_api_id',bew.spiel_api_id).eq('mitglied_id',currentUser.id);
   toast('Antwort zurückgesetzt');
-  renderAdminHSVBewerbungen();
+  renderBewerbungen();
 }
 
 async function renderAdminHSVBewerbungen(){
@@ -860,35 +870,16 @@ async function renderAdminHSVBewerbungen(){
     const{data:bews,error}=await sb.from('hsv_bewerbungen').select('*').order('spieltag');
     if(error){el.innerHTML='<div class="error-box">Fehler: '+error.message+'</div>';return;}
     if(!bews||!bews.length){el.innerHTML='<p style="color:#6c757d">Noch keine Bewerbungen.</p>';return;}
-    // Beide Tabellen zusammenführen
-    const{data:bewerbungAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)');
+    // Nur kartenentscheidungen - eine einzige Quelle der Wahrheit
     const{data:kartenEntscheidungen}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)');
-    
-    // Merge: für jede Bewerbung die passenden Kartenentscheidungen suchen
-    // Mapping: bewerbung.spiel_api_id -> kartenentscheidungen
     const hsvMitglieder=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin');
     const alleFans=allMembers.filter(m=>!m.hsv_mitglied&&m.typ!=='admin');
     
-    // Kombinierte Antworten: hsv_bewerbung_antworten + kartenentscheidungen
     function getKombinierteAntworten(bewerbungId, spielApiId) {
-      const bewAntworten=(bewerbungAntworten||[]).filter(a=>a.bewerbung_id===bewerbungId);
-      const kartAntworten=(kartenEntscheidungen||[]).filter(d=>d.spiel_api_id===spielApiId||d.spiel_id===spielApiId);
-      
-      // Merge: bevorzuge hsv_bewerbung_antworten, ergänze mit kartenentscheidungen
-      const combined=[...bewAntworten];
-      kartAntworten.forEach(k=>{
-        if(!combined.find(a=>a.mitglied_id===k.mitglied_id)){
-          combined.push({
-            bewerbung_id:bewerbungId,
-            mitglied_id:k.mitglied_id,
-            antwort:k.entscheidung, // behalten_ofc, behalten_extra, behalten_ohne, abgeben
-            mitglied:k.mitglied
-          });
-        }
-      });
-      return combined;
+      return (kartenEntscheidungen||[])
+        .filter(d=>d.spiel_api_id===spielApiId||d.spiel_id===spielApiId)
+        .map(d=>({bewerbung_id:bewerbungId,mitglied_id:d.mitglied_id,antwort:d.entscheidung,mitglied:d.mitglied}));
     }
-    const alleAntworten=bewerbungAntworten||[];
 
     let html='';
     bews.forEach(b=>{
@@ -972,28 +963,19 @@ async function zeigeHSVMeldungsStringBew(bewId){
   box.style.display='block';
   textarea.value='Wird geladen...';
 
-  // Beide Tabellen laden
-  const{data:bewAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)').eq('bewerbung_id',bewId);
-  // Spiel-API-ID aus Bewerbung holen
+  // Nur kartenentscheidungen
   const{data:bew}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
-  const{data:kartAntworten}=bew?.spiel_api_id?await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',bew.spiel_api_id):{data:[]};
-  
-  // Merge
-  const combined=[...(bewAntworten||[])];
-  (kartAntworten||[]).forEach(k=>{
-    if(!combined.find(a=>a.mitglied_id===k.mitglied_id)){
-      combined.push({mitglied_id:k.mitglied_id,antwort:k.entscheidung,mitglied:k.mitglied});
-    }
-  });
-  
+  if(!bew){textarea.value='Fehler: Bewerbung nicht gefunden.';return;}
+  const{data:decs}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',bew.spiel_api_id);
   const relevant=['behalten_ofc','behalten_extra','abgeben'];
-  const gefiltert=combined.filter(a=>
-    relevant.includes(a.antwort) &&
+  const gefiltert=(decs||[]).filter(a=>
+    relevant.includes(a.entscheidung) &&
     a.mitglied &&
     a.mitglied.mitgliedsnummer
   );
   if(!gefiltert.length){textarea.value='Keine Einträge mit Mitgliedsnummer gefunden.';return;}
   textarea.value=gefiltert.map(a=>a.mitglied.name+' ('+a.mitglied.mitgliedsnummer+')').join(', ');
+  if(!textarea.value)textarea.value='Keine Einträge mit Mitgliedsnummer gefunden.';
 }
 
 async function kopierenHSVBewString(bewId){
