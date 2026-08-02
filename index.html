@@ -848,48 +848,83 @@ async function renderAdminHSVBewerbungen(){
   const el=document.getElementById('admin-hsv-bew-list');
   el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
   try{
-  const{data:bews,error}=await sb.from('hsv_bewerbungen').select('*').order('bewerbungsfrist');
-  if(error){el.innerHTML='<div class="error-box">Fehler: '+error.message+'</div>';return;}
-  if(!bews||!bews.length){el.innerHTML='<p style="color:#6c757d">Noch keine Bewerbungen. Google Script ausführen.</p>';return;}
+    const{data:bews,error}=await sb.from('hsv_bewerbungen').select('*').order('spieltag');
+    if(error){el.innerHTML='<div class="error-box">Fehler: '+error.message+'</div>';return;}
+    if(!bews||!bews.length){el.innerHTML='<p style="color:#6c757d">Noch keine Bewerbungen.</p>';return;}
 
-  let html='';
-  for(const b of bews){
-    const{data:antworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)').eq('bewerbung_id',b.id);
-    const behalten=(antworten||[]).filter(a=>['behalten_ofc','behalten_extra'].includes(a.antwort));
-    const abgegeben=(antworten||[]).filter(a=>a.antwort==='abgeben');
-    const ohneOFC=(antworten||[]).filter(a=>a.antwort==='behalten_ohne');
-    const jaFans=(antworten||[]).filter(a=>a.antwort==='ja');
+    const{data:alleAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)');
     const hsvMitglieder=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin');
-    const ohneAntwort=hsvMitglieder.filter(m=>!(antworten||[]).find(a=>a.mitglied_id===m.id));
+    const alleFans=allMembers.filter(m=>!m.hsv_mitglied&&m.typ!=='admin');
 
-    html+=`<div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px">
-        <div>
-          <div style="font-size:15px;font-weight:500">HSV vs. ${b.gegner} <span class="badge ${b.status==='offen'?'badge-red':b.status==='beantragt'?'badge-green':'badge-gray'}">${b.status}</span></div>
-          <div style="font-size:12px;color:#6c757d">${b.datum_text||''} | Frist: ${b.frist_text||''}</div>
-        </div>
-      </div>
-      <div class="grid2" style="margin-bottom:12px">
-        <div style="background:#d1e7dd;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#0a3622">${behalten.length}</div><div style="font-size:11px;color:#0a3622">Behalten (OFC)</div></div>
-        <div style="background:#f8d7da;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#842029">${abgegeben.length}</div><div style="font-size:11px;color:#842029">Abgegeben</div></div>
-        <div style="background:#dbeafe;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#1e40af">${jaFans.length}</div><div style="font-size:11px;color:#1e40af">Fan-Bewerbungen</div></div>
-        <div style="background:#fff3cd;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#856404">${ohneAntwort.length}</div><div style="font-size:11px;color:#856404">Ohne Antwort</div></div>
-      </div>
-      ${ohneAntwort.length>0?`<div style="margin-bottom:10px"><div style="font-size:12px;color:#6c757d;margin-bottom:6px">Noch keine Antwort:</div>${ohneAntwort.map(m=>`<span class="badge badge-gray" style="margin:2px">${displayName(m)}</span>`).join('')}</div>`:''}
-      ${b.status==='beantragt'?`<div class="form-group" style="max-width:250px"><label style="font-size:12px">HSV-Zuteilung eingeben (Anzahl Karten)</label><div style="display:flex;gap:8px"><input type="number" id="zut-${b.id}" min="0" placeholder="z.B. 3" style="flex:1;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px"><button class="btn btn-sm btn-primary" onclick="speichereZuteilung('${b.id}')">Speichern</button></div></div>`:''}
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-        <button class="btn btn-sm btn-orange" onclick="sendeErinnerungAdmin('${b.id}')">Erinnerung senden</button>
-        <button class="btn btn-sm" onclick="eintragManuel('${b.id}')">Manuell eintragen</button>
-        ${b.bewerbungslink?`<a href="${b.bewerbungslink}" target="_blank" class="btn btn-sm btn-primary">HSV Formular öffnen</a>`:''}
-      </div>
-    </div>`;
-  }
-  el.innerHTML=html;
+    let html='';
+    bews.forEach(b=>{
+      const antworten=(alleAntworten||[]).filter(a=>a.bewerbung_id===b.id);
+      const behalten=antworten.filter(a=>['behalten_ofc','behalten_extra'].includes(a.antwort));
+      const abgegeben=antworten.filter(a=>a.antwort==='abgeben');
+      const ohneOFC=antworten.filter(a=>a.antwort==='behalten_ohne');
+      const jaFans=antworten.filter(a=>a.antwort==='ja');
+      const neinFans=antworten.filter(a=>a.antwort==='nein');
+      const ohneAntwortHSV=hsvMitglieder.filter(m=>!antworten.find(a=>a.mitglied_id===m.id));
+      const ohneAntwortFan=alleFans.filter(m=>!antworten.find(a=>a.mitglied_id===m.id));
+      const istKeineOFC=b.status==='keine_ofc';
+      const istAbgelaufen=b.bewerbungsfrist&&new Date(b.bewerbungsfrist)<new Date();
+
+      html+='<div class="card '+(istKeineOFC?'card-gray':b.status==='beantragt'?'card-green':'card-blue')+'">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">';
+      html+='<div><div style="font-size:15px;font-weight:500">Spieltag '+b.spieltag+' – HSV vs. '+b.gegner+'</div>';
+      html+='<div style="font-size:12px;color:#6c757d">'+(b.heimspiel?'Heimspiel':'Auswärtsspiel')+' | '+(b.datum_text||'')+'</div>';
+      if(b.frist_text)html+='<div style="font-size:11px;color:#842029">Bewerbungsfrist: '+b.frist_text+'</div>';
+      html+='</div>';
+      html+='<span class="badge '+(istKeineOFC?'badge-gray':b.status==='beantragt'?'badge-green':b.status==='zugeteilt'?'badge-bl':'badge-red')+'">'+(istKeineOFC?'Keine OFC':b.status==='beantragt'?'Beantragt':b.status==='zugeteilt'?'Zugeteilt':'Offen')+'</span>';
+      html+='</div>';
+
+      if(!istKeineOFC){
+        // Übersicht
+        html+='<div class="grid2" style="margin-bottom:12px">';
+        html+='<div style="background:#d1e7dd;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#0a3622">'+behalten.length+'</div><div style="font-size:11px;color:#0a3622">Behalten (OFC)</div></div>';
+        html+='<div style="background:#f8d7da;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#842029">'+abgegeben.length+'</div><div style="font-size:11px;color:#842029">Abgegeben</div></div>';
+        html+='<div style="background:#dbeafe;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#1e40af">'+jaFans.length+'</div><div style="font-size:11px;color:#1e40af">Fan: Ja</div></div>';
+        html+='<div style="background:#fff3cd;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#856404">'+(ohneAntwortHSV.length+ohneAntwortFan.length)+'</div><div style="font-size:11px;color:#856404">Ohne Antwort</div></div>';
+        html+='</div>';
+
+        // Wer hat nicht geantwortet
+        if(ohneAntwortHSV.length>0){
+          html+='<div style="margin-bottom:8px"><div style="font-size:12px;color:#6c757d;margin-bottom:4px">HSV ohne Antwort:</div>';
+          html+=ohneAntwortHSV.map(m=>'<span class="badge badge-orange" style="margin:2px">'+displayName(m)+'</span>').join('');
+          html+='</div>';
+        }
+        if(ohneAntwortFan.length>0){
+          html+='<div style="margin-bottom:8px"><div style="font-size:12px;color:#6c757d;margin-bottom:4px">Fans ohne Antwort:</div>';
+          html+=ohneAntwortFan.map(m=>'<span class="badge badge-gray" style="margin:2px">'+displayName(m)+'</span>').join('');
+          html+='</div>';
+        }
+
+        // Zuteilung eingeben wenn beantragt
+        if(b.status==='beantragt'){
+          html+='<div class="form-group" style="max-width:280px;margin-top:8px">';
+          html+='<label style="font-size:12px">HSV-Zuteilung: Wie viele Karten hat der HSV zugeteilt?</label>';
+          html+='<div style="display:flex;gap:8px"><input type="number" id="zut-'+b.id+'" min="0" placeholder="z.B. 3" style="flex:1;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">';
+          html+='<button class="btn btn-sm btn-primary" onclick="speichereZuteilung(&quot;'+b.id+'&quot;)">Speichern</button></div></div>';
+        }
+
+        // Aktions-Buttons
+        html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
+        html+='<button class="btn btn-sm btn-orange" onclick="sendeErinnerungAdmin(&quot;'+b.id+'&quot;)">Erinnerung senden</button>';
+        html+='<button class="btn btn-sm" onclick="eintragManuel(&quot;'+b.id+'&quot;)">Manuell eintragen</button>';
+        if(b.bewerbungslink)html+='<a href="'+b.bewerbungslink+'" target="_blank" class="btn btn-sm btn-primary">HSV Formular öffnen</a>';
+        html+='</div>';
+      }
+
+      html+='</div>';
+    });
+
+    el.innerHTML=html;
   }catch(e){
-    document.getElementById('admin-hsv-bew-list').innerHTML='<div class="error-box">Fehler: '+e.message+'</div>';
+    el.innerHTML='<div class="error-box">Fehler: '+e.message+'</div>';
     console.log('renderAdminHSVBewerbungen Fehler:',e);
   }
 }
+
 
 async function speichereZuteilung(bewId){
   const n=parseInt(document.getElementById('zut-'+bewId)?.value);
