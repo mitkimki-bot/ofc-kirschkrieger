@@ -831,7 +831,6 @@ async function renderBewerbungen(){
     }).join('');
   }catch(e){
     el.innerHTML='<div class="error-box">Fehler: '+e.message+'</div>';
-    console.log('renderBewerbungen Fehler:',e);
   }
 }
 
@@ -851,29 +850,21 @@ async function resetBewerbung(bewId){
 }
 
 async function renderAdminHSVBewerbungen(){
-  // Clear the tab spinner
+  // Schreibe in den aktiven Tab-Container
   const tabEl=document.getElementById('bewerbungen-content');
-  if(tabEl)tabEl.innerHTML='';
-  const el=document.getElementById('admin-hsv-bew-list');
-  if(!el){console.log('admin-hsv-bew-list nicht gefunden!');return;}
+  const adminEl=document.getElementById('admin-hsv-bew-list');
+  const el=tabEl||adminEl;
+  if(!el){return;}
   el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
-  console.log('renderAdminHSVBewerbungen START');
   try{
-    console.log('Lade Bewerbungen...');
     const{data:bews,error}=await sb.from('hsv_bewerbungen').select('*').order('spieltag');
-    console.log('Bewerbungen geladen:', bews?.length, error);
     if(error){el.innerHTML='<div class="error-box">Fehler: '+error.message+'</div>';return;}
     if(!bews||!bews.length){el.innerHTML='<p style="color:#6c757d">Noch keine Bewerbungen.</p>';return;}
-    console.log('Lade Antworten...');
     const{data:alleAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)');
-    console.log('Antworten geladen:', alleAntworten?.length);
-    console.log('allMembers:', allMembers?.length);
     const hsvMitglieder=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin');
     const alleFans=allMembers.filter(m=>!m.hsv_mitglied&&m.typ!=='admin');
-    console.log('HSV:', hsvMitglieder.length, 'Fans:', alleFans.length);
 
     let html='';
-    console.log('Starte HTML-Generierung für', bews.length, 'Bewerbungen');
     bews.forEach(b=>{
       const antworten=(alleAntworten||[]).filter(a=>a.bewerbung_id===b.id);
       const behalten=antworten.filter(a=>['behalten_ofc','behalten_extra'].includes(a.antwort));
@@ -935,12 +926,9 @@ async function renderAdminHSVBewerbungen(){
       html+='</div>';
     });
 
-    console.log('HTML fertig, setze innerHTML...');
     el.innerHTML=html;
-    console.log('renderAdminHSVBewerbungen FERTIG');
   }catch(e){
     el.innerHTML='<div class="error-box">Fehler: '+e.message+'</div>';
-    console.log('renderAdminHSVBewerbungen Fehler:',e);
   }
 }
 
@@ -1083,7 +1071,6 @@ async function doRegister(){
   });
 
   if(error){
-    console.log('Registrierungsfehler:',error);
     errEl.textContent='Fehler: '+error.message;
     errEl.style.display='block';
     return;
@@ -1102,7 +1089,6 @@ async function doRegister(){
   successEl.style.display='block';
   successEl.scrollIntoView({behavior:'smooth'});
   } catch(e) {
-    console.log('Registrierungsfehler:', e);
     const errEl=document.getElementById('reg-err');
     errEl.textContent='Fehler: '+e.message;
     errEl.style.display='block';
@@ -1550,7 +1536,6 @@ async function saveProfile(){
     await loadMembers();renderProfile();renderStats();
   }catch(e){
     toast('Fehler: '+e.message);
-    console.log('saveProfile Fehler:',e);
   }
 }
 
