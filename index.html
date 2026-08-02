@@ -845,7 +845,7 @@ async function renderBewerbungen(){
 
 async function antworteHSV(bewId,antwort){
   const labels={behalten_ofc:'Behalten (OFC)',behalten_extra:'Behalten + Extra',behalten_ohne:'Ohne OFC',abgeben:'Karte abgeben',ja:'Ja, dabei!',nein:'Nein, danke'};
-  await sb.from('hsv_bewerbung_antworten').upsert({bewerbung_id:bewId,mitglied_id:currentUser.id,antwort},{onConflict:'bewerbung_id,mitglied_id'});
+  // Bereits in kartenentscheidungen gespeichert (siehe neue antworteHSV Funktion)
   toast(labels[antwort]+' ✓');
   renderBewerbungen();
 }
@@ -1026,7 +1026,9 @@ async function sendeFinaleZuteilungsMails(bewId,anzahl){
 async function sendeErinnerungAdmin(bewId){
   const{data:bew}=await sb.from('hsv_bewerbungen').select('*').eq('id',bewId).single();
   if(!bew){toast('Nicht gefunden.');return;}
-  const{data:antworten}=await sb.from('hsv_bewerbung_antworten').select('mitglied_id').eq('bewerbung_id',bewId);
+  // Lese aus kartenentscheidungen
+  const{data:bewForEr}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  const{data:antworten}=bewForEr?await sb.from('kartenentscheidungen').select('mitglied_id').eq('spiel_api_id',bewForEr.spiel_api_id):{data:[]};
   const geantwortetIds=new Set((antworten||[]).map(a=>a.mitglied_id));
   const ohneAntwort=allMembers.filter(m=>m.typ!=='admin'&&m.email&&!geantwortetIds.has(m.id));
   for(const m of ohneAntwort){
@@ -1050,7 +1052,9 @@ async function eintragManuel(bewId){
     prompt('Antwort (behalten_ofc/behalten_extra/behalten_ohne/abgeben):','behalten_ofc'):
     prompt('Antwort (ja/nein):','ja');
   if(!antwort)return;
-  await sb.from('hsv_bewerbung_antworten').upsert({bewerbung_id:bewId,mitglied_id:m.id,antwort},{onConflict:'bewerbung_id,mitglied_id'});
+  // Schreibe in kartenentscheidungen
+  const{data:bewForManuel}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  if(bewForManuel){await sb.from('kartenentscheidungen').upsert({spiel_id:bewForManuel.spiel_api_id,spiel_api_id:bewForManuel.spiel_api_id,mitglied_id:m.id,entscheidung:antwort},{onConflict:'spiel_id,mitglied_id'});}
   await renderAdminHSVBewerbungen();
   toast(`Eingetragen: ${displayName(m)} → ${antwort} ✓`);
 }
@@ -1063,7 +1067,9 @@ async function pruefeHSVSeiteManuel(){
 
 // URL-Param Handler für Bewerbungs-Links
 async function handleBewerbungsAntwort(antwort,mid,bid){
-  await sb.from('hsv_bewerbung_antworten').upsert({bewerbung_id:bid,mitglied_id:mid,antwort},{onConflict:'bewerbung_id,mitglied_id'});
+  // Schreibe in kartenentscheidungen
+  const{data:bewForUrl}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bid).single();
+  if(bewForUrl){await sb.from('kartenentscheidungen').upsert({spiel_id:bewForUrl.spiel_api_id,spiel_api_id:bewForUrl.spiel_api_id,mitglied_id:mid,entscheidung:antwort},{onConflict:'spiel_id,mitglied_id'});}
   const labels={behalten_ofc:'Behalten (OFC)',behalten_extra:'Behalten + Extra',behalten_ohne:'Ohne OFC',abgeben:'Karte abgeben',ja:'Ja, dabei!',nein:'Nein, danke'};
   document.body.innerHTML=`<div style="min-height:100vh;background:#0046AD;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px"><div style="background:#fff;border-radius:12px;padding:32px;max-width:380px;text-align:center"><div style="font-size:48px;margin-bottom:16px">${['ja','behalten_ofc','behalten_extra'].includes(antwort)?'✅':'↗️'}</div><h2 style="color:#0046AD;margin-bottom:10px">${labels[antwort]||antwort}</h2><p style="color:#495057">Deine Antwort wurde gespeichert.</p><a href="${APP_URL}" style="display:inline-block;margin-top:20px;background:#0046AD;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none">Zur App</a></div></div>`;
 }
