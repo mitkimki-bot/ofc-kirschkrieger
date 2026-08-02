@@ -846,7 +846,10 @@ async function resetBewerbung(bewId){
 
 async function renderAdminHSVBewerbungen(){
   const el=document.getElementById('admin-hsv-bew-list');
-  const{data:bews}=await sb.from('hsv_bewerbungen').select('*').order('bewerbungsfrist');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  try{
+  const{data:bews,error}=await sb.from('hsv_bewerbungen').select('*').order('bewerbungsfrist');
+  if(error){el.innerHTML='<div class="error-box">Fehler: '+error.message+'</div>';return;}
   if(!bews||!bews.length){el.innerHTML='<p style="color:#6c757d">Noch keine Bewerbungen. Google Script ausführen.</p>';return;}
 
   let html='';
@@ -882,6 +885,10 @@ async function renderAdminHSVBewerbungen(){
     </div>`;
   }
   el.innerHTML=html;
+  }catch(e){
+    document.getElementById('admin-hsv-bew-list').innerHTML='<div class="error-box">Fehler: '+e.message+'</div>';
+    console.log('renderAdminHSVBewerbungen Fehler:',e);
+  }
 }
 
 async function speichereZuteilung(bewId){
@@ -1221,7 +1228,9 @@ async function ladeHSVBewerbungsFristen(){
       // Alle Spiel-Karten im DOM suchen die diesen Gegner enthalten
       document.querySelectorAll('#games-list .card').forEach(card=>{
         const text=card.textContent||'';
-        if(text.includes(b.gegner)){
+        const normB=b.gegner.replace(/^(den\s+|die\s+|der\s+|dem\s+)/i,'').toLowerCase();
+        const normText=text.toLowerCase();
+        if(normText.includes(normB)||normB.includes(normText.split('\n')[0])){
           // Prüfen ob bereits angezeigt
           if(card.querySelector('.hsv-bew-frist'))return;
           const div=document.createElement('div');
