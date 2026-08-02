@@ -1219,6 +1219,27 @@ async function ladeHSVBewerbungsFristen(){
     const{data:hsvBews}=await sb.from('hsv_bewerbungen').select('*').in('status',['offen','beantragt']);
     if(!hsvBews||!hsvBews.length)return;
     // Für jedes Spiel im Spielplan prüfen ob es eine HSV-Bewerbung gibt
+    // Auch keine_ofc Einträge laden
+    const{data:keineOFCBews}=await sb.from('hsv_bewerbungen').select('*').eq('status','keine_ofc');
+    (keineOFCBews||[]).forEach(b=>{
+      const normGegner=b.gegner.replace(/^(den\s+|die\s+|der\s+|dem\s+)/i,'').toLowerCase().trim();
+      const matchLen=Math.max(5,normGegner.length-3);
+      const gegnerKern=normGegner.substring(0,matchLen);
+      document.querySelectorAll('#games-list .card').forEach(card=>{
+        if(card.querySelector('.hsv-bew-frist'))return;
+        const titel=card.querySelector('div[style*="font-size:15px"]');
+        if(!titel)return;
+        if(!titel.textContent.toLowerCase().includes(gegnerKern))return;
+        const div=document.createElement('div');
+        div.className='hsv-bew-frist';
+        div.style.cssText='font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block';
+        div.textContent='Keine OFC-Bewerbung möglich';
+        const badgeDiv=card.querySelector('[style*="display:flex;gap:6px"]');
+        if(badgeDiv)badgeDiv.after(div);
+        else card.appendChild(div);
+      });
+    });
+
     hsvBews.forEach(b=>{
       const istAbgelaufen=new Date(b.bewerbungsfrist)<new Date();
       if(istAbgelaufen)return;
