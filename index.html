@@ -852,12 +852,9 @@ async function antworteHSV(bewId,antwort){
 
 async function resetBewerbung(bewId){
   if(!confirm('Antwort wirklich zurücksetzen?'))return;
-  const{data:bew}=await sb.from('hsv_bewerbungen').select('gegner').eq('id',bewId).single();
-  if(!bew)return;
-  const normR=s=>(s||'').toLowerCase().replace(/^(fc |sv |vfb |sc |tsg |rb |1\.\s*)/i,'').trim();
-  const spielR=apiGames.find(g=>{const g2=normR(bew.gegner);return normR(g.gastteam).includes(g2)||normR(g.heimteam).includes(g2);});
-  if(!spielR)return;
-  await sb.from('kartenentscheidungen').delete().eq('spiel_api_id',spielR.api_id).eq('mitglied_id',currentUser.id);
+  const{data:bew}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  if(!bew||!bew.spiel_api_id)return;
+  await sb.from('kartenentscheidungen').delete().eq('spiel_api_id',bew.spiel_api_id).eq('mitglied_id',currentUser.id);
   toast('Antwort zurückgesetzt');
   renderBewerbungen();
 }
@@ -878,22 +875,16 @@ async function renderAdminHSVBewerbungen(){
     const hsvMitglieder=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin');
     const alleFans=allMembers.filter(m=>!m.hsv_mitglied&&m.typ!=='admin');
     
-    function getKombinierteAntworten(bewerbungId, gegner) {
-      // Match über Gegner-Name in hsv_spiele
-      const spiel=apiGames.find(g=>{
-        const norm=s=>(s||'').toLowerCase().replace(/^(fc |sv |vfb |sc |tsg |rb |1\.\s*)/i,'').trim();
-        const g2=norm(gegner);
-        return norm(g.gastteam).includes(g2)||norm(g.heimteam).includes(g2)||g2.includes(norm(g.gastteam))||g2.includes(norm(g.heimteam));
-      });
-      if(!spiel)return [];
+    function getKombinierteAntworten(bewerbungId, spiel_api_id) {
+      if(!spiel_api_id)return [];
       return (kartenEntscheidungen||[])
-        .filter(d=>d.spiel_api_id===spiel.api_id||d.spiel_id===spiel.api_id)
+        .filter(d=>String(d.spiel_api_id)===String(spiel_api_id)||String(d.spiel_id)===String(spiel_api_id))
         .map(d=>({bewerbung_id:bewerbungId,mitglied_id:d.mitglied_id,antwort:d.entscheidung,mitglied:d.mitglied}));
     }
 
     let html='';
     bews.forEach(b=>{
-      const antworten=getKombinierteAntworten(b.id, b.gegner);
+      const antworten=getKombinierteAntworten(b.id, b.spiel_api_id);
       const behalten=antworten.filter(a=>['behalten_ofc','behalten_extra'].includes(a.antwort));
       const abgegeben=antworten.filter(a=>a.antwort==='abgeben');
       const ohneOFC=antworten.filter(a=>a.antwort==='behalten_ohne');
@@ -974,12 +965,9 @@ async function zeigeHSVMeldungsStringBew(bewId){
   textarea.value='Wird geladen...';
 
   // Nur kartenentscheidungen
-  const{data:bew}=await sb.from('hsv_bewerbungen').select('gegner').eq('id',bewId).single();
-  if(!bew){textarea.value='Fehler: Bewerbung nicht gefunden.';return;}
-  const normS=s=>(s||'').toLowerCase().replace(/^(fc |sv |vfb |sc |tsg |rb |1\.\s*)/i,'').trim();
-  const spielS=apiGames.find(g=>{const g2=normS(bew.gegner);return normS(g.gastteam).includes(g2)||normS(g.heimteam).includes(g2);});
-  if(!spielS){textarea.value='Spiel nicht gefunden.';return;}
-  const{data:decs}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',spielS.api_id);
+  const{data:bew}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  if(!bew||!bew.spiel_api_id){textarea.value='Spiel nicht verknüpft.';return;}
+  const{data:decs}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',bew.spiel_api_id);
   const relevant=['behalten_ofc','behalten_extra','abgeben'];
   const gefiltert=(decs||[]).filter(a=>
     relevant.includes(a.entscheidung) &&
@@ -1039,11 +1027,8 @@ async function sendeFinaleZuteilungsMails(bewId,anzahl){
 async function sendeErinnerungAdmin(bewId){
   const{data:bew}=await sb.from('hsv_bewerbungen').select('*').eq('id',bewId).single();
   if(!bew){toast('Nicht gefunden.');return;}
-  // Lese aus kartenentscheidungen via Gegner-Match
-  const{data:bewForEr}=await sb.from('hsv_bewerbungen').select('gegner').eq('id',bewId).single();
-  const normEr=s=>(s||'').toLowerCase().replace(/^(fc |sv |vfb |sc |tsg |rb |1\.\s*)/i,'').trim();
-  const spielEr=apiGames.find(g=>{const g2=normEr(bewForEr?.gegner||'');return normEr(g.gastteam).includes(g2)||normEr(g.heimteam).includes(g2);});
-  const{data:antworten}=spielEr?await sb.from('kartenentscheidungen').select('mitglied_id').eq('spiel_api_id',spielEr.api_id):{data:[]};
+  const{data:bewForEr}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  const{data:antworten}=bewForEr?.spiel_api_id?await sb.from('kartenentscheidungen').select('mitglied_id').eq('spiel_api_id',bewForEr.spiel_api_id):{data:[]};
   const geantwortetIds=new Set((antworten||[]).map(a=>a.mitglied_id));
   const ohneAntwort=allMembers.filter(m=>m.typ!=='admin'&&m.email&&!geantwortetIds.has(m.id));
   for(const m of ohneAntwort){
@@ -1067,11 +1052,8 @@ async function eintragManuel(bewId){
     prompt('Antwort (behalten_ofc/behalten_extra/behalten_ohne/abgeben):','behalten_ofc'):
     prompt('Antwort (ja/nein):','ja');
   if(!antwort)return;
-  // Schreibe in kartenentscheidungen via Gegner-Match
-  const{data:bewForManuel}=await sb.from('hsv_bewerbungen').select('gegner').eq('id',bewId).single();
-  const normM=s=>(s||'').toLowerCase().replace(/^(fc |sv |vfb |sc |tsg |rb |1\.\s*)/i,'').trim();
-  const spielM=apiGames.find(g=>{const g2=normM(bewForManuel?.gegner||'');return normM(g.gastteam).includes(g2)||normM(g.heimteam).includes(g2);});
-  if(spielM){await sb.from('kartenentscheidungen').upsert({spiel_id:spielM.api_id,spiel_api_id:spielM.api_id,mitglied_id:m.id,entscheidung:antwort},{onConflict:'spiel_id,mitglied_id'});}
+  const{data:bewForManuel}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  if(bewForManuel?.spiel_api_id){await sb.from('kartenentscheidungen').upsert({spiel_id:bewForManuel.spiel_api_id,spiel_api_id:bewForManuel.spiel_api_id,mitglied_id:m.id,entscheidung:antwort},{onConflict:'spiel_id,mitglied_id'});}
   await renderAdminHSVBewerbungen();
   toast(`Eingetragen: ${displayName(m)} → ${antwort} ✓`);
 }
@@ -1086,9 +1068,7 @@ async function pruefeHSVSeiteManuel(){
 async function handleBewerbungsAntwort(antwort,mid,bid){
   // Schreibe in kartenentscheidungen
   const{data:bewForUrl}=await sb.from('hsv_bewerbungen').select('gegner').eq('id',bid).single();
-  const normU=s=>(s||'').toLowerCase().replace(/^(fc |sv |vfb |sc |tsg |rb |1\.\s*)/i,'').trim();
-  const spielU=apiGames.find(g=>{const g2=normU(bewForUrl?.gegner||'');return normU(g.gastteam).includes(g2)||normU(g.heimteam).includes(g2);});
-  if(spielU){await sb.from('kartenentscheidungen').upsert({spiel_id:spielU.api_id,spiel_api_id:spielU.api_id,mitglied_id:mid,entscheidung:antwort},{onConflict:'spiel_id,mitglied_id'});}
+    if(bewForUrl?.spiel_api_id){await sb.from('kartenentscheidungen').upsert({spiel_id:bewForUrl.spiel_api_id,spiel_api_id:bewForUrl.spiel_api_id,mitglied_id:mid,entscheidung:antwort},{onConflict:'spiel_id,mitglied_id'});}
   const labels={behalten_ofc:'Behalten (OFC)',behalten_extra:'Behalten + Extra',behalten_ohne:'Ohne OFC',abgeben:'Karte abgeben',ja:'Ja, dabei!',nein:'Nein, danke'};
   document.body.innerHTML=`<div style="min-height:100vh;background:#0046AD;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;padding:20px"><div style="background:#fff;border-radius:12px;padding:32px;max-width:380px;text-align:center"><div style="font-size:48px;margin-bottom:16px">${['ja','behalten_ofc','behalten_extra'].includes(antwort)?'✅':'↗️'}</div><h2 style="color:#0046AD;margin-bottom:10px">${labels[antwort]||antwort}</h2><p style="color:#495057">Deine Antwort wurde gespeichert.</p><a href="${APP_URL}" style="display:inline-block;margin-top:20px;background:#0046AD;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none">Zur App</a></div></div>`;
 }
