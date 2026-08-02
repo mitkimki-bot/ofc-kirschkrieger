@@ -860,13 +860,39 @@ async function renderAdminHSVBewerbungen(){
     const{data:bews,error}=await sb.from('hsv_bewerbungen').select('*').order('spieltag');
     if(error){el.innerHTML='<div class="error-box">Fehler: '+error.message+'</div>';return;}
     if(!bews||!bews.length){el.innerHTML='<p style="color:#6c757d">Noch keine Bewerbungen.</p>';return;}
-    const{data:alleAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)');
+    // Beide Tabellen zusammenführen
+    const{data:bewerbungAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)');
+    const{data:kartenEntscheidungen}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)');
+    
+    // Merge: für jede Bewerbung die passenden Kartenentscheidungen suchen
+    // Mapping: bewerbung.spiel_api_id -> kartenentscheidungen
     const hsvMitglieder=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin');
     const alleFans=allMembers.filter(m=>!m.hsv_mitglied&&m.typ!=='admin');
+    
+    // Kombinierte Antworten: hsv_bewerbung_antworten + kartenentscheidungen
+    function getKombinierteAntworten(bewerbungId, spielApiId) {
+      const bewAntworten=(bewerbungAntworten||[]).filter(a=>a.bewerbung_id===bewerbungId);
+      const kartAntworten=(kartenEntscheidungen||[]).filter(d=>d.spiel_api_id===spielApiId||d.spiel_id===spielApiId);
+      
+      // Merge: bevorzuge hsv_bewerbung_antworten, ergänze mit kartenentscheidungen
+      const combined=[...bewAntworten];
+      kartAntworten.forEach(k=>{
+        if(!combined.find(a=>a.mitglied_id===k.mitglied_id)){
+          combined.push({
+            bewerbung_id:bewerbungId,
+            mitglied_id:k.mitglied_id,
+            antwort:k.entscheidung, // behalten_ofc, behalten_extra, behalten_ohne, abgeben
+            mitglied:k.mitglied
+          });
+        }
+      });
+      return combined;
+    }
+    const alleAntworten=bewerbungAntworten||[];
 
     let html='';
     bews.forEach(b=>{
-      const antworten=(alleAntworten||[]).filter(a=>a.bewerbung_id===b.id);
+      const antworten=getKombinierteAntworten(b.id, b.spiel_api_id);
       const behalten=antworten.filter(a=>['behalten_ofc','behalten_extra'].includes(a.antwort));
       const abgegeben=antworten.filter(a=>a.antwort==='abgeben');
       const ohneOFC=antworten.filter(a=>a.antwort==='behalten_ohne');
@@ -946,10 +972,22 @@ async function zeigeHSVMeldungsStringBew(bewId){
   box.style.display='block';
   textarea.value='Wird geladen...';
 
-  // Antworten laden
-  const{data:antworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)').eq('bewerbung_id',bewId);
+  // Beide Tabellen laden
+  const{data:bewAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)').eq('bewerbung_id',bewId);
+  // Spiel-API-ID aus Bewerbung holen
+  const{data:bew}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  const{data:kartAntworten}=bew?.spiel_api_id?await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',bew.spiel_api_id):{data:[]};
+  
+  // Merge
+  const combined=[...(bewAntworten||[])];
+  (kartAntworten||[]).forEach(k=>{
+    if(!combined.find(a=>a.mitglied_id===k.mitglied_id)){
+      combined.push({mitglied_id:k.mitglied_id,antwort:k.entscheidung,mitglied:k.mitglied});
+    }
+  });
+  
   const relevant=['behalten_ofc','behalten_extra','abgeben'];
-  const gefiltert=(antworten||[]).filter(a=>
+  const gefiltert=combined.filter(a=>
     relevant.includes(a.antwort) &&
     a.mitglied &&
     a.mitglied.mitgliedsnummer
