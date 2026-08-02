@@ -1220,28 +1220,30 @@ async function ladeHSVBewerbungsFristen(){
     if(!hsvBews||!hsvBews.length)return;
     // Für jedes Spiel im Spielplan prüfen ob es eine HSV-Bewerbung gibt
     hsvBews.forEach(b=>{
+      const istAbgelaufen=new Date(b.bewerbungsfrist)<new Date();
+      if(istAbgelaufen)return;
       const internFrist=new Date(b.bewerbungsfrist);
       internFrist.setDate(internFrist.getDate()-7);
       const fristStr=internFrist.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
-      const istAbgelaufen=new Date(b.bewerbungsfrist)<new Date();
-      if(istAbgelaufen)return;
-      // Alle Spiel-Karten im DOM suchen die diesen Gegner enthalten
+      // Gegner normalisieren
+      const normGegner=b.gegner.replace(/^(den\s+|die\s+|der\s+|dem\s+)/i,'').toLowerCase().trim();
+      // Nur die Karte die DIESEN Gegner enthält
       document.querySelectorAll('#games-list .card').forEach(card=>{
-        const text=card.textContent||'';
-        const normB=b.gegner.replace(/^(den\s+|die\s+|der\s+|dem\s+)/i,'').toLowerCase();
-        const normText=text.toLowerCase();
-        if(normText.includes(normB)||normB.includes(normText.split('\n')[0])){
-          // Prüfen ob bereits angezeigt
-          if(card.querySelector('.hsv-bew-frist'))return;
-          const div=document.createElement('div');
-          div.className='hsv-bew-frist';
-          div.style.cssText='font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block';
-          div.textContent='HSV-Bewerbung: bis '+fristStr+' entscheiden';
-          // Nach den Badges einfügen
-          const badgeDiv=card.querySelector('[style*="display:flex;gap:6px"]');
-          if(badgeDiv)badgeDiv.after(div);
-          else card.appendChild(div);
-        }
+        if(card.querySelector('.hsv-bew-frist'))return; // Bereits verarbeitet
+        const titel=card.querySelector('div[style*="font-size:15px"]');
+        if(!titel)return;
+        const titelText=titel.textContent.toLowerCase();
+        // Exaktes Matching - mindestens 5 Zeichen des Gegners müssen matchen
+        const matchLen=Math.max(5, normGegner.length-3);
+        const gegnerKern=normGegner.substring(0,matchLen);
+        if(!titelText.includes(gegnerKern))return;
+        const div=document.createElement('div');
+        div.className='hsv-bew-frist';
+        div.style.cssText='font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block';
+        div.textContent='HSV-Bewerbung: bis '+fristStr+' entscheiden';
+        const badgeDiv=card.querySelector('[style*="display:flex;gap:6px"]');
+        if(badgeDiv)badgeDiv.after(div);
+        else card.appendChild(div);
       });
     });
   }catch(e){console.log('HSV Fristen Fehler:',e);}
