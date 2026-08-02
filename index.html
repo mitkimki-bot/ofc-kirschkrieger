@@ -851,7 +851,11 @@ async function resetBewerbung(bewId){
 }
 
 async function renderAdminHSVBewerbungen(){
+  // Clear the tab spinner
+  const tabEl=document.getElementById('bewerbungen-content');
+  if(tabEl)tabEl.innerHTML='';
   const el=document.getElementById('admin-hsv-bew-list');
+  if(!el){console.log('admin-hsv-bew-list nicht gefunden!');return;}
   el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
   console.log('renderAdminHSVBewerbungen START');
   try{
