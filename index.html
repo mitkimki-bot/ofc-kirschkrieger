@@ -920,7 +920,12 @@ async function renderAdminHSVBewerbungen(){
         html+='<button class="btn btn-sm btn-orange" onclick="sendeErinnerungAdmin(&quot;'+b.id+'&quot;)">Erinnerung senden</button>';
         html+='<button class="btn btn-sm" onclick="eintragManuel(&quot;'+b.id+'&quot;)">Manuell eintragen</button>';
         if(b.bewerbungslink)html+='<a href="'+b.bewerbungslink+'" target="_blank" class="btn btn-sm btn-primary">HSV Formular öffnen</a>';
+        html+='<button class="btn btn-sm btn-orange" onclick="zeigeHSVMeldungsStringBew(&quot;'+b.id+'&quot;)">HSV-String</button>';
         html+='</div>';
+        html+='<div id="hsv-bew-string-'+b.id+'" style="display:none;margin-top:12px">';
+        html+='<label style="font-size:12px;color:var(--g700);display:block;margin-bottom:6px">HSV Bewerbungs-String:</label>';
+        html+='<div style="display:flex;gap:8px"><textarea id="hsv-bew-text-'+b.id+'" rows="3" readonly style="flex:1;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px;font-family:monospace;background:#f8f9fa;resize:none"></textarea>';
+        html+='<button class="btn btn-sm btn-primary" onclick="kopierenHSVBewString(&quot;'+b.id+'&quot;)">Kopieren</button></div></div>';
       }
 
       html+='</div>';
@@ -932,6 +937,33 @@ async function renderAdminHSVBewerbungen(){
   }
 }
 
+
+async function zeigeHSVMeldungsStringBew(bewId){
+  const box=document.getElementById('hsv-bew-string-'+bewId);
+  const textarea=document.getElementById('hsv-bew-text-'+bewId);
+  if(!box||!textarea)return;
+  if(box.style.display!=='none'){box.style.display='none';return;}
+  box.style.display='block';
+  textarea.value='Wird geladen...';
+
+  // Antworten laden
+  const{data:antworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)').eq('bewerbung_id',bewId);
+  const relevant=['behalten_ofc','behalten_extra','abgeben'];
+  const gefiltert=(antworten||[]).filter(a=>
+    relevant.includes(a.antwort) &&
+    a.mitglied &&
+    a.mitglied.mitgliedsnummer
+  );
+  if(!gefiltert.length){textarea.value='Keine Einträge mit Mitgliedsnummer gefunden.';return;}
+  textarea.value=gefiltert.map(a=>a.mitglied.name+' ('+a.mitglied.mitgliedsnummer+')').join(', ');
+}
+
+async function kopierenHSVBewString(bewId){
+  const textarea=document.getElementById('hsv-bew-text-'+bewId);
+  if(!textarea)return;
+  try{await navigator.clipboard.writeText(textarea.value);toast('Kopiert ✓');}
+  catch(e){textarea.select();document.execCommand('copy');toast('Kopiert ✓');}
+}
 
 async function speichereZuteilung(bewId){
   const n=parseInt(document.getElementById('zut-'+bewId)?.value);
@@ -1856,9 +1888,64 @@ async function renderAdminSpiele(){
       <button class="btn btn-sm btn-primary" onclick="saveSpielEinstellungen('${sp.id}')">Speichern</button>
       <button class="btn btn-sm btn-green" onclick="sendManualMail('${sp.id}','stufe1')">Mail Stufe 1</button>
       <button class="btn btn-sm" onclick="sendManualMail('${sp.id}','stufe2')">Mail Stufe 2</button>
-      <button class="btn btn-sm btn-primary" onclick="generatePDFForSpiel('${sp.spiel_api_id}','${sp.heimteam} vs. ${sp.gastteam}','${sp.datum_iso}')">PDF</button>
+      <button class="btn btn-sm btn-orange" onclick="zeigeHSVMeldungsString('${sp.spiel_api_id}','${sp.heimteam} vs. ${sp.gastteam}')">HSV-String</button>
+    </div>
+    <div id="hsv-string-${sp.spiel_api_id}" style="display:none;margin-top:12px">
+      <label style="font-size:12px;color:var(--g700);display:block;margin-bottom:6px">HSV Bewerbungs-String (kopieren & einfügen):</label>
+      <div style="display:flex;gap:8px">
+        <textarea id="hsv-string-text-${sp.spiel_api_id}" rows="3" readonly style="flex:1;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px;font-family:monospace;background:#f8f9fa;resize:none"></textarea>
+        <button class="btn btn-sm btn-primary" onclick="kopierenHSVString('${sp.spiel_api_id}')">Kopieren</button>
+      </div>
     </div>
   </div>`).join('');
+}
+
+async function zeigeHSVMeldungsString(spielApiId, spielName){
+  const box=document.getElementById('hsv-string-'+spielApiId);
+  const textarea=document.getElementById('hsv-string-text-'+spielApiId);
+  if(!box||!textarea)return;
+
+  // Toggle
+  if(box.style.display!=='none'){box.style.display='none';return;}
+  box.style.display='block';
+  textarea.value='Wird geladen...';
+
+  // Entscheidungen laden
+  const{data:decs}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',spielApiId);
+
+  // Nur: behalten_ofc, behalten_extra, abgeben – UND Mitgliedsnummer vorhanden
+  const relevant=['behalten_ofc','behalten_extra','abgeben'];
+  const gefiltert=(decs||[]).filter(d=>
+    relevant.includes(d.entscheidung) &&
+    d.mitglied &&
+    d.mitglied.mitgliedsnummer
+  );
+
+  if(!gefiltert.length){
+    textarea.value='Keine Einträge mit Mitgliedsnummer gefunden.';
+    return;
+  }
+
+  // String zusammenbauen
+  const parts=gefiltert.map(d=>{
+    const m=d.mitglied;
+    return m.name+' ('+m.mitgliedsnummer+')';
+  });
+
+  textarea.value=parts.join(', ');
+}
+
+async function kopierenHSVString(spielApiId){
+  const textarea=document.getElementById('hsv-string-text-'+spielApiId);
+  if(!textarea)return;
+  try{
+    await navigator.clipboard.writeText(textarea.value);
+    toast('In Zwischenablage kopiert ✓');
+  }catch(e){
+    textarea.select();
+    document.execCommand('copy');
+    toast('Kopiert ✓');
+  }
 }
 
 async function saveSpielEinstellungen(id){
