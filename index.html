@@ -863,10 +863,13 @@ async function renderAdminHSVBewerbungen(){
     console.log('Lade Antworten...');
     const{data:alleAntworten}=await sb.from('hsv_bewerbung_antworten').select('*,mitglied:mitglieder(*)');
     console.log('Antworten geladen:', alleAntworten?.length);
+    console.log('allMembers:', allMembers?.length);
     const hsvMitglieder=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin');
     const alleFans=allMembers.filter(m=>!m.hsv_mitglied&&m.typ!=='admin');
+    console.log('HSV:', hsvMitglieder.length, 'Fans:', alleFans.length);
 
     let html='';
+    console.log('Starte HTML-Generierung für', bews.length, 'Bewerbungen');
     bews.forEach(b=>{
       const antworten=(alleAntworten||[]).filter(a=>a.bewerbung_id===b.id);
       const behalten=antworten.filter(a=>['behalten_ofc','behalten_extra'].includes(a.antwort));
@@ -928,7 +931,9 @@ async function renderAdminHSVBewerbungen(){
       html+='</div>';
     });
 
+    console.log('HTML fertig, setze innerHTML...');
     el.innerHTML=html;
+    console.log('renderAdminHSVBewerbungen FERTIG');
   }catch(e){
     el.innerHTML='<div class="error-box">Fehler: '+e.message+'</div>';
     console.log('renderAdminHSVBewerbungen Fehler:',e);
