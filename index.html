@@ -825,13 +825,13 @@ async function renderBewerbungen(){
         (!istAbgelaufen&&!myAnt&&isHsv?
           '<div style="display:flex;flex-direction:column;gap:4px;margin-top:10px;max-width:200px">'+
             '<button class="ticket-btn" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;behalten_ofc&quot;)">Behalten (OFC)</button>'+
-            '<button class="ticket-btn" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;behalten_extra&quot;)">Behalten + Extra</button>'+
+            '<button class="ticket-btn" onclick="zeigeExtraAuswahl(&quot;'+b.id+'&quot;,&quot;behalten_extra&quot;)">Behalten + Extra</button>'+
             '<button class="ticket-btn" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;behalten_ohne&quot;)">Ohne OFC</button>'+
             '<button class="ticket-btn" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;abgeben&quot;)">Karte abgeben</button>'+
           '</div>':'')+
         (!istAbgelaufen&&!myAnt&&isFan?
           '<div style="display:flex;gap:8px;margin-top:10px">'+
-            '<button class="btn btn-sm btn-primary" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;ja&quot;)">Ja, dabei!</button>'+
+            '<button class="btn btn-sm btn-primary" onclick="zeigeExtraAuswahl(&quot;'+b.id+'&quot;,&quot;ja&quot;)">Ja, dabei!</button>'+
             '<button class="btn btn-sm" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;nein&quot;)">Nein, danke</button>'+
           '</div>':'')+
         (myAnt&&!istAbgelaufen?'<button class="btn btn-sm" style="margin-top:8px" onclick="resetBewerbung(&quot;'+b.id+'&quot;)">Zurücksetzen</button>':'')+
@@ -900,6 +900,13 @@ async function renderAdminHSVBewerbungen(){
       html+='<div><div style="font-size:15px;font-weight:500">Spieltag '+b.spieltag+' – HSV vs. '+b.gegner+'</div>';
       html+='<div style="font-size:12px;color:#6c757d">'+(b.heimspiel?'Heimspiel':'Auswärtsspiel')+' | '+(b.datum_text||'')+'</div>';
       if(b.frist_text)html+='<div style="font-size:11px;color:#842029">Bewerbungsfrist: '+b.frist_text+'</div>';
+      if(!istKeineOFC){
+        html+='<div style="display:flex;gap:12px;margin-top:8px;align-items:center;flex-wrap:wrap">';
+        html+='<div style="font-size:12px">Min Karten: <input type="number" id="min-'+b.id+'" value="'+(b.min_karten||'')+'" min="0" max="20" placeholder="z.B. 2" style="width:60px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:12px"></div>';
+        html+='<div style="font-size:12px">Max Karten: <input type="number" id="max-'+b.id+'" value="'+(b.max_karten||'')+'" min="0" max="20" placeholder="z.B. 8" style="width:60px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:12px"></div>';
+        html+='<button class="btn btn-sm" onclick="speichereMinMax(&quot;'+b.id+'&quot;)">Speichern</button>';
+        html+='</div>';
+      }
       html+='</div>';
       html+='<span class="badge '+(istKeineOFC?'badge-gray':b.status==='beantragt'?'badge-green':b.status==='zugeteilt'?'badge-bl':'badge-red')+'">'+(istKeineOFC?'Keine OFC':b.status==='beantragt'?'Beantragt':b.status==='zugeteilt'?'Zugeteilt':'Offen')+'</span>';
       html+='</div>';
@@ -937,8 +944,12 @@ async function renderAdminHSVBewerbungen(){
         html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
         html+='<button class="btn btn-sm btn-orange" onclick="sendeErinnerungAdmin(&quot;'+b.id+'&quot;)">Erinnerung senden</button>';
         html+='<button class="btn btn-sm" onclick="eintragManuel(&quot;'+b.id+'&quot;)">Manuell eintragen</button>';
+        html+='<button class="btn btn-sm btn-green" onclick="erstelleZuteilungsvorschlag(&quot;'+b.id+'&quot;,'+b.heimspiel+')">Zuteilung vorschlagen</button>';
         if(b.bewerbungslink)html+='<a href="'+b.bewerbungslink+'" target="_blank" class="btn btn-sm btn-primary">HSV Formular öffnen</a>';
         html+='<button class="btn btn-sm btn-orange" onclick="zeigeHSVMeldungsStringBew(&quot;'+b.id+'&quot;)">HSV-String</button>';
+        html+='</div>';
+        html+='<div id="vorschlag-'+b.id+'" style="display:none;margin-top:14px;border-top:1px solid var(--g200);padding-top:14px"></div>';
+        html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
         html+='</div>';
         html+='<div id="hsv-bew-string-'+b.id+'" style="display:none;margin-top:12px">';
         html+='<label style="font-size:12px;color:var(--g700);display:block;margin-bottom:6px">HSV Bewerbungs-String:</label>';
@@ -2207,6 +2218,200 @@ async function generatePDFForSpiel(spielApiId,spielName,datumIso){
 // ══ GMAIL SCRIPT TRIGGER (HSV-Info Weiterleitung) ═════
 // Das Gmail-Script erkennt Mails mit "OFC Kirschkrieger" im Betreff
 // und leitet sie an alle Mitglieder mit opt_hsv_info=true weiter.
+
+// ══ ANZAHL-AUSWAHL (Extra Karten) ════════════════════
+async function zeigeExtraAuswahl(bewId, antwort){
+  const isExtra = antwort==='behalten_extra';
+  const isFan = antwort==='ja';
+  const max = isExtra ? 3 : 4;
+  const label = isExtra ? 'Wie viele Extra-Karten möchtest du?' : 'Wie viele Karten benötigst du?';
+  
+  const anzahl = await new Promise(resolve => {
+    const div = document.createElement('div');
+    div.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    div.innerHTML = `<div style="background:#fff;border-radius:12px;padding:24px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+      <div style="font-size:15px;font-weight:500;margin-bottom:16px">${label}</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px">
+        ${Array.from({length:max},(_,i)=>`<button onclick="this.closest('.modal-anzahl').dataset.val='${i+1}'" 
+          style="width:48px;height:48px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:18px;font-weight:600;cursor:pointer">${i+1}</button>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="this.closest('.modal-anzahl').dataset.val='cancel'" style="flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--g300);background:#fff;cursor:pointer">Abbrechen</button>
+      </div>
+    </div>`;
+    div.className = 'modal-anzahl';
+    div.dataset.val = '';
+    
+    // Button click handling
+    div.querySelectorAll('button[onclick*="dataset.val"]').forEach(btn => {
+      btn.addEventListener('click', function(){
+        const val = this.getAttribute('onclick').match(/'(\d+)'/)[1];
+        document.body.removeChild(div);
+        resolve(parseInt(val));
+      });
+    });
+    div.querySelector('button:last-child').addEventListener('click', ()=>{
+      document.body.removeChild(div);
+      resolve(null);
+    });
+    document.body.appendChild(div);
+  });
+  
+  if(!anzahl) return;
+  await antworteHSVMitAnzahl(bewId, antwort, anzahl);
+}
+
+async function antworteHSVMitAnzahl(bewId, antwort, anzahl){
+  const labels={behalten_ofc:'Behalten (OFC)',behalten_extra:'Behalten + Extra ('+anzahl+')',behalten_ohne:'Ohne OFC',abgeben:'Karte abgeben',ja:'Ja, dabei! ('+anzahl+' Karte(n))',nein:'Nein, danke'};
+  const{data:bew}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
+  if(!bew||!bew.spiel_api_id){toast('Fehler: Spiel nicht verknüpft.');return;}
+  await sb.from('kartenentscheidungen').upsert({
+    spiel_id:bew.spiel_api_id,
+    spiel_api_id:bew.spiel_api_id,
+    mitglied_id:currentUser.id,
+    entscheidung:antwort,
+    anzahl_wunsch:anzahl
+  },{onConflict:'spiel_id,mitglied_id'});
+  toast(labels[antwort]+' ✓');
+  renderBewerbungen();
+}
+
+// ══ MIN/MAX KARTEN ════════════════════════════════════
+async function speichereMinMax(bewId){
+  const min=parseInt(document.getElementById('min-'+bewId)?.value)||null;
+  const max=parseInt(document.getElementById('max-'+bewId)?.value)||null;
+  await sb.from('hsv_bewerbungen').update({min_karten:min,max_karten:max}).eq('id',bewId);
+  toast('Min/Max gespeichert ✓');
+}
+
+// ══ ZUTEILUNGSVORSCHLAG ═══════════════════════════════
+async function erstelleZuteilungsvorschlag(bewId, heimspiel){
+  const el=document.getElementById('vorschlag-'+bewId);
+  if(!el)return;
+  el.style.display='block';
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+
+  // Daten laden
+  const{data:bew}=await sb.from('hsv_bewerbungen').select('*').eq('id',bewId).single();
+  if(!bew?.spiel_api_id){el.innerHTML='<div class="error-box">Spiel nicht verknüpft.</div>';return;}
+
+  const{data:decs}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',bew.spiel_api_id);
+  const kartenField = heimspiel ? 'karten_count_heim' : 'karten_count_auswaerts';
+
+  const maxKarten = bew.max_karten || 99;
+  let verfuegbar = maxKarten;
+  const vorschlag = [];
+
+  // Stufe 1: HSV-Mitglieder garantiert 1 Karte (behalten_ofc + behalten_extra)
+  const hsv1 = (decs||[]).filter(d=>['behalten_ofc','behalten_extra'].includes(d.entscheidung)&&d.mitglied);
+  hsv1.forEach(d=>{
+    if(verfuegbar<=0)return;
+    vorschlag.push({mitglied_id:d.mitglied_id,mitglied:d.mitglied,anzahl:1,prioritaet:1,entscheidung:d.entscheidung});
+    verfuegbar--;
+  });
+
+  // Stufe 2: Fan-Mitglieder 1 Karte nach Fairness (wer am wenigsten hat)
+  const fans = (decs||[]).filter(d=>d.entscheidung==='ja'&&d.mitglied&&!d.mitglied.hsv_mitglied)
+    .sort((a,b)=>(a.mitglied[kartenField]||0)-(b.mitglied[kartenField]||0));
+  fans.forEach(d=>{
+    if(verfuegbar<=0)return;
+    vorschlag.push({mitglied_id:d.mitglied_id,mitglied:d.mitglied,anzahl:1,prioritaet:2,entscheidung:'ja'});
+    verfuegbar--;
+  });
+
+  // Stufe 3: HSV-Mitglieder Extra-Wunsch
+  const hsvExtra = (decs||[]).filter(d=>d.entscheidung==='behalten_extra'&&d.mitglied);
+  hsvExtra.forEach(d=>{
+    const wunsch=(d.anzahl_wunsch||1);
+    if(verfuegbar<=0)return;
+    const extra=Math.min(wunsch,verfuegbar);
+    if(extra>0){
+      const existing=vorschlag.find(v=>v.mitglied_id===d.mitglied_id);
+      if(existing){existing.anzahl+=extra;verfuegbar-=extra;}
+    }
+  });
+
+  // Stufe 4: Fan-Mitglieder Extra-Wunsch
+  fans.forEach(d=>{
+    const wunsch=(d.anzahl_wunsch||1);
+    if(wunsch<=1||verfuegbar<=0)return;
+    const extra=Math.min(wunsch-1,verfuegbar);
+    if(extra>0){
+      const existing=vorschlag.find(v=>v.mitglied_id===d.mitglied_id);
+      if(existing){existing.anzahl+=extra;verfuegbar-=extra;}
+    }
+  });
+
+  // Vorschlag anzeigen (editierbar)
+  const priLabel={1:'HSV garantiert',2:'Fan Fairness',3:'HSV Extra',4:'Fan Extra'};
+  const priColor={1:'#0046AD',2:'#198754',3:'#e67e22',4:'#6c757d'};
+
+  let html='<div style="font-size:13px;font-weight:500;margin-bottom:10px">Zuteilungsvorschlag ('+vorschlag.length+' Mitglieder, '+(maxKarten-verfuegbar)+'/'+maxKarten+' Karten)</div>';
+  html+='<div style="font-size:11px;color:#6c757d;margin-bottom:10px">Karten nach Spieltyp: '+(heimspiel?'Heimspiel':'Auswärtsspiel')+'</div>';
+  
+  vorschlag.forEach((v,idx)=>{
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--g50);border-radius:6px;margin-bottom:6px">';
+    html+='<div style="flex:1;font-size:13px"><strong>'+displayName(v.mitglied)+'</strong>';
+    html+='<span style="font-size:11px;color:'+priColor[v.prioritaet]+';margin-left:6px">'+priLabel[v.prioritaet]+'</span></div>';
+    html+='<div style="font-size:12px;color:#6c757d">bisher: '+(v.mitglied[kartenField]||0)+' '+( heimspiel?'Heim':'Ausw.')+'</div>';
+    html+='<input type="number" id="vor-'+bewId+'-'+idx+'" value="'+v.anzahl+'" min="0" max="10" style="width:50px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:13px;text-align:center">';
+    html+='<input type="hidden" id="vor-mid-'+bewId+'-'+idx+'" value="'+v.mitglied_id+'">';
+    html+='</div>';
+  });
+  
+  html+='<div style="margin-top:12px;padding:10px;background:#fff3cd;border-radius:6px;font-size:12px">Noch verfügbar: <strong>'+verfuegbar+'</strong> von '+maxKarten+' Karten</div>';
+  html+='<div style="display:flex;gap:8px;margin-top:12px">';
+  html+='<button class="btn btn-green" onclick="bestaetigeZuteilung(&quot;'+bewId+'&quot;,'+vorschlag.length+','+heimspiel+')">Zuteilung bestätigen & Mails senden</button>';
+  html+='<button class="btn" onclick="document.getElementById(&quot;vorschlag-'+bewId+'&quot;).style.display=&quot;none&quot;">Abbrechen</button>';
+  html+='</div>';
+  html+='<div style="font-size:11px;color:#6c757d;margin-top:8px">Du kannst die Anzahl pro Person noch anpassen bevor du bestätigst.</div>';
+
+  el.innerHTML=html;
+  // Store vorschlag data for confirmation
+  el.dataset.vorschlag=JSON.stringify(vorschlag);
+  el.dataset.heimspiel=heimspiel;
+}
+
+async function bestaetigeZuteilung(bewId, count, heimspiel){
+  if(!confirm('Zuteilung bestätigen und Mails versenden?'))return;
+  
+  const kartenField = heimspiel ? 'karten_count_heim' : 'karten_count_auswaerts';
+  
+  // Aktuelle Werte aus Eingabefeldern lesen
+  const zuteilungen=[];
+  for(let i=0;i<count;i++){
+    const anzEl=document.getElementById('vor-'+bewId+'-'+i);
+    const midEl=document.getElementById('vor-mid-'+bewId+'-'+i);
+    if(!anzEl||!midEl)continue;
+    const anzahl=parseInt(anzEl.value)||0;
+    if(anzahl>0)zuteilungen.push({mitglied_id:midEl.value,anzahl});
+  }
+
+  if(!zuteilungen.length){toast('Keine Zuteilungen.');return;}
+
+  // Karten-Count aktualisieren und Mails senden
+  for(const z of zuteilungen){
+    const m=allMembers.find(x=>x.id===z.mitglied_id);
+    if(!m)continue;
+    const newCount=(m[kartenField]||0)+z.anzahl;
+    await sb.from('mitglieder').update({[kartenField]:newCount,karten_count:(m.karten_count||0)+z.anzahl}).eq('id',z.mitglied_id);
+    
+    // Mail senden
+    const{data:bew}=await sb.from('hsv_bewerbungen').select('*').eq('id',bewId).single();
+    if(m.email&&bew){
+      await queueMail(m.email,'OFC Kirschkrieger – Karte erhalten: HSV vs. '+bew.gegner,
+        `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">Du hast <strong>${z.anzahl} Karte(n)</strong> für <strong>HSV vs. ${bew.gegner}</strong> erhalten!</p><p style="font-size:13px;color:#495057">${bew.datum_text||''}</p></div><div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div></div>`
+      );
+    }
+  }
+
+  // Status aktualisieren
+  await sb.from('hsv_bewerbungen').update({status:'zugeteilt',karten_zugeteilt:zuteilungen.reduce((s,z)=>s+z.anzahl,0)}).eq('id',bewId);
+  await loadMembers();
+  await renderAdminHSVBewerbungen();
+  toast('Zuteilung bestätigt – Mails werden versendet ✓');
+}
+
 // Kein Code noetig hier - laeuft im Google Apps Script.
 </script>
 </body>
