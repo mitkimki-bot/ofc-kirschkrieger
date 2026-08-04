@@ -1320,7 +1320,12 @@ async function renderGames(){
           <button class="ticket-btn ${myDec==='behalten_ohne'?'active-behalten_ohne':''}" onclick="setTicket('${gid}','behalten_ohne')">Ohne OFC</button>
           <button class="ticket-btn ${myDec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">Abgeben</button>
         </div>`:''}
-        ${!isFinished&&!isNochNicht&&isFan&&(phase==='stufe2'||abg>0)?`<div><button class="btn btn-sm btn-primary" onclick="showRequestCard('${gid}')">Karte anfragen</button></div>`:''}
+        ${!isFinished&&!isNochNicht&&isFan?`<div style="margin-top:8px">
+          <button class="btn btn-sm btn-primary" onclick="zeigeKartenBeantragen('${gid}')">Karte beantragen</button>
+          <div style="font-size:12px;color:${myDec==='ja'&&myAnz>0?'#0046AD':'#6c757d'};margin-top:5px;font-weight:${myDec==='ja'?'500':'400'}">
+            ${myDec==='ja'&&myAnz>0?myAnz+' Karte'+(myAnz>1?'n':'') +' beantragt':'Keine Karte beantragt'}
+          </div>
+        </div>`:''}
       </div>
       ${myDec?`<div class="divider"></div><div style="font-size:12px;color:#6c757d">Deine Wahl: <strong style="color:${DEC_COLORS[myDec]}">${DEC_LABELS[myDec]}${myDec==='behalten_extra'&&myAnz>1?' (+'+myAnz+' Extra)':myDec==='ja'&&myAnz>1?' ('+myAnz+' Karten)':''}</strong></div>`:''}
     </div>`;
@@ -1383,6 +1388,41 @@ async function ladeHSVBewerbungsFristen(){
       });
     });
   }catch(e){console.log('HSV Fristen Fehler:',e);}
+}
+
+async function zeigeKartenBeantragen(gid){
+  const anzahl = await new Promise(resolve => {
+    const div = document.createElement('div');
+    div.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    div.innerHTML = `<div style="background:#fff;border-radius:12px;padding:24px;max-width:300px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+      <div style="font-size:15px;font-weight:500;margin-bottom:8px">Karte beantragen</div>
+      <div style="font-size:13px;color:#6c757d;margin-bottom:16px">Wie viele Karten möchtest du beantragen?</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px">
+        <button data-val="1" style="width:56px;height:56px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:20px;font-weight:600;cursor:pointer">1</button>
+        <button data-val="2" style="width:56px;height:56px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:20px;font-weight:600;cursor:pointer">2</button>
+        <button data-val="3" style="width:56px;height:56px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:20px;font-weight:600;cursor:pointer">3</button>
+      </div>
+      <button data-val="0" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--g300);background:#fff;cursor:pointer;font-size:13px">Abbrechen</button>
+    </div>`;
+    div.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = parseInt(btn.dataset.val);
+        document.body.removeChild(div);
+        resolve(val);
+      });
+    });
+    document.body.appendChild(div);
+  });
+  if(!anzahl) return;
+  await sb.from('kartenentscheidungen').upsert({
+    spiel_id:gid, spiel_api_id:gid,
+    mitglied_id:currentUser.id,
+    entscheidung:'ja',
+    anzahl_wunsch:anzahl
+  },{onConflict:'spiel_id,mitglied_id'});
+  await loadMembers(); renderGames(); renderStats();
+  setTimeout(ladeHSVBewerbungsFristen, 300);
+  toast(anzahl+' Karte'+(anzahl>1?'n':'')+' beantragt ✓');
 }
 
 async function zeigeTicketMitAnzahl(gid, dec){
