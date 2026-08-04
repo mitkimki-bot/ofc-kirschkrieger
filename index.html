@@ -1275,6 +1275,11 @@ async function renderGames(){
   const{data:sps}=await sb.from('spiel_einstellungen').select('*');
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
 
+  // HSV Bewerbungen direkt laden für Box-Anzeige
+  const{data:hsvBewsRG}=await sb.from('hsv_bewerbungen').select('spiel_api_id,gegner,bewerbungsfrist,status').in('status',['offen','beantragt','keine_ofc']);
+  const hsvBewMap={};
+  (hsvBewsRG||[]).forEach(b=>{if(b.spiel_api_id)hsvBewMap[b.spiel_api_id]=b;});
+
   el.innerHTML=filtered.map(g=>{
     const gid=g.api_id,dec=allDec||[];
     const beh_ofc=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_ofc').length;
@@ -1305,6 +1310,7 @@ async function renderGames(){
             ${phase==='stufe3'?'<span class="badge badge-green">Freigabe Freunde</span>':''}
           </div>
           ${fristStr&&!isFinished?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">${fristStr}${fristAbgelaufen?' - ABGELAUFEN':''}</div>`:''}
+          ${(()=>{const hb=hsvBewMap[g.api_id];if(!hb)return '';if(hb.status==='keine_ofc')return '<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Keine OFC-Bewerbung möglich</div>';const f=new Date(hb.bewerbungsfrist);const abg=f<new Date();if(abg)return '';f.setDate(f.getDate()-7);return '<div style="font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis '+f.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' entscheiden</div>';})()} 
 
         </div>
         ${!isFinished&&!isNochNicht&&isHsv&&!fristAbgelaufen?`
