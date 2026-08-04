@@ -1322,6 +1322,7 @@ async function renderGames(){
         </div>`:''}
         ${!isFinished&&!isNochNicht&&isFan?`<div style="margin-top:8px">
           <button class="btn btn-sm btn-primary" onclick="zeigeKartenBeantragen('${gid}')">Karte beantragen</button>
+          ${myDec==='ja'?`<button class="btn btn-sm" style="margin-left:6px" onclick="setTicket('${gid}','nein')">Keine Karte</button>`:''}
           <div style="font-size:12px;color:${myDec==='ja'&&myAnz>0?'#0046AD':'#6c757d'};margin-top:5px;font-weight:${myDec==='ja'?'500':'400'}">
             ${myDec==='ja'&&myAnz>0?myAnz+' Karte'+(myAnz>1?'n':'') +' beantragt':'Keine Karte beantragt'}
           </div>
