@@ -313,6 +313,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
       <button onclick="showTab('stats',this)">Statistik</button>
       <button onclick="showTab('info',this)">Info & Regeln</button>
       <button id="hsv-karten-nav-btn" onclick="showTab('bewerbungen',this)" style="display:none">HSV Bewerbungen</button>
+  }
       <button onclick="showTab('profil',this)">Mein Profil</button>
       <button id="admin-nav-btn" onclick="showTab('admin',this)" style="display:none">Admin</button>
     </div>
@@ -1269,7 +1270,7 @@ async function renderGames(){
   if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
   const{data:allDec}=await sb.from('kartenentscheidungen').select('*');
   const{data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
-  const myDecMap={};(myDecs||[]).forEach(d=>myDecMap[d.spiel_api_id||d.spiel_id]=d.entscheidung);
+  const myDecMap={};const myAnzMap={};(myDecs||[]).forEach(d=>{myDecMap[d.spiel_api_id||d.spiel_id]=d.entscheidung;myAnzMap[d.spiel_api_id||d.spiel_id]=d.anzahl_wunsch||1;});
   const hsvIds=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin').map(m=>m.id);
   const{data:sps}=await sb.from('spiel_einstellungen').select('*');
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
@@ -1282,6 +1283,7 @@ async function renderGames(){
     const abg=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='abgeben').length;
     const off=hsvIds.length-beh_ofc-beh_ext-beh_oh-abg;
     const myDec=myDecMap[gid];
+    const myAnz=myAnzMap[gid]||1;
     const isHsv=currentUser&&currentUser.hsv_mitglied&&currentUser.typ!=='admin';
     const isFan=currentUser&&!currentUser.hsv_mitglied;
     const isFinished=g.status==='FINISHED',isNochNicht=g.offiziell===false;
@@ -2447,6 +2449,7 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
 }
 
 // Kein Code noetig hier - laeuft im Google Apps Script.
+checkUrlParams();
 </script>
 </body>
 </html>
