@@ -1313,7 +1313,6 @@ async function renderGames(){
           <button class="ticket-btn ${myDec==='behalten_extra'?'active-behalten_extra':''}" onclick="zeigeTicketMitAnzahl('${gid}','behalten_extra')">Behalten + Extra</button>
           <button class="ticket-btn ${myDec==='behalten_ohne'?'active-behalten_ohne':''}" onclick="setTicket('${gid}','behalten_ohne')">Ohne OFC</button>
           <button class="ticket-btn ${myDec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">Abgeben</button>
-          ')
         </div>`:''}
         ${!isFinished&&!isNochNicht&&isFan&&(phase==='stufe2'||abg>0)?`<div><button class="btn btn-sm btn-primary" onclick="showRequestCard('${gid}')">Karte anfragen</button></div>`:''}
       </div>
