@@ -1275,8 +1275,8 @@ async function renderGames(){
   const{data:sps}=await sb.from('spiel_einstellungen').select('*');
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
 
-  // HSV Bewerbungen direkt laden für Box-Anzeige
-  const{data:hsvBewsRG}=await sb.from('hsv_bewerbungen').select('spiel_api_id,gegner,bewerbungsfrist,status').in('status',['offen','beantragt','keine_ofc']);
+  // HSV Bewerbungen direkt laden für Box-Anzeige + Spielkategorie
+  const{data:hsvBewsRG}=await sb.from('hsv_bewerbungen').select('spiel_api_id,gegner,bewerbungsfrist,status,spielkategorie').in('status',['offen','beantragt','keine_ofc']);
   const hsvBewMap={};
   (hsvBewsRG||[]).forEach(b=>{if(b.spiel_api_id)hsvBewMap[b.spiel_api_id]=b;});
 
@@ -1310,7 +1310,9 @@ async function renderGames(){
             ${phase==='stufe3'?'<span class="badge badge-green">Freigabe Freunde</span>':''}
           </div>
           ${fristStr&&!isFinished?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">${fristStr}${fristAbgelaufen?' - ABGELAUFEN':''}</div>`:''}
-          ${(()=>{const hb=hsvBewMap[g.api_id];if(!hb)return '';if(hb.status==='keine_ofc')return '<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Keine OFC-Bewerbung möglich</div>';const f=new Date(hb.bewerbungsfrist);const abg=f<new Date();if(abg)return '';f.setDate(f.getDate()-7);return '<div style="font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis '+f.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' entscheiden</div>';})()} 
+          ${(()=>{const hb=hsvBewMap[g.api_id];if(!hb)return '';let html='';if(hb.status==='keine_ofc'){html+='<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Keine OFC-Bewerbung möglich</div>';}else{const f=new Date(hb.bewerbungsfrist);const abg=f<new Date();if(!abg){const fi=new Date(f);fi.setDate(fi.getDate()-7);html+='<div style="font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis '+fi.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' entscheiden</div>';}}// Spielkategorie aus hsv_spiele (via apiGames) oder hsv_bewerbungen
+        const spielKat = g.spielkategorie || (hb && hb.spielkategorie);
+        if(spielKat){html+=' <button onclick="zeigePreisPopup(\''+spielKat+'\',\''+g.heimteam+' vs. '+g.gastteam+'\')" style="font-size:11px;font-weight:600;color:#fff;margin-top:5px;background:#0046AD;border:none;padding:3px 10px;border-radius:4px;cursor:pointer">Kat. '+spielKat+' – Preise</button>';}return html;})()} 
 
         </div>
         ${!isFinished&&!isNochNicht&&isHsv&&!fristAbgelaufen?`
@@ -2453,6 +2455,48 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
   await loadMembers();
   await renderAdminHSVBewerbungen();
   toast('Zuteilung bestätigt – Mails werden versendet ✓');
+}
+
+
+// ══ TICKETPREISE ══════════════════════════════════════
+const TICKET_PREISE = {
+  A: {1: 89, 2: 76, 3: 62, 4: 49, 5: 35},
+  B: {1: 74, 2: 63, 3: 52, 4: 41, 5: 29},
+  C: {1: 59, 2: 50, 3: 41, 4: 33, 5: 24}
+};
+
+function zeigePreisPopup(kat, spielName) {
+  const preise = TICKET_PREISE[kat];
+  if(!preise) return;
+  
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  div.innerHTML = `<div style="background:#fff;border-radius:12px;max-width:340px;width:100%;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div style="background:#0046AD;padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="color:#fff;font-weight:600;font-size:15px">Spielkategorie ${kat}</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">${spielName}</div>
+      </div>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px">✕</button>
+    </div>
+    <div style="padding:16px">
+      <table style="width:100%;border-collapse:collapse;font-size:14px">
+        <tr style="background:#f8f9fa">
+          <th style="padding:8px;text-align:left;color:#6c757d;font-weight:500">Preiskategorie</th>
+          <th style="padding:8px;text-align:right;color:#6c757d;font-weight:500">Preis</th>
+        </tr>
+        ${[1,2,3,4,5].map(pk => `
+        <tr style="border-top:1px solid #f0f0f0">
+          <td style="padding:10px 8px;color:#333">Preiskategorie ${pk}</td>
+          <td style="padding:10px 8px;text-align:right;font-weight:500;color:#0046AD">${preise[pk]},00 €</td>
+        </tr>`).join('')}
+      </table>
+      <div style="margin-top:12px;font-size:11px;color:#6c757d;text-align:center">Preise Saison 2026/27 · Preiskategorie 5 = Stehplatz</div>
+    </div>
+  </div>`;
+  
+  div.addEventListener('click', e => { if(e.target === div) div.remove(); });
+  document.body.appendChild(div);
 }
 
 // Kein Code noetig hier - laeuft im Google Apps Script.
