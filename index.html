@@ -1248,7 +1248,7 @@ async function fetchGames(force=false){
     if(error||!data||!data.length)throw new Error('Leer');
     const{data:dfb}=await sb.from('spiel_einstellungen').select('*').eq('wettbewerb','DFB-Pokal').order('datum_iso');
     const dfbGames=(dfb||[]).map(s=>({id:'dfb_'+s.id,api_id:'dfb_'+s.id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:'DFB-Pokal',status:'SCHEDULED',score:null,spielort:s.spielort,offiziell:true}));
-    apiGames=[...data.map(s=>({id:'m_'+s.api_id,api_id:s.api_id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:s.wettbewerb,status:s.status,score:s.ergebnis,spielort:s.spielort,offiziell:s.offiziell,matchday:s.matchday})),...dfbGames].sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
+    apiGames=[...data.map(s=>({id:'m_'+s.api_id,api_id:s.api_id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:s.wettbewerb,status:s.status,score:s.ergebnis,spielort:s.spielort,offiziell:s.offiziell,matchday:s.matchday,spielkategorie:s.spielkategorie})),...dfbGames].sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
     st.className='api-status ok';st.textContent=`${apiGames.length} Spiele geladen`;
     renderGames();
     setTimeout(ladeHSVBewerbungsFristen, 500);
