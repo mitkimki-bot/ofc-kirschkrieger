@@ -1334,7 +1334,7 @@ async function ladeHSVBewerbungsFristen(){
       const gegnerKern=normGegner.substring(0,matchLen);
       document.querySelectorAll('#games-list .card').forEach(card=>{
         if(card.querySelector('.hsv-bew-frist'))return;
-        const titel=card.querySelector('.game-title')||card.querySelector('div[style*="font-size:14px"]')||card.querySelector('div[style*="font-size:15px"]');
+        const titel=card.querySelector('div[style*="font-size:15px"]');
         if(!titel)return;
         if(!titel.textContent.toLowerCase().includes(gegnerKern))return;
         const div=document.createElement('div');
@@ -1358,7 +1358,7 @@ async function ladeHSVBewerbungsFristen(){
       // Nur die Karte die DIESEN Gegner enthält
       document.querySelectorAll('#games-list .card').forEach(card=>{
         if(card.querySelector('.hsv-bew-frist'))return; // Bereits verarbeitet
-        const titel=card.querySelector('.game-title')||card.querySelector('div[style*="font-size:14px"]')||card.querySelector('div[style*="font-size:15px"]');
+        const titel=card.querySelector('div[style*="font-size:15px"]');
         if(!titel)return;
         const titelText=titel.textContent.toLowerCase();
         // Exaktes Matching - mindestens 5 Zeichen des Gegners müssen matchen
@@ -1434,7 +1434,7 @@ async function renderKarten(){
       html+=`<div class="card ${dec?`card-${dec==='abgeben'?'red':dec==='behalten_ohne'?'orange':dec==='behalten_extra'?'green':'blue'}`:''}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
           <div>
-            <div class="game-title" style="font-size:14px;font-weight:500">${g.heimteam} vs. ${g.gastteam}</div>
+            <div style="font-size:14px;font-weight:500">${g.heimteam} vs. ${g.gastteam}</div>
             <div style="font-size:12px;color:#6c757d;margin-top:3px">${fmtDate(g.datum_iso)} ${compBadge(g.wettbewerb)}</div>
             ${fristStr&&!fristAbgelaufen?`<div style="font-size:11px;color:var(--g500);margin-top:3px">Frist: ${fristStr}</div>`:''}
             ${fristAbgelaufen?`<div style="font-size:11px;color:#842029;margin-top:3px">Frist abgelaufen</div>`:''}
@@ -1464,7 +1464,7 @@ async function renderKarten(){
       html+=`<div class="card ${assigned?'card-blue':''}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
           <div>
-            <div class="game-title" style="font-size:14px;font-weight:500">${g.heimteam} vs. ${g.gastteam}</div>
+            <div style="font-size:14px;font-weight:500">${g.heimteam} vs. ${g.gastteam}</div>
             <div style="font-size:12px;color:#6c757d;margin-top:3px">${fmtDate(g.datum_iso)}</div>
             <div style="margin-top:6px">${freie>0?`<span class="badge badge-green">${freie} Karte(s) im Pool</span>`:'<span class="badge badge-gray">Keine Karten frei</span>'}</div>
           </div>
