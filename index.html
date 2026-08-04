@@ -1357,7 +1357,9 @@ async function ladeHSVBewerbungsFristen(){
       const normGegner=b.gegner.replace(/^(den\s+|die\s+|der\s+|dem\s+)/i,'').toLowerCase().trim();
       // Nur die Karte die DIESEN Gegner enthält
       document.querySelectorAll('#games-list .card').forEach(card=>{
-        if(card.querySelector('.hsv-bew-frist'))return; // Bereits verarbeitet
+        // Entferne alte Box zuerst (nach renderGames neu aufbauen)
+        const oldBox=card.querySelector('.hsv-bew-frist');
+        if(oldBox)oldBox.remove();
         const titel=card.querySelector('div[style*="font-size:15px"]');
         if(!titel)return;
         const titelText=titel.textContent.toLowerCase();
@@ -1408,7 +1410,7 @@ async function zeigeTicketMitAnzahl(gid, dec){
 async function setTicketMitAnzahl(gid,dec,anzahl){
   await sb.from('kartenentscheidungen').upsert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec,anzahl_wunsch:anzahl},{onConflict:'spiel_id,mitglied_id'});
   await loadMembers();renderKarten();renderGames();renderStats();
-  setTimeout(ladeHSVBewerbungsFristen,500);
+  setTimeout(ladeHSVBewerbungsFristen,300);
   toast('Behalten + Extra ('+anzahl+') ✓');
 }
 
