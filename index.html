@@ -310,7 +310,6 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
   <nav class="app-nav">
     <div class="nav-inner">
       <button class="active" onclick="showTab('spiele',this)">Spielplan</button>
-      <button onclick="showTab('karten',this)">Karten</button>
       <button onclick="showTab('stats',this)">Statistik</button>
       <button onclick="showTab('info',this)">Info & Regeln</button>
       <button id="hsv-karten-nav-btn" onclick="showTab('bewerbungen',this)" style="display:none">HSV Bewerbungen</button>
@@ -834,7 +833,7 @@ async function renderBewerbungen(){
             '<button class="btn btn-sm btn-primary" onclick="zeigeExtraAuswahl(&quot;'+b.id+'&quot;,&quot;ja&quot;)">Ja, dabei!</button>'+
             '<button class="btn btn-sm" onclick="antworteHSV(&quot;'+b.id+'&quot;,&quot;nein&quot;)">Nein, danke</button>'+
           '</div>':'')+
-        (myAnt&&!istAbgelaufen?'<button class="btn btn-sm" style="margin-top:8px" onclick="resetBewerbung(&quot;'+b.id+'&quot;)">Zurücksetzen</button>':'')+
+        
       '</div>';
     }).join('');
   }catch(e){
@@ -1309,10 +1308,10 @@ async function renderGames(){
         ${!isFinished&&!isNochNicht&&isHsv&&!fristAbgelaufen?`
         <div style="min-width:150px">
           <button class="ticket-btn ${myDec==='behalten_ofc'?'active-behalten_ofc':''}" onclick="setTicket('${gid}','behalten_ofc')">Behalten (OFC)</button>
-          <button class="ticket-btn ${myDec==='behalten_extra'?'active-behalten_extra':''}" onclick="setTicket('${gid}','behalten_extra')">Behalten + Extra</button>
+          <button class="ticket-btn ${myDec==='behalten_extra'?'active-behalten_extra':''}" onclick="zeigeTicketMitAnzahl('${gid}','behalten_extra')">Behalten + Extra</button>
           <button class="ticket-btn ${myDec==='behalten_ohne'?'active-behalten_ohne':''}" onclick="setTicket('${gid}','behalten_ohne')">Ohne OFC</button>
           <button class="ticket-btn ${myDec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">Abgeben</button>
-          ${myDec?`<button class="btn btn-sm" style="font-size:11px;margin-top:2px;width:100%" onclick="resetTicket('${gid}')">Zuruecksetzen</button>`:''}
+          ')
         </div>`:''}
         ${!isFinished&&!isNochNicht&&isFan&&(phase==='stufe2'||abg>0)?`<div><button class="btn btn-sm btn-primary" onclick="showRequestCard('${gid}')">Karte anfragen</button></div>`:''}
       </div>
@@ -1375,6 +1374,41 @@ async function ladeHSVBewerbungsFristen(){
       });
     });
   }catch(e){console.log('HSV Fristen Fehler:',e);}
+}
+
+async function zeigeTicketMitAnzahl(gid, dec){
+  // Nur für behalten_extra Anzahl abfragen
+  if(dec!=='behalten_extra'){setTicket(gid,dec);return;}
+  const anzahl=await new Promise(resolve=>{
+    const div=document.createElement('div');
+    div.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+    div.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;max-width:320px;width:90%">
+      <div style="font-size:15px;font-weight:500;margin-bottom:16px">Wie viele Extra-Karten?</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px">
+        <button data-val="1" style="width:48px;height:48px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:18px;font-weight:600;cursor:pointer">1</button>
+        <button data-val="2" style="width:48px;height:48px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:18px;font-weight:600;cursor:pointer">2</button>
+        <button data-val="3" style="width:48px;height:48px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:18px;font-weight:600;cursor:pointer">3</button>
+      </div>
+      <button data-val="0" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--g300);background:#fff;cursor:pointer">Abbrechen</button>
+    </div>`;
+    div.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const val=parseInt(btn.dataset.val);
+        document.body.removeChild(div);
+        resolve(val);
+      });
+    });
+    document.body.appendChild(div);
+  });
+  if(!anzahl)return;
+  await setTicketMitAnzahl(gid,dec,anzahl);
+}
+
+async function setTicketMitAnzahl(gid,dec,anzahl){
+  await sb.from('kartenentscheidungen').upsert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec,anzahl_wunsch:anzahl},{onConflict:'spiel_id,mitglied_id'});
+  await loadMembers();renderKarten();renderGames();renderStats();
+  setTimeout(ladeHSVBewerbungsFristen,500);
+  toast('Behalten + Extra ('+anzahl+') ✓');
 }
 
 async function setTicket(gid,dec){
@@ -1441,10 +1475,10 @@ async function renderKarten(){
           </div>
           ${!fristAbgelaufen?`<div style="min-width:140px">
             <button class="ticket-btn ${dec==='behalten_ofc'?'active-behalten_ofc':''}" onclick="setTicket('${gid}','behalten_ofc')">Behalten (OFC)</button>
-            <button class="ticket-btn ${dec==='behalten_extra'?'active-behalten_extra':''}" onclick="setTicket('${gid}','behalten_extra')">Behalten + Extra</button>
+            <button class="ticket-btn ${dec==='behalten_extra'?'active-behalten_extra':''}" onclick="zeigeTicketMitAnzahl('${gid}','behalten_extra')">Behalten + Extra</button>
             <button class="ticket-btn ${dec==='behalten_ohne'?'active-behalten_ohne':''}" onclick="setTicket('${gid}','behalten_ohne')">Ohne OFC</button>
             <button class="ticket-btn ${dec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">Abgeben</button>
-            ${dec?`<button class="btn btn-sm" style="font-size:11px;margin-top:2px;width:100%" onclick="resetTicket('${gid}')">Zuruecksetzen</button>`:''}
+            
           </div>`:`<span class="badge badge-gray">Frist abgelaufen</span>`}
         </div>
         ${dec?`<div class="divider"></div><div style="font-size:12px">Wahl: <strong style="color:${DEC_COLORS[dec]}">${DEC_LABELS[dec]}</strong></div>`:''}
