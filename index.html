@@ -2407,22 +2407,25 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   });
 
   // Stufe 3: HSV-Mitglieder Extra-Wunsch
+  // anzahl_wunsch = Anzahl Extra-Karten (zusätzlich zur garantierten 1 Karte)
   const hsvExtra = (decs||[]).filter(d=>d.entscheidung==='behalten_extra'&&d.mitglied);
   hsvExtra.forEach(d=>{
-    const wunsch=(d.anzahl_wunsch||1);
-    if(verfuegbar<=0)return;
-    const extra=Math.min(wunsch,verfuegbar);
+    const extraWunsch=(d.anzahl_wunsch||1); // Anzahl extra gewünschter Karten
+    if(verfuegbar<=0||extraWunsch<=0)return;
+    const extra=Math.min(extraWunsch,verfuegbar);
     if(extra>0){
       const existing=vorschlag.find(v=>v.mitglied_id===d.mitglied_id);
       if(existing){existing.anzahl+=extra;verfuegbar-=extra;}
     }
   });
 
-  // Stufe 4: Fan-Mitglieder Extra-Wunsch
+  // Stufe 4: Fan-Mitglieder Extra-Wunsch (über 1 Karte hinaus)
   fans.forEach(d=>{
-    const wunsch=(d.anzahl_wunsch||1);
-    if(wunsch<=1||verfuegbar<=0)return;
-    const extra=Math.min(wunsch-1,verfuegbar);
+    const gesamtWunsch=(d.anzahl_wunsch||1); // Gesamtanzahl gewünschter Karten
+    const bereitsZugeteilt=1; // Bereits in Stufe 2 zugeteilt
+    const extraWunsch=gesamtWunsch-bereitsZugeteilt;
+    if(extraWunsch<=0||verfuegbar<=0)return;
+    const extra=Math.min(extraWunsch,verfuegbar);
     if(extra>0){
       const existing=vorschlag.find(v=>v.mitglied_id===d.mitglied_id);
       if(existing){existing.anzahl+=extra;verfuegbar-=extra;}
@@ -2566,7 +2569,7 @@ async function toggleSpielStatus(gid){
   const statusReihe=(m,dec)=>{
     if(!dec)return '<span style="color:#6c757d">'+m.benutzername+'</span>';
     const label=DEC_LABELS[dec.entscheidung]||dec.entscheidung;
-    const extra=dec.entscheidung!=='nein'&&dec.anzahl_wunsch>1?' (+'+dec.anzahl_wunsch+')':'';
+    const extra=['behalten_extra','ja'].includes(dec.entscheidung)&&dec.anzahl_wunsch>1?' (+'+dec.anzahl_wunsch+')':'';
     const color=DEC_COLORS[dec.entscheidung]||'#495057';
     return '<span style="color:'+color+';font-weight:500">'+m.benutzername+'</span>'
       +'<span style="color:#6c757d"> · '+label+extra+'</span>';
