@@ -2575,26 +2575,44 @@ async function toggleSpielStatus(gid){
       +'<span style="color:#6c757d"> · '+label+extra+'</span>';
   };
 
-  const hsvMitDec=hsv.filter(m=>getDec(m));
-  const hsvOhneDec=hsv.filter(m=>!getDec(m));
-  const fanMitDec=fans.filter(m=>getDec(m));
-  const fanOhneDec=fans.filter(m=>!getDec(m));
+  const ohneAntwort=[...alle.filter(m=>!getDec(m))];
 
-  let html='<div style="font-size:12px;line-height:1.8">';
+  // Gruppieren nach Entscheidung
+  const gruppen={
+    'behalten_ofc': {label:'Behalten (OFC)', color:'#0046AD', members:[]},
+    'behalten_extra': {label:'Behalten + Extra', color:'#198754', members:[]},
+    'behalten_ohne': {label:'Ohne OFC', color:'#e67e22', members:[]},
+    'abgeben': {label:'Abgeben', color:'#CC0000', members:[]},
+    'ja': {label:'Fans – Karte beantragt', color:'#0046AD', members:[]},
+    'nein': {label:'Fans – Keine Karte', color:'#6c757d', members:[]}
+  };
 
-  if(hsvMitDec.length){
-    html+='<div style="font-weight:500;color:#333;margin-bottom:2px">Dauerkartenbesitzer:</div>';
-    html+=hsvMitDec.map(m=>statusReihe(m,getDec(m))).join('<br>')+' ';
-  }
-  if(fanMitDec.length){
-    html+='<div style="font-weight:500;color:#333;margin-top:8px;margin-bottom:2px">Fan-Bewerbungen:</div>';
-    html+=fanMitDec.map(m=>statusReihe(m,getDec(m))).join('<br>');
-  }
-  const ohneAntwort=[...hsvOhneDec,...fanOhneDec];
+  alle.forEach(m=>{
+    const dec=getDec(m);
+    if(!dec)return;
+    const g=gruppen[dec.entscheidung];
+    if(g)g.members.push({m,dec});
+  });
+
+  let html='<div style="font-size:12px;line-height:1.9">';
+
+  Object.values(gruppen).forEach(g=>{
+    if(!g.members.length)return;
+    html+='<div style="margin-bottom:6px">';
+    html+='<span style="font-weight:600;color:'+g.color+'">'+g.label+':</span> ';
+    html+=g.members.map(({m,dec})=>{
+      const extra=['behalten_extra','ja'].includes(dec.entscheidung)&&dec.anzahl_wunsch>1?' (+'+dec.anzahl_wunsch+')':'';
+      return '<span style="color:#333">'+m.benutzername+extra+'</span>';
+    }).join(', ');
+    html+='</div>';
+  });
+
   if(ohneAntwort.length){
-    html+='<div style="font-weight:500;color:#6c757d;margin-top:8px;margin-bottom:2px">Noch keine Angabe:</div>';
+    html+='<div style="margin-top:4px"><span style="font-weight:600;color:#6c757d">Noch keine Angabe:</span> ';
     html+=ohneAntwort.map(m=>'<span style="color:#adb5bd">'+m.benutzername+'</span>').join(', ');
+    html+='</div>';
   }
+
   html+='</div>';
   el.innerHTML=html;
 }
