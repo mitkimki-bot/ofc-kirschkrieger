@@ -2566,7 +2566,7 @@ async function toggleSpielStatus(gid){
   const statusReihe=(m,dec)=>{
     if(!dec)return '<span style="color:#6c757d">'+m.benutzername+'</span>';
     const label=DEC_LABELS[dec.entscheidung]||dec.entscheidung;
-    const extra=dec.anzahl_wunsch>1?' (+'+dec.anzahl_wunsch+')':'';
+    const extra=dec.entscheidung!=='nein'&&dec.anzahl_wunsch>1?' (+'+dec.anzahl_wunsch+')':'';
     const color=DEC_COLORS[dec.entscheidung]||'#495057';
     return '<span style="color:'+color+';font-weight:500">'+m.benutzername+'</span>'
       +'<span style="color:#6c757d"> · '+label+extra+'</span>';
