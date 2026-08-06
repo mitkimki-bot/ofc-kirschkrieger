@@ -1329,6 +1329,9 @@ async function renderGames(){
         </div>`:''}
       </div>
       ${myDec?`<div class="divider"></div><div style="font-size:12px;color:#6c757d">Deine Wahl: <strong style="color:${DEC_COLORS[myDec]}">${DEC_LABELS[myDec]}${myDec==='behalten_extra'&&myAnz>1?' (+'+myAnz+' Extra)':myDec==='ja'&&myAnz>1?' ('+myAnz+' Karten)':''}</strong></div>`:''}
+      <div class="divider"></div>
+      <div onclick="toggleSpielStatus('${gid}')" style="cursor:pointer;font-size:12px;color:#6c757d;user-select:none"><span id="toggle-icon-${gid}">▶</span> Wer ist dabei?</div>
+      <div id="spiel-status-${gid}" style="display:none;margin-top:8px"></div>
     </div>`;
   }).join('')||'<p style="color:#6c757d;text-align:center;padding:20px">Keine Spiele.</p>';
 }
