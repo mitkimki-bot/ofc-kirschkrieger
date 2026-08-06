@@ -2538,6 +2538,61 @@ function zeigePreisPopup(kat, spielName) {
   document.body.appendChild(div);
 }
 
+
+async function toggleSpielStatus(gid){
+  const el=document.getElementById('spiel-status-'+gid);
+  const icon=document.getElementById('toggle-icon-'+gid);
+  if(!el)return;
+  if(el.style.display!=='none'){
+    el.style.display='none';
+    if(icon)icon.textContent='▶';
+    return;
+  }
+  el.style.display='block';
+  if(icon)icon.textContent='▼';
+  el.innerHTML='<div class="loading" style="padding:8px"><div class="spinner" style="width:16px;height:16px;border-width:2px"></div></div>';
+
+  const{data:decs}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(benutzername,typ,hsv_mitglied)').eq('spiel_api_id',gid);
+  const alle=allMembers.filter(m=>m.typ!=='admin');
+
+  const hsv=alle.filter(m=>m.hsv_mitglied);
+  const fans=alle.filter(m=>!m.hsv_mitglied);
+
+  const getDec=m=>(decs||[]).find(d=>d.mitglied_id===m.id);
+
+  const statusReihe=(m,dec)=>{
+    if(!dec)return '<span style="color:#6c757d">'+m.benutzername+'</span>';
+    const label=DEC_LABELS[dec.entscheidung]||dec.entscheidung;
+    const extra=dec.anzahl_wunsch>1?' (+'+dec.anzahl_wunsch+')':'';
+    const color=DEC_COLORS[dec.entscheidung]||'#495057';
+    return '<span style="color:'+color+';font-weight:500">'+m.benutzername+'</span>'
+      +'<span style="color:#6c757d"> · '+label+extra+'</span>';
+  };
+
+  const hsvMitDec=hsv.filter(m=>getDec(m));
+  const hsvOhneDec=hsv.filter(m=>!getDec(m));
+  const fanMitDec=fans.filter(m=>getDec(m));
+  const fanOhneDec=fans.filter(m=>!getDec(m));
+
+  let html='<div style="font-size:12px;line-height:1.8">';
+
+  if(hsvMitDec.length){
+    html+='<div style="font-weight:500;color:#333;margin-bottom:2px">Dauerkartenbesitzer:</div>';
+    html+=hsvMitDec.map(m=>statusReihe(m,getDec(m))).join('<br>')+' ';
+  }
+  if(fanMitDec.length){
+    html+='<div style="font-weight:500;color:#333;margin-top:8px;margin-bottom:2px">Fan-Bewerbungen:</div>';
+    html+=fanMitDec.map(m=>statusReihe(m,getDec(m))).join('<br>');
+  }
+  const ohneAntwort=[...hsvOhneDec,...fanOhneDec];
+  if(ohneAntwort.length){
+    html+='<div style="font-weight:500;color:#6c757d;margin-top:8px;margin-bottom:2px">Noch keine Angabe:</div>';
+    html+=ohneAntwort.map(m=>'<span style="color:#adb5bd">'+m.benutzername+'</span>').join(', ');
+  }
+  html+='</div>';
+  el.innerHTML=html;
+}
+
 // Kein Code noetig hier - laeuft im Google Apps Script.
 checkUrlParams();
 </script>
