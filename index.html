@@ -1418,12 +1418,13 @@ async function zeigeKartenBeantragen(gid){
     document.body.appendChild(div);
   });
   if(!anzahl) return;
-  await sb.from('kartenentscheidungen').upsert({
+  await sb.from('kartenentscheidungen').delete().eq('spiel_id',gid).eq('mitglied_id',currentUser.id);
+  await sb.from('kartenentscheidungen').insert({
     spiel_id:gid, spiel_api_id:gid,
     mitglied_id:currentUser.id,
     entscheidung:'ja',
     anzahl_wunsch:anzahl
-  },{onConflict:'spiel_id,mitglied_id'});
+  });
   await loadMembers(); renderGames(); renderStats();
   setTimeout(ladeHSVBewerbungsFristen, 300);
   toast(anzahl+' Karte'+(anzahl>1?'n':'')+' beantragt ✓');
@@ -1459,7 +1460,9 @@ async function zeigeTicketMitAnzahl(gid, dec){
 
 async function setTicketMitAnzahl(gid,dec,anzahl){
   try{
-    const{error}=await sb.from('kartenentscheidungen').upsert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec,anzahl_wunsch:anzahl},{onConflict:'spiel_id,mitglied_id'});
+    // Erst löschen dann neu einfügen um anzahl_wunsch korrekt zu setzen
+    await sb.from('kartenentscheidungen').delete().eq('spiel_id',gid).eq('mitglied_id',currentUser.id);
+    const{error}=await sb.from('kartenentscheidungen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec,anzahl_wunsch:anzahl});
     if(error){toast('Fehler: '+error.message);return;}
     await loadMembers();renderGames();renderStats();
     setTimeout(ladeHSVBewerbungsFristen,300);
