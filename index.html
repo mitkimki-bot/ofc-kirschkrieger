@@ -1182,7 +1182,7 @@ function showTab(t,btn){
   document.querySelectorAll('.nav-inner button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
   if(btn)btn.classList.add('active');
-  if(t==='karten')renderKarten();
+  if(t==='karten')
   if(t==='stats')renderStats();
   if(t==='profil')renderProfile();
   if(t==='info')renderInfo('regeln');
@@ -1458,10 +1458,13 @@ async function zeigeTicketMitAnzahl(gid, dec){
 }
 
 async function setTicketMitAnzahl(gid,dec,anzahl){
-  await sb.from('kartenentscheidungen').upsert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec,anzahl_wunsch:anzahl},{onConflict:'spiel_id,mitglied_id'});
-  await loadMembers();renderKarten();renderGames();renderStats();
-  setTimeout(ladeHSVBewerbungsFristen,300);
-  toast('Behalten + Extra ('+anzahl+') ✓');
+  try{
+    const{error}=await sb.from('kartenentscheidungen').upsert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec,anzahl_wunsch:anzahl},{onConflict:'spiel_id,mitglied_id'});
+    if(error){toast('Fehler: '+error.message);return;}
+    await loadMembers();renderGames();renderStats();
+    setTimeout(ladeHSVBewerbungsFristen,300);
+    toast('Behalten + Extra ('+anzahl+') ✓');
+  }catch(e){toast('Fehler: '+e.message);}
 }
 
 async function setTicket(gid,dec){
@@ -1574,7 +1577,7 @@ async function giveNonMember(gid){
   const{data:reqs}=await sb.from('kartenanfragen').select('*').eq('spiel_api_id',gid).eq('status','offen');
   if(reqs&&reqs.length>0){toast('Noch offene Fan-Anfragen!');return;}
   await sb.from('kartenzuteilungen').upsert({spiel_id:gid,spiel_api_id:gid,nichtmitglied:name},{onConflict:'spiel_id'});
-  toast('Karte vergeben an '+name);renderKarten();
+  toast('Karte vergeben an '+name);
 }
 
 // ══ STATISTIK ═════════════════════════════════════════
