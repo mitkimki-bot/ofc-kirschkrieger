@@ -895,6 +895,8 @@ async function renderAdminHSVBewerbungen(){
       const neinFans=antworten.filter(a=>a.antwort==='nein');
       const ohneAntwortHSV=hsvMitglieder.filter(m=>!antworten.find(a=>a.mitglied_id===m.id));
       const ohneAntwortFan=alleFans.filter(m=>!antworten.find(a=>a.mitglied_id===m.id));
+      console.log('antworten mitglied_ids:', antworten.map(a=>a.mitglied_id));
+      console.log('hsvMitglieder ids:', hsvMitglieder.map(m=>m.id));
       const istKeineOFC=b.status==='keine_ofc';
       const istAbgelaufen=b.bewerbungsfrist&&new Date(b.bewerbungsfrist)<new Date();
 
