@@ -933,16 +933,36 @@ async function renderAdminHSVBewerbungen(){
       html+='</div>';
 
         // Wer hat nicht geantwortet
-        if(ohneAntwortHSV.length>0){
-          html+='<div style="margin-bottom:8px"><div style="font-size:12px;color:#6c757d;margin-bottom:4px">HSV ohne Antwort:</div>';
-          html+=ohneAntwortHSV.map(m=>'<span class="badge badge-orange" style="margin:2px">'+displayName(m)+'</span>').join('');
-          html+='</div>';
-        }
-        if(ohneAntwortFan.length>0){
-          html+='<div style="margin-bottom:8px"><div style="font-size:12px;color:#6c757d;margin-bottom:4px">Fans ohne Antwort:</div>';
-          html+=ohneAntwortFan.map(m=>'<span class="badge badge-gray" style="margin:2px">'+displayName(m)+'</span>').join('');
-          html+='</div>';
-        }
+        // Namenslisten nach Status
+      const namesByStatus=[
+        {label:'Behalten (OFC)', color:'#0046AD', members:antworten.filter(a=>a.antwort==='behalten_ofc')},
+        {label:'Behalten + Extra', color:'#198754', members:antworten.filter(a=>a.antwort==='behalten_extra')},
+        {label:'Ohne OFC', color:'#e67e22', members:antworten.filter(a=>a.antwort==='behalten_ohne')},
+        {label:'Abgeben', color:'#CC0000', members:antworten.filter(a=>a.antwort==='abgeben')},
+        {label:'Fan: Ja', color:'#0046AD', members:antworten.filter(a=>a.antwort==='ja')},
+        {label:'Fan: Nein', color:'#6c757d', members:antworten.filter(a=>a.antwort==='nein')}
+      ];
+      namesByStatus.forEach(function(g){
+        if(!g.members.length)return;
+        html+='<div style="margin-bottom:6px;font-size:12px"><span style="font-weight:600;color:'+g.color+'">'+g.label+':</span> ';
+        html+=g.members.map(function(a){
+          const m=allMembers.find(x=>x.id===a.mitglied_id);
+          const name=m?m.benutzername:a.mitglied_id;
+          const extra=['behalten_extra','ja'].includes(a.antwort)&&a.anzahl_wunsch>1?' (+'+a.anzahl_wunsch+')':'';
+          return '<span style="color:#333">'+name+extra+'</span>';
+        }).join(', ');
+        html+='</div>';
+      });
+      if(ohneAntwortHSV.length>0){
+        html+='<div style="margin-bottom:6px;font-size:12px"><span style="font-weight:600;color:#6c757d">HSV ohne Antwort:</span> ';
+        html+=ohneAntwortHSV.map(m=>'<span style="color:#adb5bd">'+m.benutzername+'</span>').join(', ');
+        html+='</div>';
+      }
+      if(ohneAntwortFan.length>0){
+        html+='<div style="margin-bottom:6px;font-size:12px"><span style="font-weight:600;color:#6c757d">Fans ohne Antwort:</span> ';
+        html+=ohneAntwortFan.map(m=>'<span style="color:#adb5bd">'+m.benutzername+'</span>').join(', ');
+        html+='</div>';
+      }
 
         // Zuteilung eingeben wenn beantragt
         if(b.status==='beantragt'){
