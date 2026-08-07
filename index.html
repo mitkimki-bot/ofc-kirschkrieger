@@ -877,9 +877,12 @@ async function renderAdminHSVBewerbungen(){
     
     function getKombinierteAntworten(bewerbungId, spiel_api_id) {
       if(!spiel_api_id)return [];
-      return (kartenEntscheidungen||[])
-        .filter(d=>String(d.spiel_api_id)===String(spiel_api_id)||String(d.spiel_id)===String(spiel_api_id))
+      const sid=String(spiel_api_id);
+      const result=(kartenEntscheidungen||[])
+        .filter(d=>String(d.spiel_api_id)===sid||String(d.spiel_id)===sid)
         .map(d=>({bewerbung_id:bewerbungId,mitglied_id:d.mitglied_id,antwort:d.entscheidung,anzahl_wunsch:d.anzahl_wunsch||1,mitglied:d.mitglied}));
+      console.log('getKombinierteAntworten spiel_api_id='+sid+' found='+result.length+' total='+((kartenEntscheidungen||[]).length));
+      return result;
     }
 
     let html='';
@@ -913,12 +916,19 @@ async function renderAdminHSVBewerbungen(){
 
       if(!istKeineOFC){
         // Übersicht
-        html+='<div class="grid2" style="margin-bottom:12px">';
-        html+='<div style="background:#d1e7dd;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#0a3622">'+behalten.length+'</div><div style="font-size:11px;color:#0a3622">Behalten (OFC)</div></div>';
-        html+='<div style="background:#f8d7da;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#842029">'+abgegeben.length+'</div><div style="font-size:11px;color:#842029">Abgegeben</div></div>';
-        html+='<div style="background:#dbeafe;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#1e40af">'+jaFans.length+'</div><div style="font-size:11px;color:#1e40af">Fan: Ja</div></div>';
-        html+='<div style="background:#fff3cd;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#856404">'+(ohneAntwortHSV.length+ohneAntwortFan.length)+'</div><div style="font-size:11px;color:#856404">Ohne Antwort</div></div>';
-        html+='</div>';
+              const behOFC=antworten.filter(a=>a.antwort==='behalten_ofc');
+      const behExtra=antworten.filter(a=>a.antwort==='behalten_extra');
+      const behExtraKarten=behExtra.reduce((s,a)=>s+(a.anzahl_wunsch||1),0);
+      const fanJaKarten=jaFans.reduce((s,a)=>s+(a.anzahl_wunsch||1),0);
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">';
+      html+='<div style="background:#d1e7dd;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#0a3622">'+behOFC.length+'</div><div style="font-size:11px;color:#0a3622">Behalten (OFC)</div></div>';
+      html+='<div style="background:#198754;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#fff">'+behExtra.length+'</div><div style="font-size:11px;color:#fff">+Extra ('+behExtraKarten+' Karten)</div></div>';
+      html+='<div style="background:#f8d7da;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#842029">'+abgegeben.length+'</div><div style="font-size:11px;color:#842029">Abgegeben</div></div>';
+      html+='</div>';
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+      html+='<div style="background:#dbeafe;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#1e40af">'+jaFans.length+'</div><div style="font-size:11px;color:#1e40af">Fan: Ja ('+fanJaKarten+' Karten)</div></div>';
+      html+='<div style="background:#fff3cd;border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:600;color:#856404">'+(ohneAntwortHSV.length+ohneAntwortFan.length)+'</div><div style="font-size:11px;color:#856404">Ohne Antwort</div></div>';
+      html+='</div>';
 
         // Wer hat nicht geantwortet
         if(ohneAntwortHSV.length>0){
