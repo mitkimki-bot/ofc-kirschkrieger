@@ -879,7 +879,7 @@ async function renderAdminHSVBewerbungen(){
       if(!spiel_api_id)return [];
       return (kartenEntscheidungen||[])
         .filter(d=>String(d.spiel_api_id)===String(spiel_api_id)||String(d.spiel_id)===String(spiel_api_id))
-        .map(d=>({bewerbung_id:bewerbungId,mitglied_id:d.mitglied_id,antwort:d.entscheidung,mitglied:d.mitglied}));
+        .map(d=>({bewerbung_id:bewerbungId,mitglied_id:d.mitglied_id,antwort:d.entscheidung,anzahl_wunsch:d.anzahl_wunsch||1,mitglied:d.mitglied}));
     }
 
     let html='';
