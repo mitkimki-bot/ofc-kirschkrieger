@@ -390,6 +390,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         </div>
         <div class="divider"></div>
         <div class="grid2">
+          <div class="form-group"><label>Name</label><input type="text" id="profil-name" placeholder="Vor- und Nachname"><div class="form-hint">Dein echter Name (wird fuer die HSV-Kartenbewerbung verwendet)</div></div>
           <div class="form-group"><label>Anzeigename</label><input type="text" id="profil-displayname"></div>
           <div class="form-group"><label>Benutzername</label><input type="text" id="profil-username" disabled style="background:#f8f9fa;color:#6c757d"></div>
           <div class="form-group"><label>E-Mail</label><input type="email" id="profil-email"></div>
@@ -1638,6 +1639,8 @@ function renderProfile(){
   document.getElementById('profil-name-display').textContent=displayName(currentUser);
   document.getElementById('profil-sub-display').textContent=currentUser.hsv_mitglied?'HSV-Mitglied · Dauerkarte':'Fan-Mitglied';
   document.getElementById('profil-badge').innerHTML=`<span class="badge ${currentUser.hsv_mitglied?'badge-hsv':'badge-fan'}">${currentUser.hsv_mitglied?'HSV-Mitglied':'Fan-Mitglied'}</span>`;
+  const nameEl=document.getElementById('profil-name');
+  if(nameEl)nameEl.value=currentUser.name||'';
   document.getElementById('profil-displayname').value=currentUser.anzeigename||currentUser.name;
   document.getElementById('profil-username').value=currentUser.benutzername||'(ausstehend)';
   document.getElementById('profil-email').value=currentUser.email||'';
@@ -1690,16 +1693,18 @@ async function handlePhotoUpload(evt){
 
 async function saveProfile(){
   try{
+    const fullName=document.getElementById('profil-name')?document.getElementById('profil-name').value.trim():currentUser.name;
     const dn=document.getElementById('profil-displayname').value.trim();
     const email=document.getElementById('profil-email').value.trim();
     const np=document.getElementById('profil-newpass').value;
     const np2=document.getElementById('profil-newpass2').value;
     const optS=document.getElementById('profil-opt-spieltag').checked;
     const optI=document.getElementById('profil-opt-info').checked;
+    if(!fullName){toast('Bitte Namen eingeben.');return;}
     if(!dn){toast('Bitte Anzeigename eingeben.');return;}
     if(np&&np!==np2){toast('Passwoerter stimmen nicht ueberein!');return;}
     const mgnr=document.getElementById('profil-mgnr')&&document.getElementById('profil-mgnr').value.trim();
-    const upd={anzeigename:dn,email:email||null,opt_spieltag:optS,opt_hsv_info:optI,mitgliedsnummer:mgnr||null};
+    const upd={name:fullName,anzeigename:dn,email:email||null,opt_spieltag:optS,opt_hsv_info:optI,mitgliedsnummer:mgnr||null};
     if(np){upd.passwort=await hashPassword(np);}
     const{error}=await sb.from('mitglieder').update(upd).eq('id',currentUser.id);
     if(error){toast('Fehler: '+error.message);return;}
@@ -1894,6 +1899,10 @@ async function editMember(id){
   editor.innerHTML=`
     <div class="grid2" style="margin-bottom:10px">
       <div class="form-group" style="margin:0">
+        <label style="font-size:11px">Name</label>
+        <input type="text" id="edit-name-${id}" value="${m.name||''}" style="width:100%;padding:7px;border:1.5px solid var(--g300);border-radius:var(--radius-sm);font-size:13px;font-family:Inter,sans-serif">
+      </div>
+      <div class="form-group" style="margin:0">
         <label style="font-size:11px">Typ</label>
         <select id="edit-typ-${id}" style="width:100%;padding:7px;border:1.5px solid var(--g300);border-radius:var(--radius-sm);font-size:13px;font-family:Inter,sans-serif">
           <option value="fan" ${m.typ==='fan'?'selected':''}>Fan-Mitglied</option>
@@ -1921,11 +1930,14 @@ async function editMember(id){
 }
 
 async function saveMemberEdit(id){
+  const name=document.getElementById(`edit-name-${id}`).value.trim();
   const typ=document.getElementById(`edit-typ-${id}`).value;
   const mgnr=document.getElementById(`edit-mgnr-${id}`).value.trim();
   const karten=parseInt(document.getElementById(`edit-karten-${id}`).value)||0;
   const email=document.getElementById(`edit-email-${id}`).value.trim();
+  if(!name){toast('Bitte Namen eingeben.');return;}
   await sb.from('mitglieder').update({
+    name,
     typ, hsv_mitglied:typ==='hsv',
     mitgliedsnummer:mgnr||null,
     karten_count:karten,
