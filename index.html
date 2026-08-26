@@ -1070,9 +1070,13 @@ async function sendeFinaleZuteilungsMails(bewId,anzahl){
 async function sendeErinnerungAdmin(bewId){
   const{data:bew}=await sb.from('hsv_bewerbungen').select('*').eq('id',bewId).single();
   if(!bew){toast('Nicht gefunden.');return;}
-  const{data:bewForEr}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
-  const{data:antworten}=bewForEr?.spiel_api_id?await sb.from('kartenentscheidungen').select('mitglied_id').eq('spiel_api_id',bewForEr.spiel_api_id):{data:[]};
-  const geantwortetIds=new Set((antworten||[]).map(a=>a.mitglied_id));
+  // WICHTIG: gleiche Matching-Logik wie getKombinierteAntworten (spiel_api_id ODER spiel_id, als String),
+  // sonst gelten bereits beantwortete Mitglieder faelschlich als "ohne Antwort" (Bug: Erinnerung ging an zu viele Leute)
+  const sid=bew.spiel_api_id?String(bew.spiel_api_id):null;
+  const{data:alleEntscheidungen}=sid?await sb.from('kartenentscheidungen').select('mitglied_id,spiel_id,spiel_api_id'):{data:[]};
+  const geantwortetIds=new Set((alleEntscheidungen||[])
+    .filter(d=>String(d.spiel_api_id)===sid||String(d.spiel_id)===sid)
+    .map(a=>a.mitglied_id));
   const ohneAntwort=allMembers.filter(m=>m.typ!=='admin'&&m.email&&!geantwortetIds.has(m.id));
   for(const m of ohneAntwort){
     const istHSV=m.hsv_mitglied;
