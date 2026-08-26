@@ -2546,11 +2546,17 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
     const newCount=(m[kartenField]||0)+z.anzahl;
     await sb.from('mitglieder').update({[kartenField]:newCount,karten_count:(m.karten_count||0)+z.anzahl}).eq('id',z.mitglied_id);
     
-    // Mail senden
+    // Mail senden - Hinweis: dies ist der interne Vorschlag fuer die Bewerbung beim HSV,
+    // noch KEINE finale Zusage vom HSV. Text daher bewusst vorsichtig formuliert (unterschiedlich
+    // fuer HSV-Mitglieder mit Dauerkarte vs. Fans).
     const{data:bew}=await sb.from('hsv_bewerbungen').select('*').eq('id',bewId).single();
     if(m.email&&bew){
-      await queueMail(m.email,'OFC Kirschkrieger – Karte erhalten: HSV vs. '+bew.gegner,
-        `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">Du hast <strong>${z.anzahl} Karte(n)</strong> für <strong>HSV vs. ${bew.gegner}</strong> erhalten!</p><p style="font-size:13px;color:#495057">${bew.datum_text||''}</p></div><div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div></div>`
+      const betreff='OFC Kirschkrieger – Bewerbung läuft: HSV vs. '+bew.gegner;
+      const inhalt=m.hsv_mitglied
+        ?`Deine OFC-Karte nimmt an der Bewerbung für <strong>HSV vs. ${bew.gegner}</strong> teil. Für dich ${z.anzahl>1?'sind':'ist'} <strong>${z.anzahl} Karte(n)</strong> vorgesehen.</p><p style="margin:12px 0;color:#842029;font-weight:500">Bitte vorerst keine Karte über den Mitglieder-VVK erwerben.</p><p style="margin:12px 0">Sobald der HSV die Zuteilung final bestätigt hat, informieren wir dich.`
+        :`Für dich wird versucht, eine Karte für <strong>HSV vs. ${bew.gegner}</strong> über die Bewerbung zu bekommen.</p><p style="margin:12px 0">Sobald der HSV die Zuteilung final bestätigt hat, informieren wir dich.`;
+      await queueMail(m.email,betreff,
+        `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">${inhalt}</p><p style="font-size:13px;color:#495057">${bew.datum_text||''}</p></div><div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div></div>`
       );
     }
   }
