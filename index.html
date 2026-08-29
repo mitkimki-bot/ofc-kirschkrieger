@@ -881,7 +881,7 @@ async function renderAdminHSVBewerbungen(){
       const sid=String(spiel_api_id);
       const result=(kartenEntscheidungen||[])
         .filter(d=>String(d.spiel_api_id)===sid||String(d.spiel_id)===sid)
-        .map(d=>({bewerbung_id:bewerbungId,mitglied_id:d.mitglied_id,antwort:d.entscheidung,anzahl_wunsch:d.anzahl_wunsch||1,mitglied:d.mitglied}));
+        .map(d=>({bewerbung_id:bewerbungId,mitglied_id:d.mitglied_id,antwort:d.entscheidung,anzahl_wunsch:d.anzahl_wunsch||1,nur_komplett:!!d.nur_komplett,mitglied:d.mitglied}));
       console.log('getKombinierteAntworten spiel_api_id='+sid+' found='+result.length+' total='+((kartenEntscheidungen||[]).length));
       return result;
     }
@@ -950,7 +950,8 @@ async function renderAdminHSVBewerbungen(){
           const m=allMembers.find(x=>x.id===a.mitglied_id);
           const name=m?m.benutzername:a.mitglied_id;
           const extra=['behalten_extra','ja'].includes(a.antwort)&&a.anzahl_wunsch>1?' (+'+a.anzahl_wunsch+')':'';
-          return '<span style="color:#333">'+name+extra+'</span>';
+          const nk=a.antwort==='behalten_extra'&&a.nur_komplett?' <span style="color:#e67e22">[nur komplett]</span>':'';
+          return '<span style="color:#333">'+name+extra+nk+'</span>';
         }).join(', ');
         html+='</div>';
       });
@@ -1307,7 +1308,7 @@ async function renderGames(){
   if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
   const{data:allDec}=await sb.from('kartenentscheidungen').select('*');
   const{data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
-  const myDecMap={};const myAnzMap={};(myDecs||[]).forEach(d=>{myDecMap[d.spiel_api_id||d.spiel_id]=d.entscheidung;myAnzMap[d.spiel_api_id||d.spiel_id]=d.anzahl_wunsch||1;});
+  const myDecMap={};const myAnzMap={};const myNurKomplettMap={};(myDecs||[]).forEach(d=>{myDecMap[d.spiel_api_id||d.spiel_id]=d.entscheidung;myAnzMap[d.spiel_api_id||d.spiel_id]=d.anzahl_wunsch||1;myNurKomplettMap[d.spiel_api_id||d.spiel_id]=!!d.nur_komplett;});
   const hsvIds=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin').map(m=>m.id);
   const{data:sps}=await sb.from('spiel_einstellungen').select('*');
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
@@ -1326,6 +1327,7 @@ async function renderGames(){
     const off=hsvIds.length-beh_ofc-beh_ext-beh_oh-abg;
     const myDec=myDecMap[gid];
     const myAnz=myAnzMap[gid]||1;
+    const myNurKomplett=myNurKomplettMap[gid];
     const isHsv=currentUser&&currentUser.hsv_mitglied&&currentUser.typ!=='admin';
     const isFan=currentUser&&!currentUser.hsv_mitglied;
     const isFinished=g.status==='FINISHED',isNochNicht=g.offiziell===false;
@@ -1371,7 +1373,7 @@ async function renderGames(){
           </div>
         </div>`):''}
       </div>
-      ${myDec?`<div class="divider"></div><div style="font-size:12px;color:#6c757d">Deine Wahl: <strong style="color:${DEC_COLORS[myDec]}">${DEC_LABELS[myDec]}${myDec==='behalten_extra'&&myAnz>1?' (+'+myAnz+' Extra)':myDec==='ja'&&myAnz>1?' ('+myAnz+' Karten)':''}</strong></div>`:''}
+      ${myDec?`<div class="divider"></div><div style="font-size:12px;color:#6c757d">Deine Wahl: <strong style="color:${DEC_COLORS[myDec]}">${DEC_LABELS[myDec]}${myDec==='behalten_extra'&&myAnz>1?' (+'+myAnz+' Extra)':myDec==='ja'&&myAnz>1?' ('+myAnz+' Karten)':''}</strong>${myDec==='behalten_extra'&&myNurKomplett?'<br><span style="color:#e67e22;font-size:11px">Nur wenn komplett – sonst freier VVK</span>':''}</div>`:''}
       <div class="divider"></div>
       <div onclick="toggleSpielStatus('${gid}')" style="cursor:pointer;font-size:12px;color:#6c757d;user-select:none"><span id="toggle-icon-${gid}">▶</span> Wer ist dabei?</div>
       <div id="spiel-status-${gid}" style="display:none;margin-top:8px"></div>
@@ -1476,40 +1478,45 @@ async function zeigeKartenBeantragen(gid){
 async function zeigeTicketMitAnzahl(gid, dec){
   // Nur für behalten_extra Anzahl abfragen
   if(dec!=='behalten_extra'){setTicket(gid,dec);return;}
-  const anzahl=await new Promise(resolve=>{
+  const result=await new Promise(resolve=>{
     const div=document.createElement('div');
     div.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
     div.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;max-width:320px;width:90%">
       <div style="font-size:15px;font-weight:500;margin-bottom:16px">Wie viele Extra-Karten?</div>
-      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px">
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
         <button data-val="1" style="width:48px;height:48px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:18px;font-weight:600;cursor:pointer">1</button>
         <button data-val="2" style="width:48px;height:48px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:18px;font-weight:600;cursor:pointer">2</button>
         <button data-val="3" style="width:48px;height:48px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:18px;font-weight:600;cursor:pointer">3</button>
       </div>
+      <label style="display:flex;align-items:flex-start;gap:8px;font-size:11.5px;color:#495057;margin-bottom:16px;cursor:pointer;text-align:left">
+        <input type="checkbox" id="nur-komplett-check" style="margin-top:2px;flex-shrink:0">
+        <span>Nur teilnehmen, wenn ich alle gewünschten Karten bekomme – sonst kaufe ich lieber selbst über den freien VVK</span>
+      </label>
       <button data-val="0" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--g300);background:#fff;cursor:pointer">Abbrechen</button>
     </div>`;
     div.querySelectorAll('button').forEach(btn=>{
       btn.addEventListener('click',()=>{
         const val=parseInt(btn.dataset.val);
+        const nurKomplett=!!div.querySelector('#nur-komplett-check')?.checked;
         document.body.removeChild(div);
-        resolve(val);
+        resolve(val?{anzahl:val,nurKomplett}:null);
       });
     });
     document.body.appendChild(div);
   });
-  if(!anzahl)return;
-  await setTicketMitAnzahl(gid,dec,anzahl);
+  if(!result)return;
+  await setTicketMitAnzahl(gid,dec,result.anzahl,result.nurKomplett);
 }
 
-async function setTicketMitAnzahl(gid,dec,anzahl){
+async function setTicketMitAnzahl(gid,dec,anzahl,nurKomplett){
   try{
     // Erst löschen dann neu einfügen um anzahl_wunsch korrekt zu setzen
     await sb.from('kartenentscheidungen').delete().eq('spiel_id',gid).eq('mitglied_id',currentUser.id);
-    const{error}=await sb.from('kartenentscheidungen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec,anzahl_wunsch:anzahl});
+    const{error}=await sb.from('kartenentscheidungen').insert({spiel_id:gid,spiel_api_id:gid,mitglied_id:currentUser.id,entscheidung:dec,anzahl_wunsch:anzahl,nur_komplett:!!nurKomplett});
     if(error){toast('Fehler: '+error.message);return;}
     await loadMembers();renderGames();renderStats();
     setTimeout(ladeHSVBewerbungsFristen,300);
-    toast('Behalten + Extra ('+anzahl+') ✓');
+    toast('Behalten + Extra ('+anzahl+')'+(nurKomplett?' – nur wenn komplett':'')+' ✓');
   }catch(e){toast('Fehler: '+e.message);}
 }
 
@@ -2373,15 +2380,19 @@ async function zeigeExtraAuswahl(bewId, antwort){
   const max = isExtra ? 3 : 4;
   const label = isExtra ? 'Wie viele Extra-Karten möchtest du?' : 'Wie viele Karten benötigst du?';
   
-  const anzahl = await new Promise(resolve => {
+  const result = await new Promise(resolve => {
     const div = document.createElement('div');
     div.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
     div.innerHTML = `<div style="background:#fff;border-radius:12px;padding:24px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
       <div style="font-size:15px;font-weight:500;margin-bottom:16px">${label}</div>
-      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px">
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:${isExtra?'16px':'20px'}">
         ${Array.from({length:max},(_,i)=>`<button onclick="this.closest('.modal-anzahl').dataset.val='${i+1}'" 
           style="width:48px;height:48px;border-radius:8px;border:2px solid var(--g300);background:#fff;font-size:18px;font-weight:600;cursor:pointer">${i+1}</button>`).join('')}
       </div>
+      ${isExtra?`<label style="display:flex;align-items:flex-start;gap:8px;font-size:11.5px;color:#495057;margin-bottom:16px;cursor:pointer;text-align:left">
+        <input type="checkbox" class="nur-komplett-check" style="margin-top:2px;flex-shrink:0">
+        <span>Nur teilnehmen, wenn ich alle gewünschten Karten bekomme – sonst kaufe ich lieber selbst über den freien VVK</span>
+      </label>`:''}
       <div style="display:flex;gap:8px">
         <button onclick="this.closest('.modal-anzahl').dataset.val='cancel'" style="flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--g300);background:#fff;cursor:pointer">Abbrechen</button>
       </div>
@@ -2393,8 +2404,9 @@ async function zeigeExtraAuswahl(bewId, antwort){
     div.querySelectorAll('button[onclick*="dataset.val"]').forEach(btn => {
       btn.addEventListener('click', function(){
         const val = this.getAttribute('onclick').match(/'(\d+)'/)[1];
+        const nurKomplett = isExtra && !!div.querySelector('.nur-komplett-check')?.checked;
         document.body.removeChild(div);
-        resolve(parseInt(val));
+        resolve({anzahl:parseInt(val), nurKomplett});
       });
     });
     div.querySelector('button:last-child').addEventListener('click', ()=>{
@@ -2404,11 +2416,11 @@ async function zeigeExtraAuswahl(bewId, antwort){
     document.body.appendChild(div);
   });
   
-  if(!anzahl) return;
-  await antworteHSVMitAnzahl(bewId, antwort, anzahl);
+  if(!result) return;
+  await antworteHSVMitAnzahl(bewId, antwort, result.anzahl, result.nurKomplett);
 }
 
-async function antworteHSVMitAnzahl(bewId, antwort, anzahl){
+async function antworteHSVMitAnzahl(bewId, antwort, anzahl, nurKomplett){
   const labels={behalten_ofc:'Behalten (OFC)',behalten_extra:'Behalten + Extra ('+anzahl+')',behalten_ohne:'Ohne OFC',abgeben:'Karte abgeben',ja:'Ja, dabei! ('+anzahl+' Karte(n))',nein:'Nein, danke'};
   const{data:bew}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('id',bewId).single();
   if(!bew||!bew.spiel_api_id){toast('Fehler: Spiel nicht verknüpft.');return;}
@@ -2417,9 +2429,10 @@ async function antworteHSVMitAnzahl(bewId, antwort, anzahl){
     spiel_api_id:bew.spiel_api_id,
     mitglied_id:currentUser.id,
     entscheidung:antwort,
-    anzahl_wunsch:anzahl
+    anzahl_wunsch:anzahl,
+    nur_komplett: antwort==='behalten_extra' ? !!nurKomplett : false
   },{onConflict:'spiel_id,mitglied_id'});
-  toast(labels[antwort]+' ✓');
+  toast(labels[antwort]+(nurKomplett?' – nur wenn komplett':'')+' ✓');
   renderBewerbungen();
 }
 
@@ -2450,7 +2463,9 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   const vorschlag = [];
 
   // Stufe 1: HSV-Mitglieder garantiert 1 Karte (behalten_ofc + behalten_extra)
-  const hsv1 = (decs||[]).filter(d=>['behalten_ofc','behalten_extra'].includes(d.entscheidung)&&d.mitglied);
+  // WICHTIG: behalten_extra MIT nur_komplett wird hier NICHT reserviert, sondern erst in Stufe 3
+  // komplett (Basis+Extra zusammen) geprueft - entweder alles oder gar nichts.
+  const hsv1 = (decs||[]).filter(d=>['behalten_ofc','behalten_extra'].includes(d.entscheidung)&&d.mitglied&&!(d.entscheidung==='behalten_extra'&&d.nur_komplett));
   hsv1.forEach(d=>{
     if(verfuegbar<=0)return;
     vorschlag.push({mitglied_id:d.mitglied_id,mitglied:d.mitglied,anzahl:1,prioritaet:1,entscheidung:d.entscheidung});
@@ -2471,6 +2486,17 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   const hsvExtra = (decs||[]).filter(d=>d.entscheidung==='behalten_extra'&&d.mitglied);
   hsvExtra.forEach(d=>{
     const extraWunsch=(d.anzahl_wunsch||1); // Anzahl extra gewünschter Karten
+    if(d.nur_komplett){
+      // Alles-oder-nichts: Basis (1, wurde in Stufe 1 uebersprungen) + volle Extra-Anzahl
+      const benoetigt=1+extraWunsch;
+      if(verfuegbar>=benoetigt){
+        vorschlag.push({mitglied_id:d.mitglied_id,mitglied:d.mitglied,anzahl:benoetigt,prioritaet:3,entscheidung:d.entscheidung,nurKomplett:true,erfuellt:true});
+        verfuegbar-=benoetigt;
+      } else {
+        vorschlag.push({mitglied_id:d.mitglied_id,mitglied:d.mitglied,anzahl:0,prioritaet:3,entscheidung:d.entscheidung,nurKomplett:true,erfuellt:false});
+      }
+      return;
+    }
     if(verfuegbar<=0||extraWunsch<=0)return;
     const extra=Math.min(extraWunsch,verfuegbar);
     if(extra>0){
@@ -2502,7 +2528,9 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   vorschlag.forEach((v,idx)=>{
     html+='<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--g50);border-radius:6px;margin-bottom:6px">';
     html+='<div style="flex:1;font-size:13px"><strong>'+displayName(v.mitglied)+'</strong>';
-    html+='<span style="font-size:11px;color:'+priColor[v.prioritaet]+';margin-left:6px">'+priLabel[v.prioritaet]+'</span></div>';
+    html+='<span style="font-size:11px;color:'+priColor[v.prioritaet]+';margin-left:6px">'+priLabel[v.prioritaet]+'</span>';
+    if(v.nurKomplett){html+='<span style="font-size:11px;margin-left:6px;color:'+(v.erfuellt?'#198754':'#CC0000')+'">'+(v.erfuellt?'✓ Nur-komplett erfüllt':'✗ Nur-komplett nicht erfüllt (0)')+'</span>';}
+    html+='</div>';
     html+='<div style="font-size:12px;color:#6c757d">bisher: '+(v.mitglied[kartenField]||0)+' '+( heimspiel?'Heim':'Ausw.')+'</div>';
     html+='<input type="number" id="vor-'+bewId+'-'+idx+'" value="'+v.anzahl+'" min="0" max="10" style="width:50px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:13px;text-align:center">';
     html+='<input type="hidden" id="vor-mid-'+bewId+'-'+idx+'" value="'+v.mitglied_id+'">';
