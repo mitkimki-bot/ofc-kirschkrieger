@@ -754,10 +754,10 @@ async function doLogin(){
   document.getElementById('login-err').style.display='none';
   currentUser=data;
   document.getElementById('header-name').textContent=displayName(data);
-  if(data.typ==='admin'){
-    document.getElementById('admin-nav-btn').style.display='block';
-    document.getElementById('hsv-karten-nav-btn').style.display='block';
-  }
+  // WICHTIG: bei jedem Login explizit setzen (nicht nur fuer Admin), sonst bleibt der Button
+  // vom vorherigen Login (z.B. Admin) sichtbar, wenn zwischendurch kein voller Seiten-Reload passiert.
+  document.getElementById('admin-nav-btn').style.display=data.typ==='admin'?'block':'none';
+  document.getElementById('hsv-karten-nav-btn').style.display=data.typ==='admin'?'block':'none';
   await loadMembers();
   await fetchGames();
   renderStats();
@@ -1128,6 +1128,7 @@ function logout(){
   currentUser=null;allMembers=[];apiGames=[];
   showPage('page-login');
   document.getElementById('admin-nav-btn').style.display='none';
+  document.getElementById('hsv-karten-nav-btn').style.display='none';
   document.getElementById('login-user').value='';
   document.getElementById('login-pass').value='';
 }
