@@ -1338,7 +1338,7 @@ async function renderGames(){
     const fristAbgelaufen=sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date();
     const fristStr=sp&&sp.frist_pool_bis?`Frist: ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
 
-    return `<div class="card ${isFinished||isNochNicht?'card-gray':'card-red'}">
+    return `<div class="card ${isFinished||isNochNicht?'card-gray':'card-red'}" data-gid="${gid}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:500">${g.heimteam} <span style="color:#6c757d;font-weight:400">vs.</span> ${g.gastteam}</div>
@@ -1387,55 +1387,45 @@ async function ladeHSVBewerbungsFristen(){
     const{data:hsvBews}=await sb.from('hsv_bewerbungen').select('*').in('status',['offen','beantragt']);
     if(!hsvBews||!hsvBews.length)return;
     // Für jedes Spiel im Spielplan prüfen ob es eine HSV-Bewerbung gibt
+    // WICHTIG (Fix 2026-08-30): Zuordnung ueber spiel_api_id (eindeutige Spiel-ID), nicht mehr ueber
+    // Gegner-Namens-Text! Der alte Text-Match unterschied nicht Heim/Auswaerts - bei Gegnern, gegen
+    // die der HSV zweimal in der Saison spielt (z.B. Moenchengladbach Heim + Auswaerts), landete
+    // dieselbe Frist-Box faelschlich auf BEIDEN Karten.
     // Auch keine_ofc Einträge laden
     const{data:keineOFCBews}=await sb.from('hsv_bewerbungen').select('*').eq('status','keine_ofc');
     (keineOFCBews||[]).forEach(b=>{
-      const normGegner=b.gegner.replace(/^(den\s+|die\s+|der\s+|dem\s+)/i,'').toLowerCase().trim();
-      const matchLen=Math.max(5,normGegner.length-3);
-      const gegnerKern=normGegner.substring(0,matchLen);
-      document.querySelectorAll('#games-list .card').forEach(card=>{
-        if(card.querySelector('.hsv-bew-frist'))return;
-        const titel=card.querySelector('div[style*="font-size:15px"]');
-        if(!titel)return;
-        if(!titel.textContent.toLowerCase().includes(gegnerKern))return;
-        const div=document.createElement('div');
-        div.className='hsv-bew-frist';
-        div.style.cssText='font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block';
-        div.textContent='Keine OFC-Bewerbung möglich';
-        const badgeDiv=card.querySelector('[style*="display:flex;gap:6px"]');
-        if(badgeDiv)badgeDiv.after(div);
-        else card.appendChild(div);
-      });
+      if(!b.spiel_api_id)return; // ohne Verknuepfung kann das Spiel nicht sicher zugeordnet werden
+      const card=document.querySelector('#games-list .card[data-gid="'+b.spiel_api_id+'"]');
+      if(!card||card.querySelector('.hsv-bew-frist'))return;
+      const div=document.createElement('div');
+      div.className='hsv-bew-frist';
+      div.style.cssText='font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block';
+      div.textContent='Keine OFC-Bewerbung möglich';
+      const badgeDiv=card.querySelector('[style*="display:flex;gap:6px"]');
+      if(badgeDiv)badgeDiv.after(div);
+      else card.appendChild(div);
     });
 
     hsvBews.forEach(b=>{
       const istAbgelaufen=new Date(b.bewerbungsfrist)<new Date();
       if(istAbgelaufen)return;
+      if(!b.spiel_api_id)return; // ohne Verknuepfung kann das Spiel nicht sicher zugeordnet werden
       const internFrist=new Date(b.bewerbungsfrist);
       internFrist.setDate(internFrist.getDate()-7);
       const fristStr=internFrist.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
-      // Gegner normalisieren
-      const normGegner=b.gegner.replace(/^(den\s+|die\s+|der\s+|dem\s+)/i,'').toLowerCase().trim();
-      // Nur die Karte die DIESEN Gegner enthält
-      document.querySelectorAll('#games-list .card').forEach(card=>{
-        // Entferne alte Box zuerst (nach renderGames neu aufbauen)
-        const oldBox=card.querySelector('.hsv-bew-frist');
-        if(oldBox)oldBox.remove();
-        const titel=card.querySelector('div[style*="font-size:15px"]');
-        if(!titel)return;
-        const titelText=titel.textContent.toLowerCase();
-        // Exaktes Matching - mindestens 5 Zeichen des Gegners müssen matchen
-        const matchLen=Math.max(5, normGegner.length-3);
-        const gegnerKern=normGegner.substring(0,matchLen);
-        if(!titelText.includes(gegnerKern))return;
-        const div=document.createElement('div');
-        div.className='hsv-bew-frist';
-        div.style.cssText='font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block';
-        div.textContent='HSV-Bewerbung: bis '+fristStr+' entscheiden';
-        const badgeDiv=card.querySelector('[style*="display:flex;gap:6px"]');
-        if(badgeDiv)badgeDiv.after(div);
-        else card.appendChild(div);
-      });
+      // Nur die Karte mit exakt dieser spiel_api_id
+      const card=document.querySelector('#games-list .card[data-gid="'+b.spiel_api_id+'"]');
+      if(!card)return;
+      // Entferne alte Box zuerst (nach renderGames neu aufbauen)
+      const oldBox=card.querySelector('.hsv-bew-frist');
+      if(oldBox)oldBox.remove();
+      const div=document.createElement('div');
+      div.className='hsv-bew-frist';
+      div.style.cssText='font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block';
+      div.textContent='HSV-Bewerbung: bis '+fristStr+' entscheiden';
+      const badgeDiv=card.querySelector('[style*="display:flex;gap:6px"]');
+      if(badgeDiv)badgeDiv.after(div);
+      else card.appendChild(div);
     });
   }catch(e){console.log('HSV Fristen Fehler:',e);}
 }
