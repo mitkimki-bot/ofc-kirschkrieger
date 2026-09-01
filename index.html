@@ -1367,10 +1367,10 @@ async function renderGames(){
         ${!isFinished&&!isNochNicht&&isFan?(istZugeteilt?
         '<div style="margin-top:8px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500;display:inline-block">Zugeteilt \u2013 Aenderungen nur ueber Admin</div></div>'
         :`<div style="margin-top:8px">
-          <button class="btn btn-sm btn-primary" onclick="zeigeKartenBeantragen('${gid}')">Karte beantragen</button>
-          ${myDec==='ja'?`<button class="btn btn-sm" style="margin-left:6px" onclick="setTicket('${gid}','nein')">Keine Karte</button>`:''}
-          <div style="font-size:12px;color:${myDec==='ja'&&myAnz>0?'#0046AD':'#6c757d'};margin-top:5px;font-weight:${myDec==='ja'?'500':'400'}">
-            ${myDec==='ja'&&myAnz>0?myAnz+' Karte'+(myAnz>1?'n':'') +' beantragt':'Keine Karte beantragt'}
+          <button class="btn btn-sm ${myDec==='ja'?'btn-primary':''}" style="${myDec!=='ja'?'border:1.5px solid var(--g300);background:#fff':''}" onclick="zeigeKartenBeantragen('${gid}')">Karte beantragen</button>
+          <button class="btn btn-sm" style="margin-left:6px;${myDec==='nein'?'background:#6c757d;color:#fff;border-color:#6c757d':'border:1.5px solid var(--g300);background:#fff'}" onclick="setTicket('${gid}','nein')">Keine Karte</button>
+          <div style="font-size:12px;color:${myDec==='ja'&&myAnz>0?'#0046AD':myDec==='nein'?'#6c757d':'#adb5bd'};margin-top:5px;font-weight:${myDec==='ja'?'500':'400'}">
+            ${myDec==='ja'&&myAnz>0?myAnz+' Karte'+(myAnz>1?'n':'') +' beantragt':myDec==='nein'?'Keine Karte gewünscht':'Noch keine Angabe'}
           </div>
         </div>`):''}
       </div>
