@@ -969,7 +969,7 @@ async function renderAdminHSVBewerbungen(){
         html+='</div>';
       }
       if(sponsoren.length>0){
-        html+='<div style="margin-bottom:6px;font-size:12px"><span style="font-weight:600;color:#6f42c1">Gesponsert (zusätzlich, ohne eigenen Bedarf):</span> ';
+        html+='<div style="margin-bottom:6px;font-size:12px"><span style="font-weight:600;color:#6f42c1">In Bewerbung (Hinweis erhalten):</span> ';
         html+=sponsoren.map(function(s){
           const name=s.mitglied?s.mitglied.benutzername:s.mitglied_id;
           const notiz=s.notiz?' – '+s.notiz:'';
@@ -990,7 +990,7 @@ async function renderAdminHSVBewerbungen(){
         html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
         html+='<button class="btn btn-sm btn-orange" onclick="sendeErinnerungAdmin(&quot;'+b.id+'&quot;)">Erinnerung senden</button>';
         html+='<button class="btn btn-sm" onclick="eintragManuel(&quot;'+b.id+'&quot;)">Manuell eintragen</button>';
-        html+='<button class="btn btn-sm" style="background:#6f42c1;color:#fff;border-color:#6f42c1" onclick="eintragSponsor(&quot;'+b.id+'&quot;)">Sponsor eintragen</button>';
+        html+='<button class="btn btn-sm" style="background:#6f42c1;color:#fff;border-color:#6f42c1" onclick="eintragSponsor(&quot;'+b.id+'&quot;)">In Bewerbung markieren</button>';
         html+='<button class="btn btn-sm btn-green" onclick="erstelleZuteilungsvorschlag(&quot;'+b.id+'&quot;,'+b.heimspiel+')">Zuteilung vorschlagen</button>';
         if(b.bewerbungslink)html+='<a href="'+b.bewerbungslink+'" target="_blank" class="btn btn-sm btn-primary">HSV Formular öffnen</a>';
         html+='<button class="btn btn-sm btn-orange" onclick="zeigeHSVMeldungsStringBew(&quot;'+b.id+'&quot;)">HSV-String</button>';
@@ -1121,21 +1121,70 @@ async function eintragManuel(bewId){
 }
 
 async function eintragSponsor(bewId){
-  // Admin-Only: erfasst ein Mitglied, das zusaetzliche Karte(n)/Mitgliedsnummer(n) fuer die Bewerbung
-  // zur Verfuegung gestellt hat, ohne selbst eine Karte zu brauchen. Wichtig: dieses Mitglied darf sich
-  // dann NICHT zusaetzlich ueber den freien VVK bewerben (HSV lehnt Mehrfachbewerbungen automatisch ab).
-  const uname=prompt('Benutzername des Mitglieds, das zusätzliche Karte(n) zur Verfügung gestellt hat (ohne sie selbst zu brauchen):');
-  if(!uname)return;
-  const m=allMembers.find(x=>x.benutzername===uname);
-  if(!m){toast('Mitglied nicht gefunden.');return;}
-  const anzahlStr=prompt('Wie viele Karten/Mitgliedsnummern wurden gesponsert?','1');
-  const anzahl=parseInt(anzahlStr);
-  if(!anzahl||anzahl<1){toast('Bitte gültige Anzahl eingeben.');return;}
-  const notiz=prompt('Notiz (optional, z.B. "eigene + Familienmitglied-Nummer"):','')||null;
-  const{error}=await sb.from('hsv_sponsoring').insert({bewerbung_id:bewId,mitglied_id:m.id,anzahl,notiz});
+  // Admin-Only: markiert ein Mitglied als Teil der tatsaechlich eingereichten OFC-Bewerbung fuer dieses
+  // Spiel (egal ob eigene Karte, Extra-Karte oder zusaetzlich zur Verfuegung gestellte Mitgliedsnummer).
+  // Das Mitglied bekommt dann den Hinweis, sich NICHT zusaetzlich ueber den freien VVK zu bewerben
+  // (HSV lehnt Mehrfachbewerbungen automatisch ab). WICHTIG: bewusst manuelle Auswahl durch den Admin,
+  // da bei begrenztem Kartenkontingent (z.B. nur 6 Karten) nicht automatisch jeder mit "Behalten (OFC)"
+  // auch wirklich Teil der eingereichten Bewerbung ist.
+  const{data:bew}=await sb.from('hsv_bewerbungen').select('spiel_api_id,gegner').eq('id',bewId).single();
+  if(!bew){toast('Bewerbung nicht gefunden.');return;}
+
+  // Bereits erfasste Mitglieder nicht nochmal anbieten
+  const{data:bereits}=await sb.from('hsv_sponsoring').select('mitglied_id').eq('bewerbung_id',bewId);
+  const ausgeschlossen=new Set((bereits||[]).map(s=>s.mitglied_id));
+
+  const kandidaten=allMembers
+    .filter(m=>m.typ!=='admin'&&m.mitgliedsnummer&&!ausgeschlossen.has(m.id))
+    .sort((a,b)=>(a.benutzername||'').localeCompare(b.benutzername||''));
+
+  if(!kandidaten.length){toast('Keine passenden Mitglieder gefunden (Mitgliedsnummer hinterlegt, noch nicht erfasst).');return;}
+
+  const result=await new Promise(resolve=>{
+    const div=document.createElement('div');
+    div.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    div.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;max-width:340px;width:100%">
+      <div style="font-size:15px;font-weight:500;margin-bottom:4px">In Bewerbung markieren</div>
+      <div style="font-size:12px;color:#6c757d;margin-bottom:16px">HSV vs. ${bew.gegner} – wer ist Teil der tatsächlich eingereichten OFC-Bewerbung (eigene Karte oder zusätzlich zur Verfügung gestellt)? Diese Person bekommt den Hinweis, sich nicht zusätzlich über den freien VVK zu bewerben.</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:12px">Mitglied</label>
+        <select id="sponsor-mid" style="width:100%;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px;font-family:Inter,sans-serif">
+          ${kandidaten.map(m=>`<option value="${m.id}">${m.benutzername}${m.name?' ('+m.name+')':''}${m.mitgliedsnummer?' – Nr. '+m.mitgliedsnummer:''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="font-size:12px">Anzahl Karten/Mitgliedsnummern</label>
+        <input type="number" id="sponsor-anzahl" value="1" min="1" max="10" style="width:100%;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-size:12px">Notiz (optional)</label>
+        <input type="text" id="sponsor-notiz" placeholder="z.B. eigene Karte oder eigene + Familienmitglied-Nummer" style="width:100%;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="sponsor-save" class="btn btn-sm btn-primary" style="flex:1">Speichern</button>
+        <button id="sponsor-cancel" class="btn btn-sm" style="flex:1">Abbrechen</button>
+      </div>
+    </div>`;
+    document.body.appendChild(div);
+    div.querySelector('#sponsor-save').addEventListener('click',()=>{
+      const mid=div.querySelector('#sponsor-mid').value;
+      const anzahl=parseInt(div.querySelector('#sponsor-anzahl').value)||1;
+      const notiz=div.querySelector('#sponsor-notiz').value.trim()||null;
+      document.body.removeChild(div);
+      resolve({mid,anzahl,notiz});
+    });
+    div.querySelector('#sponsor-cancel').addEventListener('click',()=>{
+      document.body.removeChild(div);
+      resolve(null);
+    });
+  });
+
+  if(!result)return;
+  const{error}=await sb.from('hsv_sponsoring').insert({bewerbung_id:bewId,mitglied_id:result.mid,anzahl:result.anzahl,notiz:result.notiz});
   if(error){toast('Fehler: '+error.message);return;}
   await renderAdminHSVBewerbungen();
-  toast(`Gesponsert erfasst: ${displayName(m)} (+${anzahl}) ✓`);
+  const m=allMembers.find(x=>x.id===result.mid);
+  toast(`Erfasst: ${m?displayName(m):''} (+${result.anzahl}) ✓`);
 }
 
 async function pruefeHSVSeiteManuel(){
@@ -1384,7 +1433,7 @@ async function renderGames(){
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:500">${g.heimteam} <span style="color:#6c757d;font-weight:400">vs.</span> ${g.gastteam}</div>
           <div style="font-size:12px;color:#6c757d;margin-top:4px">${fmtDate(g.datum_iso)} · <span style="color:${g.spielort==='Heimspiel'?'#0a3622':'#842029'};font-weight:500">${g.spielort}</span></div>
-          ${meinSponsorAnzahl?`<div style="font-size:12px;font-weight:500;color:#fff;background:#6f42c1;margin-top:6px;padding:6px 10px;border-radius:6px">Du hast ${meinSponsorAnzahl} Karte${meinSponsorAnzahl>1?'n':''} für dieses Spiel zur Verfügung gestellt.<br><span style="font-weight:400;font-size:11px">Bitte NICHT zusätzlich über den freien VVK bewerben – deine Mitgliedsnummer ist bereits in der OFC-Bewerbung enthalten.</span></div>`:''}
+          ${meinSponsorAnzahl?`<div style="font-size:12px;font-weight:500;color:#fff;background:#6f42c1;margin-top:6px;padding:6px 10px;border-radius:6px">Deine Karte${meinSponsorAnzahl>1?'n ('+meinSponsorAnzahl+')':''} für dieses Spiel ${meinSponsorAnzahl>1?'werden':'wird'} über die OFC-Bewerbung abgewickelt.<br><span style="font-weight:400;font-size:11px">Bitte NICHT zusätzlich über den freien VVK bewerben – deine Mitgliedsnummer ist bereits in der Bewerbung enthalten.</span></div>`:''}
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
             ${compBadge(g.wettbewerb)}
             ${isNochNicht?'<span class="badge badge-orange">Uhrzeit noch nicht fix</span>':''}
