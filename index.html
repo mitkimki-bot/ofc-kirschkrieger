@@ -873,6 +873,8 @@ async function renderAdminHSVBewerbungen(){
     if(!bews||!bews.length){el.innerHTML='<p style="color:#6c757d">Noch keine Bewerbungen.</p>';return;}
     // Nur kartenentscheidungen - eine einzige Quelle der Wahrheit
     const{data:kartenEntscheidungen}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)');
+    // Zusaetzlich gesponserte Karten (Mitglied stellt Karte(n) zur Verfuegung ohne selbst zu antworten)
+    const{data:sponsoringAlle}=await sb.from('hsv_sponsoring').select('*,mitglied:mitglieder(*)');
     const hsvMitglieder=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin');
     const alleFans=allMembers.filter(m=>!m.hsv_mitglied&&m.typ!=='admin');
     
@@ -896,6 +898,7 @@ async function renderAdminHSVBewerbungen(){
       const neinFans=antworten.filter(a=>a.antwort==='nein');
       const ohneAntwortHSV=hsvMitglieder.filter(m=>!antworten.find(a=>a.mitglied_id===m.id));
       const ohneAntwortFan=alleFans.filter(m=>!antworten.find(a=>a.mitglied_id===m.id));
+      const sponsoren=(sponsoringAlle||[]).filter(s=>s.bewerbung_id===b.id);
       console.log('antworten mitglied_ids:', antworten.map(a=>a.mitglied_id));
       console.log('hsvMitglieder ids:', hsvMitglieder.map(m=>m.id));
       const istKeineOFC=b.status==='keine_ofc';
@@ -965,6 +968,15 @@ async function renderAdminHSVBewerbungen(){
         html+=ohneAntwortFan.map(m=>'<span style="color:#adb5bd">'+m.benutzername+'</span>').join(', ');
         html+='</div>';
       }
+      if(sponsoren.length>0){
+        html+='<div style="margin-bottom:6px;font-size:12px"><span style="font-weight:600;color:#6f42c1">Gesponsert (zusätzlich, ohne eigenen Bedarf):</span> ';
+        html+=sponsoren.map(function(s){
+          const name=s.mitglied?s.mitglied.benutzername:s.mitglied_id;
+          const notiz=s.notiz?' – '+s.notiz:'';
+          return '<span style="color:#333">'+name+' (+'+s.anzahl+')'+notiz+'</span>';
+        }).join(', ');
+        html+='</div>';
+      }
 
         // Zuteilung eingeben wenn beantragt
         if(b.status==='beantragt'){
@@ -978,6 +990,7 @@ async function renderAdminHSVBewerbungen(){
         html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
         html+='<button class="btn btn-sm btn-orange" onclick="sendeErinnerungAdmin(&quot;'+b.id+'&quot;)">Erinnerung senden</button>';
         html+='<button class="btn btn-sm" onclick="eintragManuel(&quot;'+b.id+'&quot;)">Manuell eintragen</button>';
+        html+='<button class="btn btn-sm" style="background:#6f42c1;color:#fff;border-color:#6f42c1" onclick="eintragSponsor(&quot;'+b.id+'&quot;)">Sponsor eintragen</button>';
         html+='<button class="btn btn-sm btn-green" onclick="erstelleZuteilungsvorschlag(&quot;'+b.id+'&quot;,'+b.heimspiel+')">Zuteilung vorschlagen</button>';
         if(b.bewerbungslink)html+='<a href="'+b.bewerbungslink+'" target="_blank" class="btn btn-sm btn-primary">HSV Formular öffnen</a>';
         html+='<button class="btn btn-sm btn-orange" onclick="zeigeHSVMeldungsStringBew(&quot;'+b.id+'&quot;)">HSV-String</button>';
@@ -1105,6 +1118,24 @@ async function eintragManuel(bewId){
   if(bewForManuel?.spiel_api_id){await sb.from('kartenentscheidungen').upsert({spiel_id:bewForManuel.spiel_api_id,spiel_api_id:bewForManuel.spiel_api_id,mitglied_id:m.id,entscheidung:antwort},{onConflict:'spiel_id,mitglied_id'});}
   await renderAdminHSVBewerbungen();
   toast(`Eingetragen: ${displayName(m)} → ${antwort} ✓`);
+}
+
+async function eintragSponsor(bewId){
+  // Admin-Only: erfasst ein Mitglied, das zusaetzliche Karte(n)/Mitgliedsnummer(n) fuer die Bewerbung
+  // zur Verfuegung gestellt hat, ohne selbst eine Karte zu brauchen. Wichtig: dieses Mitglied darf sich
+  // dann NICHT zusaetzlich ueber den freien VVK bewerben (HSV lehnt Mehrfachbewerbungen automatisch ab).
+  const uname=prompt('Benutzername des Mitglieds, das zusätzliche Karte(n) zur Verfügung gestellt hat (ohne sie selbst zu brauchen):');
+  if(!uname)return;
+  const m=allMembers.find(x=>x.benutzername===uname);
+  if(!m){toast('Mitglied nicht gefunden.');return;}
+  const anzahlStr=prompt('Wie viele Karten/Mitgliedsnummern wurden gesponsert?','1');
+  const anzahl=parseInt(anzahlStr);
+  if(!anzahl||anzahl<1){toast('Bitte gültige Anzahl eingeben.');return;}
+  const notiz=prompt('Notiz (optional, z.B. "eigene + Familienmitglied-Nummer"):','')||null;
+  const{error}=await sb.from('hsv_sponsoring').insert({bewerbung_id:bewId,mitglied_id:m.id,anzahl,notiz});
+  if(error){toast('Fehler: '+error.message);return;}
+  await renderAdminHSVBewerbungen();
+  toast(`Gesponsert erfasst: ${displayName(m)} (+${anzahl}) ✓`);
 }
 
 async function pruefeHSVSeiteManuel(){
@@ -1319,6 +1350,15 @@ async function renderGames(){
   const hsvBewMap={};
   (hsvBewsRG||[]).forEach(b=>{if(b.spiel_api_id)hsvBewMap[b.spiel_api_id]=b;});
 
+  // Gesponserte Karten des eingeloggten Nutzers: Warnung anzeigen, nicht zusaetzlich ueber freien VVK bewerben
+  const{data:meineSponsoring}=currentUser?await sb.from('hsv_sponsoring').select('anzahl,bewerbung:hsv_bewerbungen(spiel_api_id)').eq('mitglied_id',currentUser.id):{data:[]};
+  const mySponsorMap={};
+  (meineSponsoring||[]).forEach(s=>{
+    const sid=s.bewerbung&&s.bewerbung.spiel_api_id;
+    if(!sid)return;
+    mySponsorMap[sid]=(mySponsorMap[sid]||0)+(s.anzahl||1);
+  });
+
   el.innerHTML=filtered.map(g=>{
     const gid=g.api_id,dec=allDec||[];
     const beh_ofc=dec.filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='behalten_ofc').length;
@@ -1337,12 +1377,14 @@ async function renderGames(){
     const istZugeteilt=hbG&&hbG.status==='zugeteilt';
     const fristAbgelaufen=sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date();
     const fristStr=sp&&sp.frist_pool_bis?`Frist: ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
+    const meinSponsorAnzahl=mySponsorMap[gid];
 
     return `<div class="card ${isFinished||isNochNicht?'card-gray':'card-red'}" data-gid="${gid}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:500">${g.heimteam} <span style="color:#6c757d;font-weight:400">vs.</span> ${g.gastteam}</div>
           <div style="font-size:12px;color:#6c757d;margin-top:4px">${fmtDate(g.datum_iso)} · <span style="color:${g.spielort==='Heimspiel'?'#0a3622':'#842029'};font-weight:500">${g.spielort}</span></div>
+          ${meinSponsorAnzahl?`<div style="font-size:12px;font-weight:500;color:#fff;background:#6f42c1;margin-top:6px;padding:6px 10px;border-radius:6px">Du hast ${meinSponsorAnzahl} Karte${meinSponsorAnzahl>1?'n':''} für dieses Spiel zur Verfügung gestellt.<br><span style="font-weight:400;font-size:11px">Bitte NICHT zusätzlich über den freien VVK bewerben – deine Mitgliedsnummer ist bereits in der OFC-Bewerbung enthalten.</span></div>`:''}
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
             ${compBadge(g.wettbewerb)}
             ${isNochNicht?'<span class="badge badge-orange">Uhrzeit noch nicht fix</span>':''}
