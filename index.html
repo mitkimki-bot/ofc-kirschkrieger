@@ -902,14 +902,15 @@ async function renderAdminHSVBewerbungen(){
       console.log('antworten mitglied_ids:', antworten.map(a=>a.mitglied_id));
       console.log('hsvMitglieder ids:', hsvMitglieder.map(m=>m.id));
       const istKeineOFC=b.status==='keine_ofc';
+      const istAbgelaufenStatus=b.status==='abgelaufen';
       const istAbgelaufen=b.bewerbungsfrist&&new Date(b.bewerbungsfrist)<new Date();
 
-      html+='<div class="card '+(istKeineOFC?'card-gray':b.status==='beantragt'?'card-green':'card-blue')+'">';
+      html+='<div class="card '+(istKeineOFC||istAbgelaufenStatus?'card-gray':b.status==='beantragt'?'card-green':'card-blue')+'">';
       html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">';
       html+='<div><div style="font-size:15px;font-weight:500">'+(b.spieltag?('Spieltag '+b.spieltag):'DFB-Pokal')+' – HSV vs. '+b.gegner+'</div>';
       html+='<div style="font-size:12px;color:#6c757d">'+(b.heimspiel?'Heimspiel':'Auswärtsspiel')+' | '+(b.datum_text||'')+'</div>';
       if(b.frist_text)html+='<div style="font-size:11px;color:#842029">Bewerbungsfrist: '+b.frist_text+'</div>';
-      if(!istKeineOFC){
+      if(!istKeineOFC&&!istAbgelaufenStatus){
         html+='<div style="display:flex;gap:12px;margin-top:8px;align-items:center;flex-wrap:wrap">';
         html+='<div style="font-size:12px">Min Karten: <input type="number" id="min-'+b.id+'" value="'+(b.min_karten||'')+'" min="0" max="20" placeholder="z.B. 2" style="width:60px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:12px"></div>';
         html+='<div style="font-size:12px">Max Karten: <input type="number" id="max-'+b.id+'" value="'+(b.max_karten||'')+'" min="0" max="20" placeholder="z.B. 8" style="width:60px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:12px"></div>';
@@ -917,10 +918,10 @@ async function renderAdminHSVBewerbungen(){
         html+='</div>';
       }
       html+='</div>';
-      html+='<span class="badge '+(istKeineOFC?'badge-gray':b.status==='beantragt'?'badge-green':b.status==='zugeteilt'?'badge-bl':'badge-red')+'">'+(istKeineOFC?'Keine OFC':b.status==='beantragt'?'Beantragt':b.status==='zugeteilt'?'Zugeteilt':'Offen')+'</span>';
+      html+='<span class="badge '+(istKeineOFC?'badge-gray':istAbgelaufenStatus?'badge-gray':b.status==='beantragt'?'badge-green':b.status==='zugeteilt'?'badge-bl':'badge-red')+'">'+(istKeineOFC?'Keine OFC':istAbgelaufenStatus?'Abgelaufen':b.status==='beantragt'?'Beantragt':b.status==='zugeteilt'?'Zugeteilt':'Offen')+'</span>';
       html+='</div>';
 
-      if(!istKeineOFC){
+      if(!istKeineOFC&&!istAbgelaufenStatus){
         // Übersicht
               const behOFC=antworten.filter(a=>a.antwort==='behalten_ofc');
       const behExtra=antworten.filter(a=>a.antwort==='behalten_extra');
