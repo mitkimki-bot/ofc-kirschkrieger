@@ -906,7 +906,7 @@ async function renderAdminHSVBewerbungen(){
 
       html+='<div class="card '+(istKeineOFC?'card-gray':b.status==='beantragt'?'card-green':'card-blue')+'">';
       html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">';
-      html+='<div><div style="font-size:15px;font-weight:500">Spieltag '+b.spieltag+' – HSV vs. '+b.gegner+'</div>';
+      html+='<div><div style="font-size:15px;font-weight:500">'+(b.spieltag?('Spieltag '+b.spieltag):'DFB-Pokal')+' – HSV vs. '+b.gegner+'</div>';
       html+='<div style="font-size:12px;color:#6c757d">'+(b.heimspiel?'Heimspiel':'Auswärtsspiel')+' | '+(b.datum_text||'')+'</div>';
       if(b.frist_text)html+='<div style="font-size:11px;color:#842029">Bewerbungsfrist: '+b.frist_text+'</div>';
       if(!istKeineOFC){
