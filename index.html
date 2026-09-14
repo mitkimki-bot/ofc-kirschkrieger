@@ -994,6 +994,7 @@ async function renderAdminHSVBewerbungen(){
         html+='<button class="btn btn-sm btn-green" onclick="erstelleZuteilungsvorschlag(&quot;'+b.id+'&quot;,'+b.heimspiel+')">Zuteilung vorschlagen</button>';
         if(b.bewerbungslink)html+='<a href="'+b.bewerbungslink+'" target="_blank" class="btn btn-sm btn-primary">HSV Formular öffnen</a>';
         html+='<button class="btn btn-sm btn-orange" onclick="zeigeHSVMeldungsStringBew(&quot;'+b.id+'&quot;)">HSV-String</button>';
+        html+='<button class="btn btn-sm" style="background:#6c757d;color:#fff;border-color:#6c757d" onclick="markiereAbgelaufen(&quot;'+b.id+'&quot;)">Als abgelaufen markieren</button>';
         html+='</div>';
         html+='<div id="vorschlag-'+b.id+'" style="display:none;margin-top:14px;border-top:1px solid var(--g200);padding-top:14px"></div>';
         html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
@@ -1103,6 +1104,13 @@ async function sendeErinnerungAdmin(bewId){
     );
   }
   toast(`Erinnerung an ${ohneAntwort.length} Mitglieder gesendet ✓`);
+}
+
+async function markiereAbgelaufen(bewId){
+  if(!confirm('Bewerbung wirklich als abgelaufen markieren? (z.B. wenn die HSV-Frist ohne Bewerbungsformular verstrichen ist – keine Mails werden versendet)'))return;
+  await sb.from('hsv_bewerbungen').update({status:'abgelaufen'}).eq('id',bewId);
+  await renderAdminHSVBewerbungen();
+  toast('Als abgelaufen markiert ✓');
 }
 
 async function eintragManuel(bewId){
