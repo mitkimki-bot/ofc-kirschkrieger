@@ -1404,9 +1404,14 @@ async function renderGames(){
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
 
   // HSV Bewerbungen direkt laden für Box-Anzeige + Spielkategorie
-  const{data:hsvBewsRG}=await sb.from('hsv_bewerbungen').select('spiel_api_id,gegner,bewerbungsfrist,status,spielkategorie,min_karten,max_karten').in('status',['offen','beantragt','keine_ofc','zugeteilt','abgelaufen']);
+  const{data:hsvBewsRG}=await sb.from('hsv_bewerbungen').select('spiel_api_id,spieltag,gegner,heimspiel,bewerbungsfrist,status,spielkategorie,min_karten,max_karten').in('status',['offen','beantragt','keine_ofc','zugeteilt','abgelaufen']);
   const hsvBewMap={};
   (hsvBewsRG||[]).forEach(b=>{if(b.spiel_api_id)hsvBewMap[b.spiel_api_id]=b;});
+  // DFB-Pokal-Spiele (manuell im Admin-Tab angelegt) haben eine eigene 'dfb_...'-ID, die nicht mit
+  // spiel_api_id in hsv_bewerbungen uebereinstimmt (dort kommt der Eintrag vom HSV-Seiten-Scraper
+  // ohne bekannte hsv_spiele-Verknuepfung). Fallback: Pokal-Bewerbungen (spieltag=0) per Gegnername matchen.
+  const hsvBewPokal=(hsvBewsRG||[]).filter(b=>b.spieltag===0||b.spieltag===null);
+  const normPokal=s=>(s||'').toLowerCase().replace(/\s*\(.*?\)\s*/g,'').replace(/^(den |die |der |dem |fc |sv |vfb |sc |tsg |rb |1\.\s*fc\s*)/i,'').trim();
 
   // Gesponserte Karten des eingeloggten Nutzers: Warnung anzeigen, nicht zusaetzlich ueber freien VVK bewerben
   const{data:meineSponsoring}=currentUser?await sb.from('hsv_sponsoring').select('anzahl,bewerbung:hsv_bewerbungen(spiel_api_id)').eq('mitglied_id',currentUser.id):{data:[]};
@@ -1431,7 +1436,12 @@ async function renderGames(){
     const isFan=currentUser&&!currentUser.hsv_mitglied;
     const isFinished=g.status==='FINISHED',isNochNicht=g.offiziell===false;
     const sp=spMap[gid],phase=sp&&sp.phase;
-    const hbG=hsvBewMap[gid];
+    let hbG=hsvBewMap[gid];
+    if(!hbG&&g.wettbewerb&&g.wettbewerb.indexOf('DFB')!==-1&&hsvBewPokal.length){
+      const gegnerName=g.heimteam==='Hamburger SV'?g.gastteam:g.heimteam;
+      const g2=normPokal(gegnerName);
+      if(g2)hbG=hsvBewPokal.find(b=>{const bn=normPokal(b.gegner);return bn&&(bn.indexOf(g2)!==-1||g2.indexOf(bn)!==-1);});
+    }
     const istZugeteilt=hbG&&hbG.status==='zugeteilt';
     const istBewAbgelaufen=hbG&&hbG.status==='abgelaufen';
     const fristAbgelaufen=sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date();
@@ -1453,7 +1463,7 @@ async function renderGames(){
             ${phase==='stufe3'?'<span class="badge badge-green">Freigabe Freunde</span>':''}
           </div>
           ${fristStr&&!isFinished?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">${fristStr}${fristAbgelaufen?' - ABGELAUFEN':''}</div>`:''}
-          ${(()=>{const hb=hsvBewMap[g.api_id];let html='';if(hb){if(hb.status==='keine_ofc'){html+='<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Keine OFC-Bewerbung möglich</div>';}else if(hb.status!=='zugeteilt'){const f=new Date(hb.bewerbungsfrist);const abg=f<new Date();if(!abg){const fi=new Date(f);fi.setDate(fi.getDate()-7);html+='<div style="font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis '+fi.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' entscheiden</div>';}}}const spielKat=g.spielkategorie||(hb&&hb.spielkategorie);if(spielKat){html+=' <button onclick="zeigePreisPopup(\''+spielKat+'\',\''+g.heimteam+' vs. '+g.gastteam+'\')" style="font-size:11px;font-weight:600;color:#fff;margin-top:5px;background:#0046AD;border:none;padding:3px 10px;border-radius:4px;cursor:pointer">Kat. '+spielKat+' – Preise</button>';}if(hb&&(hb.min_karten||hb.max_karten)){const minK=hb.min_karten||0;const maxK=hb.max_karten||0;const kartStr=minK===maxK?minK+' Karten':minK+'-'+maxK+' Karten';html+='<div style="font-size:11px;color:#0046AD;margin-top:5px;background:#dbeafe;padding:3px 8px;border-radius:4px;display:inline-block;margin-left:4px">Verfügbare Karten für die Bewerbung: '+kartStr+'</div>';}return html;})()} 
+          ${(()=>{const hb=hbG;let html='';if(hb){if(hb.status==='keine_ofc'){html+='<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Keine OFC-Bewerbung möglich</div>';}else if(hb.status==='abgelaufen'){html+='<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Bewerbungsfrist abgelaufen – keine OFC-Bewerbung erfolgt</div>';}else if(hb.status!=='zugeteilt'){const f=new Date(hb.bewerbungsfrist);const abg=f<new Date();if(!abg){const fi=new Date(f);fi.setDate(fi.getDate()-7);html+='<div style="font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis '+fi.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' entscheiden</div>';}}}const spielKat=g.spielkategorie||(hb&&hb.spielkategorie);if(spielKat){html+=' <button onclick="zeigePreisPopup(\''+spielKat+'\',\''+g.heimteam+' vs. '+g.gastteam+'\')" style="font-size:11px;font-weight:600;color:#fff;margin-top:5px;background:#0046AD;border:none;padding:3px 10px;border-radius:4px;cursor:pointer">Kat. '+spielKat+' – Preise</button>';}if(hb&&(hb.min_karten||hb.max_karten)){const minK=hb.min_karten||0;const maxK=hb.max_karten||0;const kartStr=minK===maxK?minK+' Karten':minK+'-'+maxK+' Karten';html+='<div style="font-size:11px;color:#0046AD;margin-top:5px;background:#dbeafe;padding:3px 8px;border-radius:4px;display:inline-block;margin-left:4px">Verfügbare Karten für die Bewerbung: '+kartStr+'</div>';}return html;})()} 
 
         </div>
         ${!isFinished&&!isNochNicht&&isHsv?(istZugeteilt?
