@@ -327,8 +327,8 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <button class="btn btn-sm" onclick="fetchGames(true)">Aktualisieren</button>
       </div>
       <div class="filter-row">
-        <button class="filter-btn active" onclick="setFilter('alle',this)">Alle</button>
-        <button class="filter-btn" onclick="setFilter('upcoming',this)">Kommende</button>
+        <button class="filter-btn" onclick="setFilter('alle',this)">Alle</button>
+        <button class="filter-btn active" onclick="setFilter('upcoming',this)">Kommende</button>
         <button class="filter-btn" onclick="setFilter('finished',this)">Vergangene Spiele</button>
         <button class="filter-btn" onclick="setFilter('BL1',this)">Bundesliga</button>
         <button class="filter-btn" onclick="setFilter('DFB',this)">DFB-Pokal</button>
@@ -566,7 +566,7 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const APP_URL='https://mitkimki-bot.github.io/ofc-kirschkrieger/';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
-let currentUser=null,allMembers=[],apiGames=[],gameFilter='alle',globalSettings={},currentDocId='regeln';
+let currentUser=null,allMembers=[],apiGames=[],gameFilter='upcoming',globalSettings={},currentDocId='regeln';
 
 // ══ HELPERS ═══════════════════════════════════════════
 const initials=n=>n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
