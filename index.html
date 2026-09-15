@@ -330,6 +330,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <button class="filter-btn" onclick="setFilter('alle',this)">Alle</button>
         <button class="filter-btn active" onclick="setFilter('upcoming',this)">Kommende</button>
         <button class="filter-btn" onclick="setFilter('finished',this)">Vergangene Spiele</button>
+        <button class="filter-btn" onclick="setFilter('abgelaufen',this)">Abgelaufene</button>
         <button class="filter-btn" onclick="setFilter('BL1',this)">Bundesliga</button>
         <button class="filter-btn" onclick="setFilter('DFB',this)">DFB-Pokal</button>
       </div>
@@ -1397,20 +1398,9 @@ async function renderGames(){
   // Deshalb zusaetzlich pruefen: Anstoss + 3 Stunden in der Vergangenheit = Spiel gilt als vorbei,
   // auch ohne offiziellen FINISHED-Status oder Ergebnis.
   const istSpielVorbei=g=>g.status==='FINISHED'||(new Date(g.datum_iso).getTime()+3*60*60*1000)<Date.now();
-  // Gespielte Spiele ueberall ausblenden ausser unter "Vergangene Spiele"
-  if(gameFilter!=='finished')filtered=filtered.filter(g=>!istSpielVorbei(g));
-  if(gameFilter==='upcoming')filtered=filtered.filter(g=>!istSpielVorbei(g)&&g.status!=='POSTPONED');
-  if(gameFilter==='finished')filtered=filtered.filter(g=>istSpielVorbei(g));
-  if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
-  if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
-  const{data:allDec}=await sb.from('kartenentscheidungen').select('*');
-  const{data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
-  const myDecMap={};const myAnzMap={};const myNurKomplettMap={};(myDecs||[]).forEach(d=>{myDecMap[d.spiel_api_id||d.spiel_id]=d.entscheidung;myAnzMap[d.spiel_api_id||d.spiel_id]=d.anzahl_wunsch||1;myNurKomplettMap[d.spiel_api_id||d.spiel_id]=!!d.nur_komplett;});
-  const hsvIds=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin').map(m=>m.id);
-  const{data:sps}=await sb.from('spiel_einstellungen').select('*');
-  const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
 
-  // HSV Bewerbungen direkt laden für Box-Anzeige + Spielkategorie
+  // HSV Bewerbungen direkt laden für Box-Anzeige + Spielkategorie (vor der Filterung, da "Abgelaufene"
+  // und "Keine OFC-Bewerbung moeglich" jetzt eine eigene Ansicht bekommen statt bei "Kommende" zu stehen)
   const{data:hsvBewsRG}=await sb.from('hsv_bewerbungen').select('spiel_api_id,spieltag,gegner,heimspiel,bewerbungsfrist,status,spielkategorie,min_karten,max_karten').in('status',['offen','beantragt','keine_ofc','zugeteilt','abgelaufen']);
   const hsvBewMap={};
   (hsvBewsRG||[]).forEach(b=>{if(b.spiel_api_id)hsvBewMap[b.spiel_api_id]=b;});
@@ -1419,6 +1409,33 @@ async function renderGames(){
   // ohne bekannte hsv_spiele-Verknuepfung). Fallback: Pokal-Bewerbungen (spieltag=0) per Gegnername matchen.
   const hsvBewPokal=(hsvBewsRG||[]).filter(b=>b.spieltag===0||b.spieltag===null);
   const normPokal=s=>(s||'').toLowerCase().replace(/\s*\(.*?\)\s*/g,'').replace(/^(den |die |der |dem |fc |sv |vfb |sc |tsg |rb |1\.\s*fc\s*)/i,'').trim();
+  function getHbG(g){
+    let hbG=hsvBewMap[g.api_id];
+    if(!hbG&&g.wettbewerb&&g.wettbewerb.indexOf('DFB')!==-1&&hsvBewPokal.length){
+      const gegnerName=g.heimteam==='Hamburger SV'?g.gastteam:g.heimteam;
+      const g2=normPokal(gegnerName);
+      if(g2)hbG=hsvBewPokal.find(b=>{const bn=normPokal(b.gegner);return bn&&(bn.indexOf(g2)!==-1||g2.indexOf(bn)!==-1);});
+    }
+    return hbG;
+  }
+  const istBewErledigt=g=>{const hb=getHbG(g);return hb&&(hb.status==='abgelaufen'||hb.status==='keine_ofc');};
+
+  // Gespielte Spiele ueberall ausblenden ausser unter "Vergangene Spiele"
+  if(gameFilter!=='finished')filtered=filtered.filter(g=>!istSpielVorbei(g));
+  if(gameFilter==='upcoming')filtered=filtered.filter(g=>!istSpielVorbei(g)&&g.status!=='POSTPONED');
+  if(gameFilter==='finished')filtered=filtered.filter(g=>istSpielVorbei(g));
+  if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
+  if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
+  // Bewerbung abgelaufen / keine OFC-Bewerbung moeglich: ueberall ausblenden ausser unter "Abgelaufene"
+  if(gameFilter!=='abgelaufen')filtered=filtered.filter(g=>!istBewErledigt(g));
+  if(gameFilter==='abgelaufen')filtered=filtered.filter(g=>istBewErledigt(g));
+
+  const{data:allDec}=await sb.from('kartenentscheidungen').select('*');
+  const{data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
+  const myDecMap={};const myAnzMap={};const myNurKomplettMap={};(myDecs||[]).forEach(d=>{myDecMap[d.spiel_api_id||d.spiel_id]=d.entscheidung;myAnzMap[d.spiel_api_id||d.spiel_id]=d.anzahl_wunsch||1;myNurKomplettMap[d.spiel_api_id||d.spiel_id]=!!d.nur_komplett;});
+  const hsvIds=allMembers.filter(m=>m.hsv_mitglied&&m.typ!=='admin').map(m=>m.id);
+  const{data:sps}=await sb.from('spiel_einstellungen').select('*');
+  const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
 
   // Gesponserte Karten des eingeloggten Nutzers: Warnung anzeigen, nicht zusaetzlich ueber freien VVK bewerben
   const{data:meineSponsoring}=currentUser?await sb.from('hsv_sponsoring').select('anzahl,bewerbung:hsv_bewerbungen(spiel_api_id)').eq('mitglied_id',currentUser.id):{data:[]};
@@ -1444,12 +1461,7 @@ async function renderGames(){
     const isFinished=g.status==='FINISHED',isNochNicht=g.offiziell===false;
     const istVorbei=istSpielVorbei(g);
     const sp=spMap[gid],phase=sp&&sp.phase;
-    let hbG=hsvBewMap[gid];
-    if(!hbG&&g.wettbewerb&&g.wettbewerb.indexOf('DFB')!==-1&&hsvBewPokal.length){
-      const gegnerName=g.heimteam==='Hamburger SV'?g.gastteam:g.heimteam;
-      const g2=normPokal(gegnerName);
-      if(g2)hbG=hsvBewPokal.find(b=>{const bn=normPokal(b.gegner);return bn&&(bn.indexOf(g2)!==-1||g2.indexOf(bn)!==-1);});
-    }
+    const hbG=getHbG(g);
     const istZugeteilt=hbG&&hbG.status==='zugeteilt';
     const istBewAbgelaufen=hbG&&hbG.status==='abgelaufen';
     const fristAbgelaufen=sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date();
