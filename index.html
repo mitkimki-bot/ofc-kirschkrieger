@@ -329,7 +329,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
       <div class="filter-row">
         <button class="filter-btn active" onclick="setFilter('alle',this)">Alle</button>
         <button class="filter-btn" onclick="setFilter('upcoming',this)">Kommende</button>
-        <button class="filter-btn" onclick="setFilter('finished',this)">Ergebnisse</button>
+        <button class="filter-btn" onclick="setFilter('finished',this)">Vergangene Spiele</button>
         <button class="filter-btn" onclick="setFilter('BL1',this)">Bundesliga</button>
         <button class="filter-btn" onclick="setFilter('DFB',this)">DFB-Pokal</button>
       </div>
@@ -1392,6 +1392,8 @@ async function renderGames(){
   // Nur aktuelle Saison: Spiele nicht älter als 30 Tage
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-30);
   let filtered=apiGames.filter(g=>new Date(g.datum_iso)>=cutoff);
+  // Gespielte Spiele (Ergebnis steht fest) ueberall ausblenden ausser unter "Vergangene Spiele"
+  if(gameFilter!=='finished')filtered=filtered.filter(g=>g.status!=='FINISHED');
   if(gameFilter==='upcoming')filtered=filtered.filter(g=>g.status!=='FINISHED'&&g.status!=='POSTPONED');
   if(gameFilter==='finished')filtered=filtered.filter(g=>g.status==='FINISHED');
   if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
