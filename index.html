@@ -1392,10 +1392,15 @@ async function renderGames(){
   // Nur aktuelle Saison: Spiele nicht älter als 30 Tage
   const cutoff=new Date();cutoff.setDate(cutoff.getDate()-30);
   let filtered=apiGames.filter(g=>new Date(g.datum_iso)>=cutoff);
-  // Gespielte Spiele (Ergebnis steht fest) ueberall ausblenden ausser unter "Vergangene Spiele"
-  if(gameFilter!=='finished')filtered=filtered.filter(g=>g.status!=='FINISHED');
-  if(gameFilter==='upcoming')filtered=filtered.filter(g=>g.status!=='FINISHED'&&g.status!=='POSTPONED');
-  if(gameFilter==='finished')filtered=filtered.filter(g=>g.status==='FINISHED');
+  // WICHTIG (Fix 2026-09-15): football-data.org aktualisiert den Status nicht zuverlaessig auf
+  // FINISHED (manche Spiele bleiben tagelang auf TIMED/SCHEDULED stehen, obwohl laengst gespielt).
+  // Deshalb zusaetzlich pruefen: Anstoss + 3 Stunden in der Vergangenheit = Spiel gilt als vorbei,
+  // auch ohne offiziellen FINISHED-Status oder Ergebnis.
+  const istSpielVorbei=g=>g.status==='FINISHED'||(new Date(g.datum_iso).getTime()+3*60*60*1000)<Date.now();
+  // Gespielte Spiele ueberall ausblenden ausser unter "Vergangene Spiele"
+  if(gameFilter!=='finished')filtered=filtered.filter(g=>!istSpielVorbei(g));
+  if(gameFilter==='upcoming')filtered=filtered.filter(g=>!istSpielVorbei(g)&&g.status!=='POSTPONED');
+  if(gameFilter==='finished')filtered=filtered.filter(g=>istSpielVorbei(g));
   if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
   if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
   const{data:allDec}=await sb.from('kartenentscheidungen').select('*');
@@ -1437,6 +1442,7 @@ async function renderGames(){
     const isHsv=currentUser&&currentUser.hsv_mitglied&&currentUser.typ!=='admin';
     const isFan=currentUser&&!currentUser.hsv_mitglied;
     const isFinished=g.status==='FINISHED',isNochNicht=g.offiziell===false;
+    const istVorbei=istSpielVorbei(g);
     const sp=spMap[gid],phase=sp&&sp.phase;
     let hbG=hsvBewMap[gid];
     if(!hbG&&g.wettbewerb&&g.wettbewerb.indexOf('DFB')!==-1&&hsvBewPokal.length){
@@ -1450,7 +1456,7 @@ async function renderGames(){
     const fristStr=sp&&sp.frist_pool_bis?`Frist: ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
     const meinSponsorAnzahl=mySponsorMap[gid];
 
-    return `<div class="card ${isFinished||isNochNicht?'card-gray':'card-red'}" data-gid="${gid}">
+    return `<div class="card ${istVorbei||isNochNicht?'card-gray':'card-red'}" data-gid="${gid}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:500">${g.heimteam} <span style="color:#6c757d;font-weight:400">vs.</span> ${g.gastteam}</div>
@@ -1460,15 +1466,15 @@ async function renderGames(){
             ${compBadge(g.wettbewerb)}
             ${isNochNicht?'<span class="badge badge-orange">Uhrzeit noch nicht fix</span>':''}
             ${isFinished&&g.score?`<span class="badge badge-gray">${g.score}</span>`:''}
-            ${!isFinished&&!isNochNicht?`<span class="badge badge-green">${beh_ofc+beh_ext} OFC</span><span class="badge badge-orange">${beh_oh} ohne OFC</span><span class="badge badge-red">${abg} abgegeben</span><span class="badge badge-gray">${off} offen</span>`:''}
+            ${!istVorbei&&!isNochNicht?`<span class="badge badge-green">${beh_ofc+beh_ext} OFC</span><span class="badge badge-orange">${beh_oh} ohne OFC</span><span class="badge badge-red">${abg} abgegeben</span><span class="badge badge-gray">${off} offen</span>`:''}
             ${phase==='stufe2'?'<span class="badge badge-red">Fan-Bewerbung offen</span>':''}
             ${phase==='stufe3'?'<span class="badge badge-green">Freigabe Freunde</span>':''}
           </div>
-          ${fristStr&&!isFinished?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">${fristStr}${fristAbgelaufen?' - ABGELAUFEN':''}</div>`:''}
+          ${fristStr&&!istVorbei?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">${fristStr}${fristAbgelaufen?' - ABGELAUFEN':''}</div>`:''}
           ${(()=>{const hb=hbG;let html='';if(hb){if(hb.status==='keine_ofc'){html+='<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Keine OFC-Bewerbung möglich</div>';}else if(hb.status==='abgelaufen'){html+='<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Bewerbungsfrist abgelaufen – keine OFC-Bewerbung erfolgt</div>';}else if(hb.status!=='zugeteilt'){const f=new Date(hb.bewerbungsfrist);const abg=f<new Date();if(!abg){const fi=new Date(f);fi.setDate(fi.getDate()-7);html+='<div style="font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis '+fi.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' entscheiden</div>';}}}const spielKat=g.spielkategorie||(hb&&hb.spielkategorie);if(spielKat){html+=' <button onclick="zeigePreisPopup(\''+spielKat+'\',\''+g.heimteam+' vs. '+g.gastteam+'\')" style="font-size:11px;font-weight:600;color:#fff;margin-top:5px;background:#0046AD;border:none;padding:3px 10px;border-radius:4px;cursor:pointer">Kat. '+spielKat+' – Preise</button>';}if(hb&&(hb.min_karten||hb.max_karten)){const minK=hb.min_karten||0;const maxK=hb.max_karten||0;const kartStr=minK===maxK?minK+' Karten':minK+'-'+maxK+' Karten';html+='<div style="font-size:11px;color:#0046AD;margin-top:5px;background:#dbeafe;padding:3px 8px;border-radius:4px;display:inline-block;margin-left:4px">Verfügbare Karten für die Bewerbung: '+kartStr+'</div>';}return html;})()} 
 
         </div>
-        ${!isFinished&&!isNochNicht&&isHsv?(istZugeteilt?
+        ${!istVorbei&&!isNochNicht&&isHsv?(istZugeteilt?
         '<div style="min-width:150px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;text-align:center;font-size:12px;font-weight:500">Zugeteilt<br><span style="font-weight:400;font-size:11px">Aenderungen nur ueber Admin</span></div></div>'
         :istBewAbgelaufen?
         '<div style="min-width:150px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;text-align:center;font-size:12px;font-weight:500">Abgelaufen<br><span style="font-weight:400;font-size:11px">Keine OFC-Bewerbung möglich</span></div></div>'
@@ -1479,7 +1485,7 @@ async function renderGames(){
           <button class="ticket-btn ${myDec==='behalten_ohne'?'active-behalten_ohne':''}" onclick="setTicket('${gid}','behalten_ohne')">Ohne OFC</button>
           <button class="ticket-btn ${myDec==='abgeben'?'active-abgeben':''}" onclick="setTicket('${gid}','abgeben')">Abgeben</button>
         </div>`:''):''}
-        ${!isFinished&&!isNochNicht&&isFan?(istZugeteilt?
+        ${!istVorbei&&!isNochNicht&&isFan?(istZugeteilt?
         '<div style="margin-top:8px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500;display:inline-block">Zugeteilt \u2013 Aenderungen nur ueber Admin</div></div>'
         :istBewAbgelaufen?
         '<div style="margin-top:8px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500;display:inline-block">Abgelaufen \u2013 Keine OFC-Bewerbung m\u00f6glich</div></div>'
