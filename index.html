@@ -996,6 +996,7 @@ async function renderAdminHSVBewerbungen(){
         html+='<button class="btn btn-sm btn-green" onclick="erstelleZuteilungsvorschlag(&quot;'+b.id+'&quot;,'+b.heimspiel+')">Zuteilung vorschlagen</button>';
         if(b.bewerbungslink)html+='<a href="'+b.bewerbungslink+'" target="_blank" class="btn btn-sm btn-primary">HSV Formular öffnen</a>';
         html+='<button class="btn btn-sm btn-orange" onclick="zeigeHSVMeldungsStringBew(&quot;'+b.id+'&quot;)">HSV-String</button>';
+        html+='<button class="btn btn-sm" style="background:#CC0000;color:#fff;border-color:#CC0000" onclick="keineKartenErhalten(&quot;'+b.id+'&quot;)">Keine Karten erhalten</button>';
         html+='<button class="btn btn-sm" style="background:#6c757d;color:#fff;border-color:#6c757d" onclick="markiereAbgelaufen(&quot;'+b.id+'&quot;)">Als abgelaufen markieren</button>';
         html+='</div>';
         html+='<div id="vorschlag-'+b.id+'" style="display:none;margin-top:14px;border-top:1px solid var(--g200);padding-top:14px"></div>';
@@ -1113,6 +1114,38 @@ async function markiereAbgelaufen(bewId){
   await sb.from('hsv_bewerbungen').update({status:'abgelaufen'}).eq('id',bewId);
   await renderAdminHSVBewerbungen();
   toast('Als abgelaufen markiert ✓');
+}
+
+async function keineKartenErhalten(bewId){
+  if(!confirm('Bestätigen: Der HSV hat für dieses Spiel keine Karten über die OFC-Bewerbung zugeteilt?\n\nAlle Bewerber (Behalten OFC/Extra, Fans mit Ja) werden per Mail informiert, dass sie selbst über den VVK Karten erwerben können. Die Bewerbung wird als abgelaufen markiert.'))return;
+
+  const{data:bew}=await sb.from('hsv_bewerbungen').select('*').eq('id',bewId).single();
+  if(!bew){toast('Bewerbung nicht gefunden.');return;}
+
+  const sid=bew.spiel_api_id?String(bew.spiel_api_id):null;
+  let betroffene=[];
+  if(sid){
+    const{data:entscheidungen}=await sb.from('kartenentscheidungen').select('*');
+    betroffene=(entscheidungen||[]).filter(d=>(String(d.spiel_api_id)===sid||String(d.spiel_id)===sid)&&['behalten_ofc','behalten_extra','ja'].includes(d.entscheidung));
+  }
+
+  let mailCount=0;
+  for(const d of betroffene){
+    const m=allMembers.find(x=>x.id===d.mitglied_id);
+    if(!m||!m.email)continue;
+    const betreff='OFC Kirschkrieger – Keine Karten erhalten: HSV vs. '+bew.gegner;
+    const inhalt=m.hsv_mitglied
+      ?`Leider hat der OFC für <strong>HSV vs. ${bew.gegner}</strong> keine Karten über die Bewerbung erhalten.</p><p style="margin:12px 0;color:#842029;font-weight:500">Du kannst jetzt selbst über den Mitglieder-Vorverkauf (bzw. den freien Vorverkauf, sobald dieser startet) eine Karte erwerben.`
+      :`Leider hat der OFC für <strong>HSV vs. ${bew.gegner}</strong> keine Karten über die Bewerbung erhalten.</p><p style="margin:12px 0;color:#842029;font-weight:500">Du kannst jetzt selbst über den freien Vorverkauf eine Karte erwerben, sobald dieser startet.`;
+    await queueMail(m.email,betreff,
+      `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#CC0000;padding:20px;border-bottom:4px solid #0046AD"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">${inhalt}</p><p style="font-size:13px;color:#495057">${bew.datum_text||''}</p></div><div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div></div>`
+    );
+    mailCount++;
+  }
+
+  await sb.from('hsv_bewerbungen').update({status:'abgelaufen',karten_zugeteilt:0}).eq('id',bewId);
+  await renderAdminHSVBewerbungen();
+  toast(`Keine Karten erhalten – ${mailCount} Mail(s) versendet, Bewerbung abgelaufen ✓`);
 }
 
 async function eintragManuel(bewId){
