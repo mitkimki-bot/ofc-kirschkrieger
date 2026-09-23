@@ -1135,6 +1135,13 @@ async function sendeErinnerungAdmin(bewId){
   toast(`Erinnerung an ${ohneAntwort.length} Mitglieder gesendet ✓`);
 }
 
+async function kopiereVVKLink(gid){
+  const el=document.getElementById('vvk-link-'+gid);
+  if(!el)return;
+  try{await navigator.clipboard.writeText(el.value);toast('Link kopiert ✓');}
+  catch(e){el.select();toast('Bitte manuell kopieren (Strg+C)');}
+}
+
 async function toggleVVKLive(gid,aktiv){
   const{data:existing}=await sb.from('spiel_einstellungen').select('id').eq('spiel_api_id',gid).maybeSingle();
   if(existing){
@@ -1745,7 +1752,8 @@ async function renderGames(){
       <div class="divider"></div>
       <div onclick="toggleSpielStatus('${gid}')" style="cursor:pointer;font-size:12px;color:#6c757d;user-select:none"><span id="toggle-icon-${gid}">▶</span> Wer ist dabei?</div>
       <div id="spiel-status-${gid}" style="display:none;margin-top:8px"></div>
-      ${currentUser&&currentUser.typ==='admin'?`<div class="divider"></div><button class="btn btn-sm" style="background:${sp&&sp.vvk_live_aktiv?'#CC0000':'#198754'};color:#fff;border-color:${sp&&sp.vvk_live_aktiv?'#CC0000':'#198754'}" onclick="toggleVVKLive('${gid}',${sp&&sp.vvk_live_aktiv?'false':'true'})">${sp&&sp.vvk_live_aktiv?'VVK-Live beenden':'VVK-Live aktivieren'}</button>${sp&&sp.vvk_live_aktiv?` <a href="?vvklive=${gid}" target="_blank" class="btn btn-sm btn-primary">Vollbild-Link</a>`:''}`:''}
+      ${currentUser?`<div class="divider"></div><button class="btn btn-sm" style="background:${sp&&sp.vvk_live_aktiv?'#CC0000':'#198754'};color:#fff;border-color:${sp&&sp.vvk_live_aktiv?'#CC0000':'#198754'}" onclick="toggleVVKLive('${gid}',${sp&&sp.vvk_live_aktiv?'false':'true'})">${sp&&sp.vvk_live_aktiv?'VVK-Live beenden':'VVK-Live aktivieren'}</button>${sp&&sp.vvk_live_aktiv?` <a href="?vvklive=${gid}" target="_blank" class="btn btn-sm btn-primary">Vollbild öffnen</a>`:''}
+      ${sp&&sp.vvk_live_aktiv?`<div style="display:flex;gap:6px;margin-top:6px"><input type="text" readonly id="vvk-link-${gid}" value="${window.location.origin+window.location.pathname}?vvklive=${gid}" style="flex:1;padding:6px 8px;border:1.5px solid var(--g300);border-radius:6px;font-size:12px;background:#f8f9fa" onclick="this.select()"><button class="btn btn-sm" onclick="kopiereVVKLink('${gid}')">Kopieren</button></div>`:''}`:''}
       ${sp&&sp.vvk_live_aktiv?`<div class="divider"></div><div id="vvklive-embed-${gid}"><div class="loading"><div class="spinner"></div></div></div>`:''}
     </div>`;
   }).join('')||'<p style="color:#6c757d;text-align:center;padding:20px">Keine Spiele.</p>';
