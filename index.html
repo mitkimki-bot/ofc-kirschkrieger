@@ -295,6 +295,17 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
   </div>
 </div>
 
+<!-- VVK LIVE VOLLBILD -->
+<div id="page-vvklive" class="full-page" style="display:none">
+  <div style="width:100%;max-width:720px;margin:0 auto;padding:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="club-name" style="margin:0">OFC Kirschkrieger</div>
+      <button class="btn-logout" onclick="showApp()">Zur App</button>
+    </div>
+    <div id="vvklive-full-container"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+</div>
+
 <!-- APP SHELL -->
 <div id="app-shell" style="display:none">
   <header class="app-header">
@@ -655,9 +666,22 @@ function showApp(){
   document.getElementById('app-shell').style.display='block';
 }
 
+async function showVVKLiveFullscreen(gid){
+  window._pendingVVKLive=null;
+  showPage('page-vvklive');
+  const outer=document.getElementById('vvklive-full-container');
+  outer.innerHTML='';
+  const inner=document.createElement('div');
+  inner.id='vvklive-full-'+gid;
+  outer.appendChild(inner);
+  await initVVKLive(gid,inner,{compact:false});
+}
+
 // ══ URL PARAMS ════════════════════════════════════════
 async function checkUrlParams(){
   const p=new URLSearchParams(window.location.search);
+  const vvklive=p.get('vvklive');
+  if(vvklive)window._pendingVVKLive=vvklive; // nach erfolgreichem Login direkt zum Live-Board (siehe doLogin)
   const action=p.get('action'),token=p.get('token');
   if((action==='setup'||action==='reset')&&token){
     showPage('page-setup');
@@ -764,7 +788,9 @@ async function doLogin(){
   renderStats();
   renderProfile();
   const needsAGB=await showAGBIfNeeded();
-  if(!needsAGB)showApp();
+  if(needsAGB)return;
+  if(window._pendingVVKLive){showVVKLiveFullscreen(window._pendingVVKLive);return;}
+  showApp();
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1107,6 +1133,175 @@ async function sendeErinnerungAdmin(bewId){
     );
   }
   toast(`Erinnerung an ${ohneAntwort.length} Mitglieder gesendet ✓`);
+}
+
+async function toggleVVKLive(gid,aktiv){
+  const{data:existing}=await sb.from('spiel_einstellungen').select('id').eq('spiel_api_id',gid).maybeSingle();
+  if(existing){
+    await sb.from('spiel_einstellungen').update({vvk_live_aktiv:aktiv}).eq('id',existing.id);
+  }else{
+    const g=apiGames.find(x=>x.api_id===gid)||{};
+    await sb.from('spiel_einstellungen').insert({
+      spiel_api_id:gid,heimteam:g.heimteam||'',gastteam:g.gastteam||'',datum_iso:g.datum_iso||new Date().toISOString(),
+      wettbewerb:g.wettbewerb||'',spielort:g.spielort||'',vergabe_verfahren:'selten',mail_gesendet:true,phase:'stufe1',
+      vvk_live_aktiv:aktiv
+    });
+  }
+  toast(aktiv?'VVK-Live aktiviert ✓':'VVK-Live beendet ✓');
+  await renderGames();
+}
+
+// ══ VVK-LIVE-TICKER ═══════════════════════════════════
+// Live-Board fuer den VVK-Verkaufstag: zeigt wer noch eine Karte braucht, und jeder kann live
+// eintragen "ich habe X Karten bekommen, davon reserviert fuer diese Mitglieder". Aktualisiert
+// sich per Supabase Realtime bei allen offenen Ansichten (eingebettet + Vollbild) sofort.
+window._vvkChannels=window._vvkChannels||{};
+window._vvkAnzahlZeilen=4; // feste Anzahl Zuteilungs-Zeilen im Formular (bei Bedarf mehrfach eintragen)
+
+async function initVVKLive(gid,containerEl,opts){
+  opts=opts||{};
+  if(window._vvkChannels[gid]){try{sb.removeChannel(window._vvkChannels[gid]);}catch(e){}delete window._vvkChannels[gid];}
+  await renderVVKLive(gid,containerEl,opts);
+  const ch=sb.channel('vvklive-'+gid)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'vvk_live_eintraege',filter:'spiel_api_id=eq.'+gid},()=>{renderVVKLive(gid,containerEl,opts);})
+    .subscribe();
+  window._vvkChannels[gid]=ch;
+}
+
+async function renderVVKLive(gid,containerEl,opts){
+  if(!containerEl)return;
+  const g=apiGames.find(x=>x.api_id===gid)||{};
+  const{data:entscheidungen}=await sb.from('kartenentscheidungen').select('*');
+  const relevanteDec=(entscheidungen||[]).filter(d=>(String(d.spiel_api_id)===String(gid)||String(d.spiel_id)===String(gid))&&['behalten_ofc','behalten_extra','ja'].includes(d.entscheidung));
+  const{data:eintraege}=await sb.from('vvk_live_eintraege').select('*').eq('spiel_api_id',gid).order('created_at',{ascending:false});
+
+  // Bedarf pro Mitglied ermitteln (aus bestehenden Entscheidungen), dann bereits organisierte
+  // Zuteilungen aus den Live-Eintraegen abziehen
+  const bedarf={};
+  relevanteDec.forEach(d=>{
+    const m=allMembers.find(x=>x.id===d.mitglied_id);
+    if(!m)return;
+    bedarf[m.id]={name:displayName(m),urspruenglich:d.anzahl_wunsch||1,offen:d.anzahl_wunsch||1};
+  });
+  (eintraege||[]).forEach(e=>{
+    (e.zuteilungen||[]).forEach(z=>{
+      if(bedarf[z.mitglied_id])bedarf[z.mitglied_id].offen=Math.max(0,bedarf[z.mitglied_id].offen-(z.anzahl||0));
+    });
+  });
+  const bedarfListe=Object.values(bedarf);
+  const urspruenglichGesamt=bedarfListe.reduce((s,b)=>s+b.urspruenglich,0);
+  const offenGesamt=bedarfListe.reduce((s,b)=>s+b.offen,0);
+  const organisiertGesamt=urspruenglichGesamt-offenGesamt;
+  const nochOffen=bedarfListe.filter(b=>b.offen>0).sort((a,b)=>b.offen-a.offen);
+  const erledigt=bedarfListe.filter(b=>b.offen===0);
+
+  const groesse=opts.compact?'':'font-size:16px;';
+  let html=`<div style="background:#fff3cd;border:1px solid #ffe69c;border-radius:10px;padding:${opts.compact?'12px':'20px'}">
+    <div style="font-weight:600;${groesse}margin-bottom:8px">🔴 VVK-Live: ${g.heimteam||''} vs. ${g.gastteam||''}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div style="background:#fff;border-radius:8px;padding:8px 14px;text-align:center"><div style="font-size:${opts.compact?'18px':'26px'};font-weight:700;color:#842029">${offenGesamt}</div><div style="font-size:11px;color:#6c757d">noch offen</div></div>
+      <div style="background:#fff;border-radius:8px;padding:8px 14px;text-align:center"><div style="font-size:${opts.compact?'18px':'26px'};font-weight:700;color:#0a3622">${organisiertGesamt}</div><div style="font-size:11px;color:#6c757d">organisiert</div></div>
+      <div style="background:#fff;border-radius:8px;padding:8px 14px;text-align:center"><div style="font-size:${opts.compact?'18px':'26px'};font-weight:700;color:#495057">${urspruenglichGesamt}</div><div style="font-size:11px;color:#6c757d">angefordert</div></div>
+    </div>`;
+
+  if(nochOffen.length){
+    html+=`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:#842029;margin-bottom:4px">Noch offen:</div>`;
+    html+=nochOffen.map(b=>`<span class="badge badge-red" style="margin:2px">${b.name} (${b.offen})</span>`).join('');
+    html+=`</div>`;
+  }
+  if(erledigt.length){
+    html+=`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:#0a3622;margin-bottom:4px">Erledigt:</div>`;
+    html+=erledigt.map(b=>`<span class="badge badge-green" style="margin:2px">${b.name}</span>`).join('');
+    html+=`</div>`;
+  }
+
+  // Eintragsformular
+  const mitgliederOptions=allMembers.filter(m=>m.typ!=='admin').sort((a,b)=>displayName(a).localeCompare(displayName(b)));
+  html+=`<div style="background:#fff;border-radius:8px;padding:12px;margin-top:10px">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Ich habe Karten bekommen:</div>
+    <div style="margin-bottom:8px"><label style="font-size:12px;color:#495057">Anzahl insgesamt gekauft</label><input type="number" min="0" id="vvk-gekauft-${gid}" style="width:100%;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:14px"></div>
+    <div style="font-size:12px;color:#495057;margin-bottom:4px">Reserviert für (Mitglied + Anzahl):</div>`;
+  for(let i=0;i<window._vvkAnzahlZeilen;i++){
+    html+=`<div style="display:flex;gap:6px;margin-bottom:6px">
+      <select id="vvk-mid-${gid}-${i}" style="flex:1;padding:6px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
+        <option value="">– Mitglied wählen –</option>
+        ${mitgliederOptions.map(m=>`<option value="${m.id}">${displayName(m)}</option>`).join('')}
+      </select>
+      <input type="number" min="0" placeholder="Anzahl" id="vvk-anz-${gid}-${i}" style="width:70px;padding:6px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
+    </div>`;
+  }
+  html+=`<input type="text" placeholder="Notiz (optional)" id="vvk-notiz-${gid}" style="width:100%;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px;margin-bottom:8px">
+    <button class="btn btn-primary btn-full" onclick="vvkEintragen('${gid}')">Eintragen</button>
+  </div>`;
+
+  // Live-Feed
+  html+=`<div style="margin-top:12px">
+    <div style="font-size:12px;font-weight:600;color:#495057;margin-bottom:6px">Live-Feed:</div>`;
+  if(!eintraege||!eintraege.length){
+    html+=`<div style="font-size:12px;color:#adb5bd">Noch keine Meldungen.</div>`;
+  }else{
+    html+=eintraege.map(e=>{
+      const m=allMembers.find(x=>x.id===e.mitglied_id);
+      const zeit=new Date(e.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+      const zSumme=(e.zuteilungen||[]).reduce((s,z)=>s+(z.anzahl||0),0);
+      const uebrig=(e.anzahl_gekauft||0)-zSumme;
+      const zText=(e.zuteilungen||[]).map(z=>z.name+' ('+z.anzahl+')').join(', ');
+      return `<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f3f5">
+        <strong>${zeit}</strong> ${m?displayName(m):'?'}: <strong>${e.anzahl_gekauft}</strong> gekauft${zText?' – reserviert für '+zText:''}${uebrig>0?` <span style="color:#0a3622;font-weight:600">(${uebrig} übrig!)</span>`:''}
+        ${e.notiz?`<div style="color:#6c757d;margin-top:2px">${e.notiz}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+  html+=`</div>`;
+
+  // Wer ist gerade online (Presence)
+  html+=`<div id="vvk-presence-${gid}" style="margin-top:10px;font-size:11px;color:#6c757d"></div>`;
+
+  html+=`</div>`;
+  containerEl.innerHTML=html;
+  initVVKPresence(gid);
+}
+
+async function vvkEintragen(gid){
+  const gekauft=parseInt(document.getElementById('vvk-gekauft-'+gid).value)||0;
+  if(gekauft<=0){toast('Bitte Anzahl gekaufter Karten eintragen.');return;}
+  const zuteilungen=[];
+  for(let i=0;i<window._vvkAnzahlZeilen;i++){
+    const midEl=document.getElementById('vvk-mid-'+gid+'-'+i);
+    const anzEl=document.getElementById('vvk-anz-'+gid+'-'+i);
+    if(!midEl||!anzEl||!midEl.value)continue;
+    const anz=parseInt(anzEl.value)||0;
+    if(anz<=0)continue;
+    const m=allMembers.find(x=>x.id===midEl.value);
+    zuteilungen.push({mitglied_id:midEl.value,name:m?displayName(m):'',anzahl:anz});
+  }
+  const summe=zuteilungen.reduce((s,z)=>s+z.anzahl,0);
+  if(summe>gekauft){toast('Die Summe der zugeteilten Karten ('+summe+') ist größer als die gekaufte Anzahl ('+gekauft+').');return;}
+  const notiz=document.getElementById('vvk-notiz-'+gid).value.trim();
+  if(!currentUser){toast('Bitte anmelden.');return;}
+  await sb.from('vvk_live_eintraege').insert({spiel_api_id:gid,mitglied_id:currentUser.id,anzahl_gekauft:gekauft,zuteilungen,notiz:notiz||null});
+  toast('Eingetragen ✓');
+  // Eigene Ansicht sofort aktualisieren (Realtime bringt es auch, aber ohne Wartezeit fuer den Eintragenden selbst)
+  const el=document.getElementById('vvklive-embed-'+gid)||document.getElementById('vvklive-full-'+gid);
+  if(el)renderVVKLive(gid,el,{compact:!!document.getElementById('vvklive-embed-'+gid)});
+}
+
+async function initVVKPresence(gid){
+  const el=document.getElementById('vvk-presence-'+gid);
+  if(!el||!currentUser)return;
+  const chName='vvk-presence-'+gid;
+  if(window._vvkChannels[chName]){try{sb.removeChannel(window._vvkChannels[chName]);}catch(e){}}
+  const ch=sb.channel(chName,{config:{presence:{key:currentUser.id}}});
+  ch.on('presence',{event:'sync'},()=>{
+    const state=ch.presenceState();
+    const namen=Object.values(state).map(arr=>arr[0]&&arr[0].name).filter(Boolean);
+    const target=document.getElementById('vvk-presence-'+gid);
+    if(target)target.textContent=namen.length?('🟢 Gerade online: '+namen.join(', ')):'';
+  });
+  ch.subscribe(async status=>{
+    if(status==='SUBSCRIBED')await ch.track({name:displayName(currentUser)});
+  });
+  window._vvkChannels[chName]=ch;
 }
 
 async function markiereAbgelaufen(bewId){
@@ -1550,8 +1745,19 @@ async function renderGames(){
       <div class="divider"></div>
       <div onclick="toggleSpielStatus('${gid}')" style="cursor:pointer;font-size:12px;color:#6c757d;user-select:none"><span id="toggle-icon-${gid}">▶</span> Wer ist dabei?</div>
       <div id="spiel-status-${gid}" style="display:none;margin-top:8px"></div>
+      ${currentUser&&currentUser.typ==='admin'?`<div class="divider"></div><button class="btn btn-sm" style="background:${sp&&sp.vvk_live_aktiv?'#CC0000':'#198754'};color:#fff;border-color:${sp&&sp.vvk_live_aktiv?'#CC0000':'#198754'}" onclick="toggleVVKLive('${gid}',${sp&&sp.vvk_live_aktiv?'false':'true'})">${sp&&sp.vvk_live_aktiv?'VVK-Live beenden':'VVK-Live aktivieren'}</button>${sp&&sp.vvk_live_aktiv?` <a href="?vvklive=${gid}" target="_blank" class="btn btn-sm btn-primary">Vollbild-Link</a>`:''}`:''}
+      ${sp&&sp.vvk_live_aktiv?`<div class="divider"></div><div id="vvklive-embed-${gid}"><div class="loading"><div class="spinner"></div></div></div>`:''}
     </div>`;
   }).join('')||'<p style="color:#6c757d;text-align:center;padding:20px">Keine Spiele.</p>';
+
+  // Eingebettete VVK-Live-Boards initialisieren (fuer alle aktiven Spiele in dieser Ansicht)
+  filtered.forEach(g=>{
+    const sp2=spMap[g.api_id];
+    if(sp2&&sp2.vvk_live_aktiv){
+      const el2=document.getElementById('vvklive-embed-'+g.api_id);
+      if(el2)initVVKLive(g.api_id,el2,{compact:true});
+    }
+  });
 }
 
 async function ladeHSVBewerbungsFristen(){
