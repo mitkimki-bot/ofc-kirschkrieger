@@ -342,6 +342,7 @@ body{font-family:'Inter',sans-serif;background:var(--g100);color:var(--g900);min
         <button class="filter-btn active" onclick="setFilter('upcoming',this)">Kommende</button>
         <button class="filter-btn" onclick="setFilter('finished',this)">Vergangene Spiele</button>
         <button class="filter-btn" onclick="setFilter('abgelaufen',this)">Abgelaufene</button>
+        <button class="filter-btn" onclick="setFilter('vvktermine',this)">Gemeinsamer VVK</button>
         <button class="filter-btn" onclick="setFilter('BL1',this)">Bundesliga</button>
         <button class="filter-btn" onclick="setFilter('DFB',this)">DFB-Pokal</button>
       </div>
@@ -1612,7 +1613,7 @@ async function fetchGames(force=false){
     if(error||!data||!data.length)throw new Error('Leer');
     const{data:dfb}=await sb.from('spiel_einstellungen').select('*').eq('wettbewerb','DFB-Pokal').order('datum_iso');
     const dfbGames=(dfb||[]).map(s=>({id:'dfb_'+s.id,api_id:'dfb_'+s.id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:'DFB-Pokal',status:'SCHEDULED',score:null,spielort:s.spielort,offiziell:true}));
-    apiGames=[...data.map(s=>({id:'m_'+s.api_id,api_id:s.api_id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:s.wettbewerb,status:s.status,score:s.ergebnis,spielort:s.spielort,offiziell:s.offiziell,matchday:s.matchday,spielkategorie:s.spielkategorie})),...dfbGames].sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
+    apiGames=[...data.map(s=>({id:'m_'+s.api_id,api_id:s.api_id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:s.wettbewerb,status:s.status,score:s.ergebnis,spielort:s.spielort,offiziell:s.offiziell,matchday:s.matchday,spielkategorie:s.spielkategorie,mitgl_vvk_datum:s.mitgl_vvk_datum})),...dfbGames].sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
     st.className='api-status ok';st.textContent=`${apiGames.length} Spiele geladen`;
     renderGames();
     setTimeout(ladeHSVBewerbungsFristen, 500);
@@ -1655,15 +1656,25 @@ async function renderGames(){
   }
   const istBewErledigt=g=>{const hb=getHbG(g);return hb&&(hb.status==='abgelaufen'||hb.status==='keine_ofc');};
 
-  // Gespielte Spiele ueberall ausblenden ausser unter "Vergangene Spiele"
-  if(gameFilter!=='finished')filtered=filtered.filter(g=>!istSpielVorbei(g));
-  if(gameFilter==='upcoming')filtered=filtered.filter(g=>!istSpielVorbei(g)&&g.status!=='POSTPONED');
-  if(gameFilter==='finished')filtered=filtered.filter(g=>istSpielVorbei(g));
-  if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
-  if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
-  // Bewerbung abgelaufen / keine OFC-Bewerbung moeglich: ueberall ausblenden ausser unter "Abgelaufene"
-  if(gameFilter!=='abgelaufen')filtered=filtered.filter(g=>!istBewErledigt(g));
-  if(gameFilter==='abgelaufen')filtered=filtered.filter(g=>istBewErledigt(g));
+  // WICHTIG (Fix 2026-09-24): Vorher liefen "vorbei ausblenden" und "abgelaufene Bewerbung ausblenden"
+  // unabhaengig voneinander -> ein Spiel, das BEIDES ist (normal nach einiger Zeit), verschwand aus
+  // allen Ansichten, auch aus "Vergangene Spiele" selbst. Jetzt klare Prioritaet: Vorbei schlaegt
+  // Abgelaufene-Bewerbung schlaegt die normalen Filter.
+  // "Gemeinsamer VVK": Spiele mit bekanntem Mitgl.-VVK-Termin, bis 3 Tage nach dem Termin
+  const hatAktuellenVVKTermin=g=>g.mitgl_vvk_datum&&(new Date(g.mitgl_vvk_datum).getTime()+3*24*60*60*1000)>Date.now();
+
+  if(gameFilter==='finished'){
+    filtered=filtered.filter(g=>istSpielVorbei(g));
+  }else if(gameFilter==='abgelaufen'){
+    filtered=filtered.filter(g=>!istSpielVorbei(g)&&istBewErledigt(g));
+  }else if(gameFilter==='vvktermine'){
+    filtered=apiGames.filter(g=>hatAktuellenVVKTermin(g)).sort((a,b)=>new Date(a.mitgl_vvk_datum)-new Date(b.mitgl_vvk_datum));
+  }else{
+    filtered=filtered.filter(g=>!istSpielVorbei(g)&&!istBewErledigt(g));
+    if(gameFilter==='upcoming')filtered=filtered.filter(g=>g.status!=='POSTPONED');
+    if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
+    if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
+  }
 
   const{data:allDec}=await sb.from('kartenentscheidungen').select('*');
   const{data:myDecs}=currentUser?await sb.from('kartenentscheidungen').select('*').eq('mitglied_id',currentUser.id):{data:[]};
@@ -1718,6 +1729,7 @@ async function renderGames(){
             ${phase==='stufe3'?'<span class="badge badge-green">Freigabe Freunde</span>':''}
           </div>
           ${fristStr&&!istVorbei?`<div style="font-size:11px;color:${fristAbgelaufen?'#842029':'var(--g500)'};margin-top:4px">${fristStr}${fristAbgelaufen?' - ABGELAUFEN':''}</div>`:''}
+          ${g.mitgl_vvk_datum?`<div style="font-size:12px;font-weight:500;color:#0046AD;margin-top:5px;background:#dbeafe;padding:4px 10px;border-radius:4px;display:inline-block">Mitgl.-VVK: ${new Date(g.mitgl_vvk_datum).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})} ab ${new Date(g.mitgl_vvk_datum).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</div>`:''}
           ${(()=>{const hb=hbG;let html='';if(hb){if(hb.status==='keine_ofc'){html+='<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Keine OFC-Bewerbung möglich</div>';}else if(hb.status==='abgelaufen'){const betroffen=meinSponsorAnzahl>0||['behalten_ofc','behalten_extra','ja'].includes(myDec);if(betroffen){html+='<div style="font-size:12px;font-weight:500;color:#0a3622;margin-top:5px;background:#d1e7dd;border:1px solid #a3cfbb;padding:6px 10px;border-radius:6px;display:inline-block">Leider keine Karten vom HSV erhalten – bitte jetzt selbst über den Vorverkauf (VVK) eine Karte erwerben.</div>';}else{html+='<div style="font-size:11px;color:#6c757d;margin-top:5px;background:#f8f9fa;border:1px solid #dee2e6;padding:3px 8px;border-radius:4px;display:inline-block">Bewerbungsfrist abgelaufen – keine OFC-Bewerbung erfolgt</div>';}}else if(hb.status!=='zugeteilt'){const f=new Date(hb.bewerbungsfrist);const abg=f<new Date();if(!abg){const fi=new Date(f);fi.setDate(fi.getDate()-7);html+='<div style="font-size:11px;font-weight:500;color:#842029;margin-top:5px;background:#fff3cd;padding:3px 8px;border-radius:4px;display:inline-block">HSV-Bewerbung: bis '+fi.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' entscheiden</div>';}}}const spielKat=g.spielkategorie||(hb&&hb.spielkategorie);if(spielKat){html+=' <button onclick="zeigePreisPopup(\''+spielKat+'\',\''+g.heimteam+' vs. '+g.gastteam+'\')" style="font-size:11px;font-weight:600;color:#fff;margin-top:5px;background:#0046AD;border:none;padding:3px 10px;border-radius:4px;cursor:pointer">Kat. '+spielKat+' – Preise</button>';}if(hb&&(hb.min_karten||hb.max_karten)){const minK=hb.min_karten||0;const maxK=hb.max_karten||0;const kartStr=minK===maxK?minK+' Karten':minK+'-'+maxK+' Karten';html+='<div style="font-size:11px;color:#0046AD;margin-top:5px;background:#dbeafe;padding:3px 8px;border-radius:4px;display:inline-block;margin-left:4px">Verfügbare Karten für die Bewerbung: '+kartStr+'</div>';}return html;})()} 
 
         </div>
