@@ -1238,7 +1238,20 @@ async function renderVVKLive(gid,containerEl,opts){
       <input type="number" min="0" placeholder="Anzahl" id="vvk-anz-${gid}-${i}" style="width:70px;padding:6px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
     </div>`;
   }
-  html+=`<input type="text" placeholder="Notiz (optional)" id="vvk-notiz-${gid}" style="width:100%;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px;margin-bottom:8px">
+  html+=`<div style="font-size:12px;color:#495057;margin:8px 0 4px">Plätze (optional – hilft anderen, in der Nähe zu kaufen):</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <select id="vvk-block-${gid}" style="flex:1;padding:6px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
+        <option value="">Block</option>
+        ${Array.from({length:28},(_,i)=>i+1).map(n=>`<option value="${n}">${n}</option>`).join('')}
+      </select>
+      <select id="vvk-ring-${gid}" style="width:80px;padding:6px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
+        <option value="">Ring</option>
+        <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+      </select>
+      <input type="text" placeholder="Reihe" id="vvk-reihe-${gid}" style="width:70px;padding:6px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
+      <input type="text" placeholder="Sitz" id="vvk-sitz-${gid}" style="width:70px;padding:6px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px">
+    </div>
+    <input type="text" placeholder="Notiz (optional)" id="vvk-notiz-${gid}" style="width:100%;padding:8px;border:1.5px solid var(--g300);border-radius:6px;font-size:13px;margin-bottom:8px">
     <button class="btn btn-primary btn-full" onclick="vvkEintragen('${gid}')">Eintragen</button>
   </div>`;
 
@@ -1254,8 +1267,10 @@ async function renderVVKLive(gid,containerEl,opts){
       const zSumme=(e.zuteilungen||[]).reduce((s,z)=>s+(z.anzahl||0),0);
       const uebrig=(e.anzahl_gekauft||0)-zSumme;
       const zText=(e.zuteilungen||[]).map(z=>z.name+' ('+z.anzahl+')').join(', ');
+      const platzText=e.block?`Block ${e.block}${e.ring||''}${e.reihe?', Reihe '+e.reihe:''}${e.sitz?', Sitz '+e.sitz:''}`:'';
       return `<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #f1f3f5">
         <strong>${zeit}</strong> ${m?displayName(m):'?'}: <strong>${e.anzahl_gekauft}</strong> gekauft${zText?' – reserviert für '+zText:''}${uebrig>0?` <span style="color:#0a3622;font-weight:600">(${uebrig} übrig!)</span>`:''}
+        ${platzText?`<div style="color:#0046AD;font-weight:600;margin-top:2px">📍 ${platzText}</div>`:''}
         ${e.notiz?`<div style="color:#6c757d;margin-top:2px">${e.notiz}</div>`:''}
       </div>`;
     }).join('');
@@ -1286,8 +1301,12 @@ async function vvkEintragen(gid){
   const summe=zuteilungen.reduce((s,z)=>s+z.anzahl,0);
   if(summe>gekauft){toast('Die Summe der zugeteilten Karten ('+summe+') ist größer als die gekaufte Anzahl ('+gekauft+').');return;}
   const notiz=document.getElementById('vvk-notiz-'+gid).value.trim();
+  const block=document.getElementById('vvk-block-'+gid).value;
+  const ring=document.getElementById('vvk-ring-'+gid).value;
+  const reihe=document.getElementById('vvk-reihe-'+gid).value.trim();
+  const sitz=document.getElementById('vvk-sitz-'+gid).value.trim();
   if(!currentUser){toast('Bitte anmelden.');return;}
-  await sb.from('vvk_live_eintraege').insert({spiel_api_id:gid,mitglied_id:currentUser.id,anzahl_gekauft:gekauft,zuteilungen,notiz:notiz||null});
+  await sb.from('vvk_live_eintraege').insert({spiel_api_id:gid,mitglied_id:currentUser.id,anzahl_gekauft:gekauft,zuteilungen,notiz:notiz||null,block:block?parseInt(block):null,ring:ring||null,reihe:reihe||null,sitz:sitz||null});
   toast('Eingetragen ✓');
   // Eigene Ansicht sofort aktualisieren (Realtime bringt es auch, aber ohne Wartezeit fuer den Eintragenden selbst)
   const el=document.getElementById('vvklive-embed-'+gid)||document.getElementById('vvklive-full-'+gid);
@@ -1613,7 +1632,7 @@ async function fetchGames(force=false){
     if(error||!data||!data.length)throw new Error('Leer');
     const{data:dfb}=await sb.from('spiel_einstellungen').select('*').eq('wettbewerb','DFB-Pokal').order('datum_iso');
     const dfbGames=(dfb||[]).map(s=>({id:'dfb_'+s.id,api_id:'dfb_'+s.id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:'DFB-Pokal',status:'SCHEDULED',score:null,spielort:s.spielort,offiziell:true}));
-    apiGames=[...data.map(s=>({id:'m_'+s.api_id,api_id:s.api_id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:s.wettbewerb,status:s.status,score:s.ergebnis,spielort:s.spielort,offiziell:s.offiziell,matchday:s.matchday,spielkategorie:s.spielkategorie,mitgl_vvk_datum:s.mitgl_vvk_datum})),...dfbGames].sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
+    apiGames=[...data.map(s=>({id:'m_'+s.api_id,api_id:s.api_id,heimteam:s.heimteam,gastteam:s.gastteam,datum_iso:s.datum_iso,wettbewerb:s.wettbewerb,status:s.status,score:s.ergebnis,spielort:s.spielort,offiziell:s.offiziell,matchday:s.matchday,spielkategorie:s.spielkategorie,mitgl_vvk_datum:s.mitgl_vvk_datum,mitgl_vvk_aktiv:s.mitgl_vvk_aktiv})),...dfbGames].sort((a,b)=>new Date(a.datum_iso)-new Date(b.datum_iso));
     st.className='api-status ok';st.textContent=`${apiGames.length} Spiele geladen`;
     renderGames();
     setTimeout(ladeHSVBewerbungsFristen, 500);
@@ -1660,8 +1679,10 @@ async function renderGames(){
   // unabhaengig voneinander -> ein Spiel, das BEIDES ist (normal nach einiger Zeit), verschwand aus
   // allen Ansichten, auch aus "Vergangene Spiele" selbst. Jetzt klare Prioritaet: Vorbei schlaegt
   // Abgelaufene-Bewerbung schlaegt die normalen Filter.
-  // "Gemeinsamer VVK": Spiele mit bekanntem Mitgl.-VVK-Termin, bis 3 Tage nach dem Termin
-  const hatAktuellenVVKTermin=g=>g.mitgl_vvk_datum&&(new Date(g.mitgl_vvk_datum).getTime()+3*24*60*60*1000)>Date.now();
+  // "Gemeinsamer VVK": Spiele mit bekanntem Mitgl.-VVK-Termin (bis 3 Tage nach dem Termin als Fallback,
+  // falls kein "Hier buchen"-Signal mehr vorliegt) ODER solange die HSV-Seite noch "Hier buchen" zeigt
+  // (mitgl_vvk_aktiv) - das hat Vorrang vor dem 3-Tage-Fallback. Vorbei-Spiele werden nie angezeigt.
+  const hatAktuellenVVKTermin=g=>!istSpielVorbei(g)&&(g.mitgl_vvk_aktiv||(g.mitgl_vvk_datum&&(new Date(g.mitgl_vvk_datum).getTime()+3*24*60*60*1000)>Date.now()));
 
   if(gameFilter==='finished'){
     filtered=filtered.filter(g=>istSpielVorbei(g));
