@@ -1691,7 +1691,11 @@ async function renderGames(){
   }else if(gameFilter==='vvktermine'){
     filtered=apiGames.filter(g=>hatAktuellenVVKTermin(g)).sort((a,b)=>new Date(a.mitgl_vvk_datum)-new Date(b.mitgl_vvk_datum));
   }else{
-    filtered=filtered.filter(g=>!istSpielVorbei(g)&&!istBewErledigt(g));
+    // Ausnahme (seit 2026-10-01): Eine abgelaufene/keine-OFC-Bewerbung blendet ein Spiel hier normalerweise
+    // aus (-> "Abgelaufene"). Laeuft aber noch der Mitglieder-VVK dafuer, soll es trotzdem in "Kommende"
+    // sichtbar bleiben, solange "Gemeinsamer VVK" es auch zeigt (hatAktuellenVVKTermin) - es ist ja
+    // weiterhin aktionsrelevant. Verschwindet dann automatisch zusammen mit der VVK-Karte.
+    filtered=filtered.filter(g=>!istSpielVorbei(g)&&(!istBewErledigt(g)||hatAktuellenVVKTermin(g)));
     if(gameFilter==='upcoming')filtered=filtered.filter(g=>g.status!=='POSTPONED');
     if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
     if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
