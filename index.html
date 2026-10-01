@@ -1683,6 +1683,11 @@ async function renderGames(){
   // falls kein "Hier buchen"-Signal mehr vorliegt) ODER solange die HSV-Seite noch "Hier buchen" zeigt
   // (mitgl_vvk_aktiv) - das hat Vorrang vor dem 3-Tage-Fallback. Vorbei-Spiele werden nie angezeigt.
   const hatAktuellenVVKTermin=g=>!istSpielVorbei(g)&&(g.mitgl_vvk_aktiv||(g.mitgl_vvk_datum&&(new Date(g.mitgl_vvk_datum).getTime()+3*24*60*60*1000)>Date.now()));
+  // Fix 2026-10-01 (Nutzer-Korrektur): Fuer die Ausnahme in "Kommende" (s.u.) soll NUR die strikte
+  // 3-Tage-nach-Termin-Regel gelten, OHNE die "Hier buchen"-Dauerausnahme - sonst bleiben Spiele dort
+  // ewig stehen, solange HSV den Link nicht entfernt (auch wenn der eigentliche Termin laengst > 3 Tage
+  // her ist). In "Gemeinsamer VVK" bleibt die Hier-buchen-Ausnahme weiterhin bestehen (bewusst gewollt).
+  const vvkKommendeSichtbar=g=>!istSpielVorbei(g)&&g.mitgl_vvk_datum&&(new Date(g.mitgl_vvk_datum).getTime()+3*24*60*60*1000)>Date.now();
 
   if(gameFilter==='finished'){
     filtered=filtered.filter(g=>istSpielVorbei(g));
@@ -1692,10 +1697,9 @@ async function renderGames(){
     filtered=apiGames.filter(g=>hatAktuellenVVKTermin(g)).sort((a,b)=>new Date(a.mitgl_vvk_datum)-new Date(b.mitgl_vvk_datum));
   }else{
     // Ausnahme (seit 2026-10-01): Eine abgelaufene/keine-OFC-Bewerbung blendet ein Spiel hier normalerweise
-    // aus (-> "Abgelaufene"). Laeuft aber noch der Mitglieder-VVK dafuer, soll es trotzdem in "Kommende"
-    // sichtbar bleiben, solange "Gemeinsamer VVK" es auch zeigt (hatAktuellenVVKTermin) - es ist ja
-    // weiterhin aktionsrelevant. Verschwindet dann automatisch zusammen mit der VVK-Karte.
-    filtered=filtered.filter(g=>!istSpielVorbei(g)&&(!istBewErledigt(g)||hatAktuellenVVKTermin(g)));
+    // aus (-> "Abgelaufene"). Laeuft aber noch der Mitglieder-VVK-Termin dafuer (max. 3 Tage danach),
+    // soll es trotzdem in "Kommende" sichtbar bleiben, weil es weiterhin aktionsrelevant ist.
+    filtered=filtered.filter(g=>!istSpielVorbei(g)&&(!istBewErledigt(g)||vvkKommendeSichtbar(g)));
     if(gameFilter==='upcoming')filtered=filtered.filter(g=>g.status!=='POSTPONED');
     if(gameFilter==='BL1')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('Bundesliga'));
     if(gameFilter==='DFB')filtered=filtered.filter(g=>g.wettbewerb&&g.wettbewerb.includes('DFB'));
