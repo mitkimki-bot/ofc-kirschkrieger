@@ -1189,7 +1189,9 @@ async function renderVVKLive(gid,containerEl,opts){
   relevanteDec.forEach(d=>{
     const m=allMembers.find(x=>x.id===d.mitglied_id);
     if(!m)return;
-    bedarf[m.id]={name:displayName(m),urspruenglich:d.anzahl_wunsch||1,offen:d.anzahl_wunsch||1};
+    // "Behalten + Extra": eigene Karte (1) PLUS die Extra-Karten; behalten_ofc: nur die eigene; ja (Fan): gewuenschte Anzahl
+    const bedarfAnz=d.entscheidung==='behalten_extra'?1+(d.anzahl_wunsch||1):(d.entscheidung==='behalten_ofc'?1:(d.anzahl_wunsch||1));
+    bedarf[m.id]={name:displayName(m),urspruenglich:bedarfAnz,offen:bedarfAnz};
   });
   (eintraege||[]).forEach(e=>{
     (e.zuteilungen||[]).forEach(z=>{
