@@ -1764,12 +1764,9 @@ async function renderGames(){
         </div>
         ${!istVorbei&&!isNochNicht&&isHsv?(istZugeteilt?
         '<div style="min-width:150px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;text-align:center;font-size:12px;font-weight:500">Zugeteilt<br><span style="font-weight:400;font-size:11px">Aenderungen nur ueber Admin</span></div></div>'
-        :istBewAbgelaufen?
-        (['behalten_ofc','behalten_extra'].includes(myDec)?
-        '<div style="min-width:150px"><div style="background:#d1e7dd;color:#0a3622;border:1px solid #a3cfbb;border-radius:8px;padding:10px 12px;text-align:center;font-size:12px;font-weight:500">Keine Karte erhalten<br><span style="font-weight:400;font-size:11px">Bitte selbst im VVK erwerben</span></div></div>'
-        :'<div style="min-width:150px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;text-align:center;font-size:12px;font-weight:500">Abgelaufen<br><span style="font-weight:400;font-size:11px">Keine OFC-Bewerbung möglich</span></div></div>')
-        :!fristAbgelaufen?`
+        :(istBewAbgelaufen||!fristAbgelaufen)?`
         <div style="min-width:150px">
+          ${istBewAbgelaufen?'<div style="font-size:11px;color:#0a3622;background:#d1e7dd;border:1px solid #a3cfbb;border-radius:6px;padding:5px 8px;margin-bottom:6px;max-width:190px">Keine HSV-Karten erhalten – deine Angabe ist wieder offen. Wie viele Karten sollen wir im Mitglieder-VVK für dich kaufen?</div>':''}
           <button class="ticket-btn ${myDec==='behalten_ofc'?'active-behalten_ofc':''}" onclick="setTicket('${gid}','behalten_ofc')">Behalten (OFC)</button>
           <button class="ticket-btn ${myDec==='behalten_extra'?'active-behalten_extra':''}" onclick="zeigeTicketMitAnzahl('${gid}','behalten_extra')">Behalten + Extra</button>
           <button class="ticket-btn ${myDec==='behalten_ohne'?'active-behalten_ohne':''}" onclick="setTicket('${gid}','behalten_ohne')">Ohne OFC</button>
@@ -1777,11 +1774,8 @@ async function renderGames(){
         </div>`:''):''}
         ${!istVorbei&&!isNochNicht&&isFan?(istZugeteilt?
         '<div style="margin-top:8px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500;display:inline-block">Zugeteilt \u2013 Aenderungen nur ueber Admin</div></div>'
-        :istBewAbgelaufen?
-        (myDec==='ja'?
-        '<div style="margin-top:8px"><div style="background:#d1e7dd;color:#0a3622;border:1px solid #a3cfbb;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500;display:inline-block">Keine Karte erhalten \u2013 bitte selbst im VVK erwerben</div></div>'
-        :'<div style="margin-top:8px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500;display:inline-block">Abgelaufen \u2013 Keine OFC-Bewerbung m\u00f6glich</div></div>')
         :`<div style="margin-top:8px">
+          ${istBewAbgelaufen?'<div style="font-size:11px;color:#0a3622;background:#d1e7dd;border:1px solid #a3cfbb;border-radius:6px;padding:5px 8px;margin-bottom:6px;display:inline-block">Keine HSV-Karten erhalten \u2013 deine Angabe ist wieder offen. Wie viele Karten sollen wir im Mitglieder-VVK f\u00fcr dich kaufen?</div><br>':''}
           <button class="btn btn-sm ${myDec==='ja'?'btn-primary':''}" style="${myDec!=='ja'?'border:1.5px solid var(--g300);background:#fff':''}" onclick="zeigeKartenBeantragen('${gid}')">Karte beantragen</button>
           <button class="btn btn-sm" style="margin-left:6px;${myDec==='nein'?'background:#6c757d;color:#fff;border-color:#6c757d':'border:1.5px solid var(--g300);background:#fff'}" onclick="setTicket('${gid}','nein')">Keine Karte</button>
           <div style="font-size:12px;color:${myDec==='ja'&&myAnz>0?'#0046AD':myDec==='nein'?'#6c757d':'#adb5bd'};margin-top:5px;font-weight:${myDec==='ja'?'500':'400'}">
@@ -1980,6 +1974,8 @@ async function renderKarten(){
   const{data:sps}=await sb.from('spiel_einstellungen').select('*');
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
   const{data:allDecs}=await sb.from('kartenentscheidungen').select('*');
+  const{data:abgBews}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('status','abgelaufen');
+  const abgelaufenKartenIds=new Set((abgBews||[]).filter(b=>b.spiel_api_id).map(b=>String(b.spiel_api_id)));
   let html='';
 
   if(currentUser.hsv_mitglied&&currentUser.typ!=='admin'){
@@ -1988,7 +1984,9 @@ async function renderKarten(){
     for(const g of games){
       const gid=g.api_id,dec=decMap[gid],zut=zutMap[gid],am=zut&&zut.mitglied;
       const sp=spMap[gid],phase=sp&&sp.phase;
-      const fristAbgelaufen=sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date();
+      // Keine HSV-Karten erhalten (Bewerbung abgelaufen) -> Entscheidung wieder offen, nicht mehr eingefroren
+      const bewAbgelaufenKarten=abgelaufenKartenIds.has(String(gid));
+      const fristAbgelaufen=!bewAbgelaufenKarten&&sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date();
       const fristStr=sp&&sp.frist_pool_bis?`bis ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
       const reqs=(allDecs||[]).filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='abgeben');
       const verf=sp&&sp.vergabe_verfahren==='los'?'Losverfahren':sp&&sp.vergabe_verfahren==='rotation'?'Rotation':'Fairness';
