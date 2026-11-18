@@ -3007,6 +3007,25 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
     }
   }
 
+  // Mitglieder, die ihre Karte ABGEBEN, deren Mitgliedsnummer aber Teil der Bewerbung ist
+  // ("In Bewerbung markieren"): Sie stehen nicht im Vorschlag, muessen aber wissen, dass sie
+  // keine Karte ueber den Mitglieder-VVK kaufen duerfen.
+  try{
+    const{data:bewA}=await sb.from('hsv_bewerbungen').select('spiel_api_id,gegner,datum_text').eq('id',bewId).single();
+    const{data:spons}=await sb.from('hsv_sponsoring').select('mitglied_id').eq('bewerbung_id',bewId);
+    const sponIds=new Set((spons||[]).map(s=>s.mitglied_id));
+    if(bewA&&bewA.spiel_api_id&&sponIds.size){
+      const{data:abgDecs}=await sb.from('kartenentscheidungen').select('mitglied_id').eq('spiel_api_id',bewA.spiel_api_id).eq('entscheidung','abgeben');
+      for(const d of (abgDecs||[])){
+        if(!sponIds.has(d.mitglied_id))continue;
+        const m=allMembers.find(x=>x.id===d.mitglied_id);
+        if(!m||!m.email)continue;
+        await queueMail(m.email,'OFC Kirschkrieger – Bewerbung läuft: HSV vs. '+bewA.gegner,
+          `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">du gibst deine Karte für <strong>HSV vs. ${bewA.gegner}</strong> ab. Deine Mitgliedsnummer ist Teil der OFC-Bewerbung.</p><p style="margin:12px 0;color:#842029;font-weight:500">Bitte erwirb deshalb keine Karte über den Mitglieder-VVK – auch nicht für dich selbst.</p><p style="margin:12px 0">Sobald der HSV die Zuteilung final bestätigt hat, informieren wir dich.</p><p style="font-size:13px;color:#495057">${bewA.datum_text||''}</p></div><div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div></div>`);
+      }
+    }
+  }catch(e){console.error('Abgeber-Mail Fehler',e);}
+
   // Status aktualisieren
   // Fix 2026-11-18: Das ist nur der interne Vorschlag, der HSV hat noch nichts zugeteilt ->
   // Status 'beantragt' (in Bewerbung) statt 'zugeteilt', damit Angaben nicht faelschlich gesperrt werden.
