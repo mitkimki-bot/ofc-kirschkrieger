@@ -2957,7 +2957,7 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   
   html+='<div style="margin-top:12px;padding:10px;background:#fff3cd;border-radius:6px;font-size:12px">Noch verfügbar: <strong>'+verfuegbar+'</strong> von '+maxKarten+' Karten</div>';
   html+='<div style="display:flex;gap:8px;margin-top:12px">';
-  html+='<button class="btn btn-green" onclick="bestaetigeZuteilung(&quot;'+bewId+'&quot;,'+vorschlag.length+','+heimspiel+')">Zuteilung bestätigen & Mails senden</button>';
+  html+='<button class="btn btn-green" onclick="bestaetigeZuteilung(&quot;'+bewId+'&quot;,'+vorschlag.length+','+heimspiel+')">Vorschlag speichern & Mails senden</button>';
   html+='<button class="btn" onclick="document.getElementById(&quot;vorschlag-'+bewId+'&quot;).style.display=&quot;none&quot;">Abbrechen</button>';
   html+='</div>';
   html+='<div style="font-size:11px;color:#6c757d;margin-top:8px">Du kannst die Anzahl pro Person noch anpassen bevor du bestätigst.</div>';
@@ -2969,7 +2969,7 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
 }
 
 async function bestaetigeZuteilung(bewId, count, heimspiel){
-  if(!confirm('Zuteilung bestätigen und Mails versenden?'))return;
+  if(!confirm('Vorschlag speichern und Mails versenden? (Bewerbung bleibt "in Bewerbung", bis der HSV zuteilt)'))return;
   
   const kartenField = heimspiel ? 'karten_count_heim' : 'karten_count_auswaerts';
   
@@ -3000,7 +3000,7 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
       const betreff='OFC Kirschkrieger – Bewerbung läuft: HSV vs. '+bew.gegner;
       const inhalt=m.hsv_mitglied
         ?`Deine OFC-Karte nimmt an der Bewerbung für <strong>HSV vs. ${bew.gegner}</strong> teil. Für dich ${z.anzahl>1?'sind':'ist'} <strong>${z.anzahl} Karte(n)</strong> vorgesehen.</p><p style="margin:12px 0;color:#842029;font-weight:500">Bitte vorerst keine Karte über den Mitglieder-VVK erwerben.</p><p style="margin:12px 0">Sobald der HSV die Zuteilung final bestätigt hat, informieren wir dich.`
-        :`Für dich wird versucht, eine Karte für <strong>HSV vs. ${bew.gegner}</strong> über die Bewerbung zu bekommen.</p><p style="margin:12px 0">Sobald der HSV die Zuteilung final bestätigt hat, informieren wir dich.`;
+        :`Für dich wird versucht, <strong>${z.anzahl} Karte${z.anzahl>1?'n':''}</strong> für <strong>HSV vs. ${bew.gegner}</strong> über die Bewerbung zu bekommen.</p><p style="margin:12px 0">Sobald der HSV die Zuteilung final bestätigt hat, informieren wir dich.`;
       await queueMail(m.email,betreff,
         `<div style="font-family:sans-serif;max-width:480px;margin:0 auto"><div style="background:#0046AD;padding:20px;border-bottom:4px solid #CC0000"><h1 style="color:#fff;font-size:20px;margin:0">OFC Kirschkrieger</h1></div><div style="padding:24px"><p>Hallo <strong>${displayName(m)}</strong>,</p><p style="margin:12px 0">${inhalt}</p><p style="font-size:13px;color:#495057">${bew.datum_text||''}</p></div><div style="background:#0d0d0d;padding:14px;text-align:center"><p style="color:#adb5bd;font-size:12px;margin:0">OFC Kirschkrieger</p></div></div>`
       );
@@ -3008,10 +3008,12 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
   }
 
   // Status aktualisieren
-  await sb.from('hsv_bewerbungen').update({status:'zugeteilt',karten_zugeteilt:zuteilungen.reduce((s,z)=>s+z.anzahl,0)}).eq('id',bewId);
+  // Fix 2026-11-18: Das ist nur der interne Vorschlag, der HSV hat noch nichts zugeteilt ->
+  // Status 'beantragt' (in Bewerbung) statt 'zugeteilt', damit Angaben nicht faelschlich gesperrt werden.
+  await sb.from('hsv_bewerbungen').update({status:'beantragt',karten_zugeteilt:zuteilungen.reduce((s,z)=>s+z.anzahl,0)}).eq('id',bewId);
   await loadMembers();
   await renderAdminHSVBewerbungen();
-  toast('Zuteilung bestätigt – Mails werden versendet ✓');
+  toast('Vorschlag gespeichert – Mails werden versendet ✓');
 }
 
 
