@@ -1734,6 +1734,10 @@ async function renderGames(){
 
   // Gesponserte Karten des eingeloggten Nutzers: Warnung anzeigen, nicht zusaetzlich ueber freien VVK bewerben
   const{data:meineSponsoring}=currentUser?await sb.from('hsv_sponsoring').select('anzahl,bewerbung:hsv_bewerbungen(spiel_api_id)').eq('mitglied_id',currentUser.id):{data:[]};
+  // Spiele, bei denen der Admin die tatsaechlich eingereichte Bewerbung erfasst hat ("In Bewerbung markieren").
+  // Dort wissen wir, wer NICHT dabei ist -> diese Personen bekommen den Hinweis "selbst im VVK kaufen".
+  const{data:alleSponsoring}=await sb.from('hsv_sponsoring').select('bewerbung:hsv_bewerbungen(spiel_api_id)');
+  const bewErfasstSet=new Set((alleSponsoring||[]).map(s=>s.bewerbung&&s.bewerbung.spiel_api_id).filter(Boolean).map(String));
   const mySponsorMap={};
   (meineSponsoring||[]).forEach(s=>{
     const sid=s.bewerbung&&s.bewerbung.spiel_api_id;
@@ -1773,6 +1777,7 @@ async function renderGames(){
           <div style="font-size:15px;font-weight:500">${g.heimteam} <span style="color:#6c757d;font-weight:400">vs.</span> ${g.gastteam}</div>
           <div style="font-size:12px;color:#6c757d;margin-top:4px">${fmtDate(g.datum_iso)} · <span style="color:${g.spielort==='Heimspiel'?'#0a3622':'#842029'};font-weight:500">${g.spielort}</span></div>
           ${meinSponsorAnzahl&&(!hbG||hbG.status!=='abgelaufen')?`<div style="font-size:12px;font-weight:500;color:#fff;background:#6f42c1;margin-top:6px;padding:6px 10px;border-radius:6px">Deine Karte${meinSponsorAnzahl>1?'n ('+meinSponsorAnzahl+')':''} für dieses Spiel ${meinSponsorAnzahl>1?'werden':'wird'} über die OFC-Bewerbung abgewickelt.<br><span style="font-weight:400;font-size:11px">Bitte NICHT zusätzlich über den freien VVK bewerben – deine Mitgliedsnummer ist bereits in der Bewerbung enthalten.</span></div>`:''}
+          ${(!istVorbei&&!meinSponsorAnzahl&&bewErfasstSet.has(String(gid))&&['behalten_ofc','behalten_extra','ja'].includes(myDec)&&!(hbG&&(hbG.status==='abgelaufen'||hbG.status==='keine_ofc')))?`<div style="font-size:12px;font-weight:500;color:#0a3622;margin-top:6px;background:#d1e7dd;border:1px solid #a3cfbb;padding:6px 10px;border-radius:6px">Du bist diesmal nicht Teil der OFC-Bewerbung (es gibt nur wenige Karten).<br><span style="font-weight:400;font-size:11px">Bitte kümmere dich selbst um eine Karte über den Vorverkauf (VVK).</span></div>`:''}
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
             ${compBadge(g.wettbewerb)}
             ${isNochNicht?'<span class="badge badge-orange">Uhrzeit noch nicht fix</span>':''}
