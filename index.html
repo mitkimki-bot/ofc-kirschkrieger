@@ -1759,8 +1759,12 @@ async function renderGames(){
     const hbG=getHbG(g);
     const istZugeteilt=hbG&&hbG.status==='zugeteilt';
     const istBewAbgelaufen=hbG&&hbG.status==='abgelaufen';
-    const fristAbgelaufen=sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date();
-    const fristStr=sp&&sp.frist_pool_bis?`Frist: ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
+    // Fix 2026-11-18: Die interne Entscheidungsfrist ergibt sich aus der echten HSV-Bewerbungsfrist
+    // (minus 7 Tage), nicht aus dem manuell/standardmaessig gesetzten "Frist Stufe 1" (lag z.B. bei
+    // Hoffenheim im Februar, obwohl die OFC-Bewerbung am 15.12. endet). Nur ohne HSV-Bewerbung gilt Stufe 1.
+    const fristEff=(hbG&&hbG.bewerbungsfrist)?interneFrist(hbG.bewerbungsfrist).toISOString():(sp&&sp.frist_pool_bis)||null;
+    const fristAbgelaufen=!!fristEff&&new Date(fristEff)<new Date();
+    const fristStr=fristEff?`Frist: ${new Date(fristEff).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
     const meinSponsorAnzahl=mySponsorMap[gid];
 
     return `<div class="card ${istVorbei||isNochNicht?'card-gray':'card-red'}" data-gid="${gid}">
@@ -1794,6 +1798,8 @@ async function renderGames(){
         </div>`:''):''}
         ${!istVorbei&&!isNochNicht&&isFan?(istZugeteilt?
         '<div style="margin-top:8px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500;display:inline-block">Zugeteilt \u2013 Aenderungen nur ueber Admin</div></div>'
+        :(fristAbgelaufen&&!istBewAbgelaufen)?
+        '<div style="margin-top:8px"><div style="background:#e9ecef;color:#6c757d;border:1px solid #dee2e6;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:500;display:inline-block">Frist abgelaufen \u2013 keine \u00c4nderung mehr m\u00f6glich</div></div>'
         :`<div style="margin-top:8px">
           ${istBewAbgelaufen?'<div style="font-size:11px;color:#0a3622;background:#d1e7dd;border:1px solid #a3cfbb;border-radius:6px;padding:5px 8px;margin-bottom:6px;display:inline-block">Keine HSV-Karten erhalten \u2013 deine Angabe ist wieder offen. Wie viele Karten sollen wir im Mitglieder-VVK f\u00fcr dich kaufen?</div><br>':''}
           <button class="btn btn-sm ${myDec==='ja'?'btn-primary':''}" style="${myDec!=='ja'?'border:1.5px solid var(--g300);background:#fff':''}" onclick="zeigeKartenBeantragen('${gid}')">Karte beantragen</button>
@@ -1994,8 +2000,10 @@ async function renderKarten(){
   const{data:sps}=await sb.from('spiel_einstellungen').select('*');
   const spMap={};(sps||[]).forEach(s=>spMap[s.spiel_api_id]=s);
   const{data:allDecs}=await sb.from('kartenentscheidungen').select('*');
-  const{data:abgBews}=await sb.from('hsv_bewerbungen').select('spiel_api_id').eq('status','abgelaufen');
-  const abgelaufenKartenIds=new Set((abgBews||[]).filter(b=>b.spiel_api_id).map(b=>String(b.spiel_api_id)));
+  const{data:abgBews}=await sb.from('hsv_bewerbungen').select('spiel_api_id,status,bewerbungsfrist').not('spiel_api_id','is',null);
+  const abgelaufenKartenIds=new Set((abgBews||[]).filter(b=>b.status==='abgelaufen').map(b=>String(b.spiel_api_id)));
+  // Interne Frist = HSV-Bewerbungsfrist - 7 Tage (siehe renderGames)
+  const bewFristMap={};(abgBews||[]).forEach(b=>{if(b.bewerbungsfrist&&!['abgelaufen','keine_ofc'].includes(b.status))bewFristMap[String(b.spiel_api_id)]=interneFrist(b.bewerbungsfrist).toISOString();});
   let html='';
 
   if(currentUser.hsv_mitglied&&currentUser.typ!=='admin'){
@@ -2006,8 +2014,9 @@ async function renderKarten(){
       const sp=spMap[gid],phase=sp&&sp.phase;
       // Keine HSV-Karten erhalten (Bewerbung abgelaufen) -> Entscheidung wieder offen, nicht mehr eingefroren
       const bewAbgelaufenKarten=abgelaufenKartenIds.has(String(gid));
-      const fristAbgelaufen=!bewAbgelaufenKarten&&sp&&sp.frist_pool_bis&&new Date(sp.frist_pool_bis)<new Date();
-      const fristStr=sp&&sp.frist_pool_bis?`bis ${new Date(sp.frist_pool_bis).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
+      const fristEff=bewFristMap[String(gid)]||(sp&&sp.frist_pool_bis)||null;
+      const fristAbgelaufen=!bewAbgelaufenKarten&&!!fristEff&&new Date(fristEff)<new Date();
+      const fristStr=fristEff?`bis ${new Date(fristEff).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr`:'';
       const reqs=(allDecs||[]).filter(d=>(d.spiel_api_id===gid||d.spiel_id===gid)&&d.entscheidung==='abgeben');
       const verf=sp&&sp.vergabe_verfahren==='los'?'Losverfahren':sp&&sp.vergabe_verfahren==='rotation'?'Rotation':'Fairness';
       html+=`<div class="card ${dec?`card-${dec==='abgeben'?'red':dec==='behalten_ohne'?'orange':dec==='behalten_extra'?'green':'blue'}`:''}">
@@ -2505,9 +2514,9 @@ async function renderAdminSpiele(){
       <span class="badge ${sp.phase==='stufe1'?'badge-bl':sp.phase==='stufe2'?'badge-red':sp.phase==='stufe3'?'badge-green':'badge-gray'}">${sp.phase||'wartend'}</span>
     </div>
     <div class="grid2">
-      <div class="form-group"><label style="font-size:11px">Frist Stufe 1 bis</label><input type="datetime-local" id="sp-f1-${sp.id}" value="${sp.frist_pool_bis?sp.frist_pool_bis.slice(0,16):''}"></div>
-      <div class="form-group"><label style="font-size:11px">Frist Stufe 2 bis</label><input type="datetime-local" id="sp-f2-${sp.id}" value="${sp.frist_fan_bis?sp.frist_fan_bis.slice(0,16):''}"></div>
-      <div class="form-group"><label style="font-size:11px">Freigabe Stufe 3 ab</label><input type="datetime-local" id="sp-f3-${sp.id}" value="${sp.frist_stufe3_ab?sp.frist_stufe3_ab.slice(0,16):''}"></div>
+      <div class="form-group"><label style="font-size:11px">Frist Stufe 1 bis</label><input type="datetime-local" id="sp-f1-${sp.id}" value="${isoZuLokal(sp.frist_pool_bis)}"></div>
+      <div class="form-group"><label style="font-size:11px">Frist Stufe 2 bis</label><input type="datetime-local" id="sp-f2-${sp.id}" value="${isoZuLokal(sp.frist_fan_bis)}"></div>
+      <div class="form-group"><label style="font-size:11px">Freigabe Stufe 3 ab</label><input type="datetime-local" id="sp-f3-${sp.id}" value="${isoZuLokal(sp.frist_stufe3_ab)}"></div>
       <div class="form-group"><label style="font-size:11px">Vergabeverfahren</label><select id="sp-v-${sp.id}"><option value="selten" ${sp.vergabe_verfahren==='selten'?'selected':''}>Wer seltener dran war</option><option value="los" ${sp.vergabe_verfahren==='los'?'selected':''}>Losverfahren</option><option value="rotation" ${sp.vergabe_verfahren==='rotation'?'selected':''}>Rotation</option></select></div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -2574,11 +2583,27 @@ async function kopierenHSVString(spielApiId){
   }
 }
 
+// Zeitzonen-Fix 2026-11-18: datetime-local liefert lokale Zeit OHNE Zeitzone; die DB (timestamptz) hat
+// sie als UTC gespeichert und das Eingabefeld zeigte beim Laden die UTC-Zeit -> Fristen waren je nach
+// Ansicht um 1-2 Stunden verschoben. Jetzt: beim Speichern lokal -> echte UTC, beim Anzeigen UTC -> lokal.
+function isoZuLokal(iso){
+  if(!iso)return '';
+  const d=new Date(iso);
+  if(isNaN(d))return '';
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+}
+function lokalZuIso(v){
+  if(!v)return null;
+  const d=new Date(v);
+  return isNaN(d)?null:d.toISOString();
+}
 async function saveSpielEinstellungen(id){
+  const val=k=>{const e=document.getElementById(`sp-${k}-${id}`);return e?lokalZuIso(e.value):null;};
   await sb.from('spiel_einstellungen').update({
-    frist_pool_bis:document.getElementById(`sp-f1-${id}`)&&document.getElementById(`sp-f1-${id}`).value||null,
-    frist_fan_bis:document.getElementById(`sp-f2-${id}`)&&document.getElementById(`sp-f2-${id}`).value||null,
-    frist_stufe3_ab:document.getElementById(`sp-f3-${id}`)&&document.getElementById(`sp-f3-${id}`).value||null,
+    frist_pool_bis:val('f1'),
+    frist_fan_bis:val('f2'),
+    frist_stufe3_ab:val('f3'),
     vergabe_verfahren:document.getElementById(`sp-v-${id}`)&&document.getElementById(`sp-v-${id}`).value
   }).eq('id',id);
   toast('Gespeichert');renderAdminSpiele();
@@ -2645,7 +2670,7 @@ async function addDFBSpiel(){
   const{data:sp,error}=await sb.from('spiel_einstellungen').insert({
     spiel_api_id:api_id,heimteam:home,gastteam:away+(runde?` (${runde})`:''),
     datum_iso,wettbewerb:'DFB-Pokal',spielort:venue,
-    frist_pool_bis:f1||null,frist_fan_bis:f2||null,frist_stufe3_ab:f3||null,
+    frist_pool_bis:lokalZuIso(f1),frist_fan_bis:lokalZuIso(f2),frist_stufe3_ab:lokalZuIso(f3),
     vergabe_verfahren:verf,mail_gesendet:false,phase:'stufe1'
   }).select().single();
   if(error){errEl.textContent='Fehler.';errEl.style.display='block';return;}
