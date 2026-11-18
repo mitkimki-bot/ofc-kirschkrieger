@@ -3055,6 +3055,17 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
     }
   }
 
+  // Vorschlag automatisch als "In Bewerbung" eintragen (ersetzt nur fruehere Auto-Eintraege dieses Vorschlags;
+  // manuell per "In Bewerbung markieren" erfasste Eintraege bleiben unveraendert und werden nicht doppelt angelegt).
+  try{
+    const AUTO_NOTIZ='Auto: Zuteilungsvorschlag';
+    await sb.from('hsv_sponsoring').delete().eq('bewerbung_id',bewId).eq('notiz',AUTO_NOTIZ);
+    const{data:manuell}=await sb.from('hsv_sponsoring').select('mitglied_id').eq('bewerbung_id',bewId);
+    const manuellIds=new Set((manuell||[]).map(s=>s.mitglied_id));
+    const neu=zuteilungen.filter(z=>!manuellIds.has(z.mitglied_id)).map(z=>({bewerbung_id:bewId,mitglied_id:z.mitglied_id,anzahl:z.anzahl,notiz:AUTO_NOTIZ}));
+    if(neu.length)await sb.from('hsv_sponsoring').insert(neu);
+  }catch(e){console.error('Auto-In-Bewerbung Fehler',e);}
+
   // Mitglieder, die ihre Karte ABGEBEN, deren Mitgliedsnummer aber Teil der Bewerbung ist
   // ("In Bewerbung markieren"): Sie stehen nicht im Vorschlag, muessen aber wissen, dass sie
   // keine Karte ueber den Mitglieder-VVK kaufen duerfen.
