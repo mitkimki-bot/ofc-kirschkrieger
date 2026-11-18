@@ -1078,7 +1078,25 @@ async function kopierenHSVBewString(bewId){
 async function speichereZuteilung(bewId){
   const n=parseInt(document.getElementById('zut-'+bewId)?.value);
   if(isNaN(n)||n<0){toast('Bitte gültige Zahl eingeben.');return;}
-  await sb.from('hsv_bewerbungen').update({karten_zugeteilt:n,status:'zugeteilt'}).eq('id',bewId);
+  // Kartenzaehler erst jetzt erhoehen: nur fuer Personen, die wirklich Karten vom HSV ueber den OFC bekommen.
+  // Basis ist der gespeicherte Vorschlag; hat der HSV weniger zugeteilt, werden die spaeteren
+  // (niedriger priorisierten) Eintraege zuerst gekuerzt.
+  const{data:bewZ}=await sb.from('hsv_bewerbungen').select('vorschlag,heimspiel').eq('id',bewId).single();
+  const vor=(bewZ&&Array.isArray(bewZ.vorschlag))?bewZ.vorschlag:[];
+  if(vor.length){
+    let rest=n;const finalZ=[];
+    for(const v of vor){const a=Math.min(v.anzahl,rest);if(a>0){finalZ.push({mitglied_id:v.mitglied_id,anzahl:a});rest-=a;}}
+    const zeilen=finalZ.map(z=>{const m=allMembers.find(x=>x.id===z.mitglied_id);return (m?displayName(m):'?')+': '+z.anzahl;}).join('\n');
+    if(!confirm('HSV hat '+n+' Karte(n) zugeteilt. Diese werden den Kartenzählern gutgeschrieben:\n\n'+(zeilen||'(niemand)')+'\n\nFortfahren?'))return;
+    const kartenFeld=bewZ.heimspiel?'karten_count_heim':'karten_count_auswaerts';
+    for(const z of finalZ){
+      const m=allMembers.find(x=>x.id===z.mitglied_id);
+      if(!m)continue;
+      await sb.from('mitglieder').update({[kartenFeld]:(m[kartenFeld]||0)+z.anzahl,karten_count:(m.karten_count||0)+z.anzahl}).eq('id',z.mitglied_id);
+    }
+  }
+  await sb.from('hsv_bewerbungen').update({karten_zugeteilt:n,status:'zugeteilt',vorschlag:null}).eq('id',bewId);
+  await loadMembers();
   // Finale Mails senden
   await sendeFinaleZuteilungsMails(bewId,n);
   await renderAdminHSVBewerbungen();
@@ -2989,9 +3007,9 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
   for(const z of zuteilungen){
     const m=allMembers.find(x=>x.id===z.mitglied_id);
     if(!m)continue;
-    const newCount=(m[kartenField]||0)+z.anzahl;
-    await sb.from('mitglieder').update({[kartenField]:newCount,karten_count:(m.karten_count||0)+z.anzahl}).eq('id',z.mitglied_id);
-    
+    // Fix 2026-11-18: Kartenzaehler NICHT mehr hier erhoehen - das ist nur der interne Vorschlag.
+    // Gezaehlt wird erst, wenn der HSV wirklich zugeteilt hat (siehe speichereZuteilung).
+
     // Mail senden - Hinweis: dies ist der interne Vorschlag fuer die Bewerbung beim HSV,
     // noch KEINE finale Zusage vom HSV. Text daher bewusst vorsichtig formuliert (unterschiedlich
     // fuer HSV-Mitglieder mit Dauerkarte vs. Fans).
@@ -3029,7 +3047,9 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
   // Status aktualisieren
   // Fix 2026-11-18: Das ist nur der interne Vorschlag, der HSV hat noch nichts zugeteilt ->
   // Status 'beantragt' (in Bewerbung) statt 'zugeteilt', damit Angaben nicht faelschlich gesperrt werden.
-  await sb.from('hsv_bewerbungen').update({status:'beantragt',karten_zugeteilt:zuteilungen.reduce((s,z)=>s+z.anzahl,0)}).eq('id',bewId);
+  // Vorschlag (Reihenfolge = Prioritaet) merken, damit der Kartenzaehler erst bei echter HSV-Zuteilung steigt
+  const{error:vErr}=await sb.from('hsv_bewerbungen').update({status:'beantragt',karten_zugeteilt:zuteilungen.reduce((s,z)=>s+z.anzahl,0),vorschlag:zuteilungen}).eq('id',bewId);
+  if(vErr){toast('Fehler beim Speichern: '+vErr.message+' (SQL-Migration ausgeführt?)');return;}
   await loadMembers();
   await renderAdminHSVBewerbungen();
   toast('Vorschlag gespeichert – Mails werden versendet ✓');
