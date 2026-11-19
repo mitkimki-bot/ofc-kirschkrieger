@@ -2932,7 +2932,11 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   const{data:decs}=await sb.from('kartenentscheidungen').select('*,mitglied:mitglieder(*)').eq('spiel_api_id',bew.spiel_api_id);
   const kartenField = heimspiel ? 'karten_count_heim' : 'karten_count_auswaerts';
 
-  const maxKarten = bew.max_karten || 99;
+  // Pool = max. Karten minus HSV-Mitglieder, die ihre Karte selbst behalten ("Ohne OFC") - deren
+  // Nummer geht nicht in die Bewerbung, also stehen dem OFC entsprechend weniger Karten zur Verfuegung.
+  const maxKartenRoh = bew.max_karten || 99;
+  const ohneOfcAnzahl = (decs||[]).filter(d=>d.entscheidung==='behalten_ohne'&&d.mitglied&&d.mitglied.hsv_mitglied).length;
+  const maxKarten = Math.max(0,maxKartenRoh-ohneOfcAnzahl);
   let verfuegbar = maxKarten;
   const vorschlag = [];
 
@@ -3010,7 +3014,7 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   // Vorbelegung: Abgeber = -1 (gibt Karte ab, Nummer in Bewerbung, kein VVK-Kauf), alle anderen 0
   rest.forEach(r=>{if(r.entscheidung==='abgeben')r.anzahl=-1;rows.push(r);});
 
-  let html='<div style="font-size:13px;font-weight:500;margin-bottom:10px">Zuteilungsvorschlag – alle Mitglieder ('+maxKarten+' Karten verfügbar)</div>';
+  let html='<div style="font-size:13px;font-weight:500;margin-bottom:10px">Zuteilungsvorschlag – alle Mitglieder ('+maxKarten+' Karten im Pool'+(ohneOfcAnzahl?' = '+maxKartenRoh+' max. − '+ohneOfcAnzahl+' behalten ohne OFC':'')+')</div>';
   html+='<div style="font-size:11px;color:#6c757d;margin-bottom:10px">Karten nach Spieltyp: '+(heimspiel?'Heimspiel':'Auswärtsspiel')+'. Zahl pro Person:<br><strong>+1</strong> = bekommt eine Karte · <strong>0</strong> = nicht in der Bewerbung (kauft ggf. selbst im VVK) · <strong>−1</strong> = gibt die Karte für andere ab, Nummer ist in der Bewerbung (darf nicht im VVK kaufen)</div>';
 
   rows.forEach((v,idx)=>{
