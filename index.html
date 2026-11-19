@@ -3010,7 +3010,7 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   rest.forEach(r=>rows.push(r));
 
   let html='<div style="font-size:13px;font-weight:500;margin-bottom:10px">Zuteilungsvorschlag – alle Mitglieder ('+maxKarten+' Karten verfügbar)</div>';
-  html+='<div style="font-size:11px;color:#6c757d;margin-bottom:10px">Karten nach Spieltyp: '+(heimspiel?'Heimspiel':'Auswärtsspiel')+'. Zahl &gt; 0 = Person ist in der Bewerbung, 0 = nicht dabei.</div>';
+  html+='<div style="font-size:11px;color:#6c757d;margin-bottom:10px">Karten nach Spieltyp: '+(heimspiel?'Heimspiel':'Auswärtsspiel')+'. Zahl = Anzahl Karten in der Bewerbung, 0 = nicht dabei.</div>';
 
   rows.forEach((v,idx)=>{
     const istAbg=v.entscheidung==='abgeben';
@@ -3020,7 +3020,7 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
     html+='<div style="flex:1;min-width:160px;font-size:13px"><strong>'+displayName(v.mitglied)+'</strong>';
     html+='<span style="font-size:11px;color:'+decCol+';margin-left:6px">'+decTxt+'</span>';
     if(v.prioritaet)html+='<span style="font-size:11px;color:'+priColor[v.prioritaet]+';margin-left:6px">· '+priLabel[v.prioritaet]+'</span>';
-    if(istAbg)html+='<span style="font-size:11px;color:#6f42c1;margin-left:6px">· Zahl &gt; 0 = Mitgliedsnummer in Bewerbung, Karte geht weiter</span>';
+    if(istAbg)html+='<span style="font-size:11px;color:#6f42c1;margin-left:6px">· Nummer wurde eingereicht? Dann 1 (darf nicht im VVK kaufen)</span>';
     if(v.nurKomplett){html+='<span style="font-size:11px;margin-left:6px;color:'+(v.erfuellt?'#198754':'#CC0000')+'">'+(v.erfuellt?'✓ Nur-komplett erfüllt':'✗ Nur-komplett nicht erfüllt (0)')+'</span>';}
     html+='</div>';
     html+='<div style="font-size:12px;color:#6c757d">bisher: '+(v.mitglied[kartenField]||0)+' '+( heimspiel?'Heim':'Ausw.')+'</div>';
