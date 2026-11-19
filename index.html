@@ -2996,24 +2996,43 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   const priLabel={1:'HSV garantiert',2:'Fan Fairness',3:'HSV Extra',4:'Fan Extra'};
   const priColor={1:'#0046AD',2:'#198754',3:'#e67e22',4:'#6c757d'};
 
-  let html='<div style="font-size:13px;font-weight:500;margin-bottom:10px">Zuteilungsvorschlag ('+vorschlag.length+' Mitglieder, '+(maxKarten-verfuegbar)+'/'+maxKarten+' Karten)</div>';
-  html+='<div style="font-size:11px;color:#6c757d;margin-bottom:10px">Karten nach Spieltyp: '+(heimspiel?'Heimspiel':'Auswärtsspiel')+'</div>';
-  
-  vorschlag.forEach((v,idx)=>{
-    html+='<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--g50);border-radius:6px;margin-bottom:6px">';
-    html+='<div style="flex:1;font-size:13px"><strong>'+displayName(v.mitglied)+'</strong>';
-    html+='<span style="font-size:11px;color:'+priColor[v.prioritaet]+';margin-left:6px">'+priLabel[v.prioritaet]+'</span>';
+  // Alle Mitglieder in EINER Tabelle: zuerst der Vorschlag (nach Prioritaet), danach alle uebrigen
+  // (Abgeber, Kartenwunsch ohne Platz, Ohne OFC, Keine Karte, keine Angabe) mit Anzahl 0 - dort kann
+  // der Admin per Zahl jeden zusaetzlich "in die Bewerbung" nehmen.
+  const rows=vorschlag.slice();
+  const imVorschlag=new Set(rows.map(r=>r.mitglied_id));
+  const decByMid={};(decs||[]).forEach(d=>{if(d.mitglied)decByMid[d.mitglied_id]=d;});
+  const rest=[];
+  Object.values(decByMid).forEach(d=>{if(!imVorschlag.has(d.mitglied_id))rest.push({mitglied_id:d.mitglied_id,mitglied:d.mitglied,anzahl:0,entscheidung:d.entscheidung});});
+  allMembers.filter(m=>m.typ!=='admin'&&!imVorschlag.has(m.id)&&!decByMid[m.id]).forEach(m=>rest.push({mitglied_id:m.id,mitglied:m,anzahl:0,entscheidung:null}));
+  const restOrd={abgeben:1,behalten_ofc:2,behalten_extra:2,ja:2,behalten_ohne:3,nein:4};
+  rest.sort((a,b)=>((restOrd[a.entscheidung]||5)-(restOrd[b.entscheidung]||5))||displayName(a.mitglied).localeCompare(displayName(b.mitglied)));
+  rest.forEach(r=>rows.push(r));
+
+  let html='<div style="font-size:13px;font-weight:500;margin-bottom:10px">Zuteilungsvorschlag – alle Mitglieder ('+maxKarten+' Karten verfügbar)</div>';
+  html+='<div style="font-size:11px;color:#6c757d;margin-bottom:10px">Karten nach Spieltyp: '+(heimspiel?'Heimspiel':'Auswärtsspiel')+'. Zahl &gt; 0 = Person ist in der Bewerbung, 0 = nicht dabei.</div>';
+
+  rows.forEach((v,idx)=>{
+    const istAbg=v.entscheidung==='abgeben';
+    const decTxt=v.entscheidung?(DEC_LABELS[v.entscheidung]||v.entscheidung):'keine Angabe';
+    const decCol=v.entscheidung?(DEC_COLORS[v.entscheidung]||'#6c757d'):'#adb5bd';
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:8px;background:'+(v.anzahl>0?'var(--g50)':'#fff')+';border:1px solid '+(v.anzahl>0?'transparent':'var(--g200)')+';border-radius:6px;margin-bottom:6px;flex-wrap:wrap">';
+    html+='<div style="flex:1;min-width:160px;font-size:13px"><strong>'+displayName(v.mitglied)+'</strong>';
+    html+='<span style="font-size:11px;color:'+decCol+';margin-left:6px">'+decTxt+'</span>';
+    if(v.prioritaet)html+='<span style="font-size:11px;color:'+priColor[v.prioritaet]+';margin-left:6px">· '+priLabel[v.prioritaet]+'</span>';
+    if(istAbg)html+='<span style="font-size:11px;color:#6f42c1;margin-left:6px">· Zahl &gt; 0 = Mitgliedsnummer in Bewerbung, Karte geht weiter</span>';
     if(v.nurKomplett){html+='<span style="font-size:11px;margin-left:6px;color:'+(v.erfuellt?'#198754':'#CC0000')+'">'+(v.erfuellt?'✓ Nur-komplett erfüllt':'✗ Nur-komplett nicht erfüllt (0)')+'</span>';}
     html+='</div>';
     html+='<div style="font-size:12px;color:#6c757d">bisher: '+(v.mitglied[kartenField]||0)+' '+( heimspiel?'Heim':'Ausw.')+'</div>';
-    html+='<input type="number" id="vor-'+bewId+'-'+idx+'" value="'+v.anzahl+'" min="0" max="10" style="width:50px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:13px;text-align:center">';
+    html+='<input type="number" id="vor-'+bewId+'-'+idx+'" value="'+v.anzahl+'" min="0" max="10" data-dec="'+(v.entscheidung||'')+'" oninput="aktualisiereVorschlagSumme(&quot;'+bewId+'&quot;,'+rows.length+','+maxKarten+')" style="width:50px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:13px;text-align:center">';
     html+='<input type="hidden" id="vor-mid-'+bewId+'-'+idx+'" value="'+v.mitglied_id+'">';
+    html+='<input type="hidden" id="vor-dec-'+bewId+'-'+idx+'" value="'+(v.entscheidung||'')+'">';
     html+='</div>';
   });
-  
-  html+='<div style="margin-top:12px;padding:10px;background:#fff3cd;border-radius:6px;font-size:12px">Noch verfügbar: <strong>'+verfuegbar+'</strong> von '+maxKarten+' Karten</div>';
+
+  html+='<div id="vor-summe-'+bewId+'" style="margin-top:12px;padding:10px;background:#fff3cd;border-radius:6px;font-size:12px"></div>';
   html+='<div style="display:flex;gap:8px;margin-top:12px">';
-  html+='<button class="btn btn-green" onclick="bestaetigeZuteilung(&quot;'+bewId+'&quot;,'+vorschlag.length+','+heimspiel+')">Vorschlag speichern & Mails senden</button>';
+  html+='<button class="btn btn-green" onclick="bestaetigeZuteilung(&quot;'+bewId+'&quot;,'+rows.length+','+heimspiel+')">Vorschlag speichern & Mails senden</button>';
   html+='<button class="btn" onclick="document.getElementById(&quot;vorschlag-'+bewId+'&quot;).style.display=&quot;none&quot;">Abbrechen</button>';
   html+='</div>';
   html+='<div style="font-size:11px;color:#6c757d;margin-top:8px">Du kannst die Anzahl pro Person noch anpassen bevor du bestätigst.</div>';
@@ -3022,6 +3041,23 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   // Store vorschlag data for confirmation
   el.dataset.vorschlag=JSON.stringify(vorschlag);
   el.dataset.heimspiel=heimspiel;
+  aktualisiereVorschlagSumme(bewId,rows.length,maxKarten);
+}
+
+// Live-Summe unter der Tabelle: Abgeber zaehlen als Mitgliedsnummer in der Bewerbung, aber nicht als eigene Karte
+function aktualisiereVorschlagSumme(bewId,count,max){
+  let karten=0,personen=0,abg=0;
+  for(let i=0;i<count;i++){
+    const el=document.getElementById('vor-'+bewId+'-'+i);
+    if(!el)continue;
+    const a=parseInt(el.value)||0;
+    if(a<=0)continue;
+    personen++;
+    if(el.dataset.dec==='abgeben')abg+=a;else karten+=a;
+  }
+  const rest=max-karten;
+  const box=document.getElementById('vor-summe-'+bewId);
+  if(box)box.innerHTML='In der Bewerbung: <strong>'+personen+'</strong> Personen · Karten für eigene Nutzung: <strong>'+karten+'</strong> von '+max+(abg?' · Abgeber-Nummern: '+abg:'')+' · '+(rest>=0?'noch frei: <strong>'+rest+'</strong>':'<span style="color:#CC0000;font-weight:600">'+(-rest)+' zu viel!</span>');
 }
 
 async function bestaetigeZuteilung(bewId, count, heimspiel){
@@ -3036,13 +3072,19 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
     const midEl=document.getElementById('vor-mid-'+bewId+'-'+i);
     if(!anzEl||!midEl)continue;
     const anzahl=parseInt(anzEl.value)||0;
-    if(anzahl>0)zuteilungen.push({mitglied_id:midEl.value,anzahl});
+    const decEl=document.getElementById('vor-dec-'+bewId+'-'+i);
+    if(anzahl>0)zuteilungen.push({mitglied_id:midEl.value,anzahl,dec:decEl?decEl.value:''});
   }
 
   if(!zuteilungen.length){toast('Keine Zuteilungen.');return;}
 
-  // Karten-Count aktualisieren und Mails senden
-  for(const z of zuteilungen){
+  // Abgeber mit Zahl > 0: Mitgliedsnummer ist in der Bewerbung, aber sie bekommen keine eigene Karte
+  // (kein Kartenzaehler, kein Vorschlags-Mail - sie bekommen die eigene "keine Karte im VVK kaufen"-Mail unten).
+  const abgeberZ=zuteilungen.filter(z=>z.dec==='abgeben');
+  const nutzerZ=zuteilungen.filter(z=>z.dec!=='abgeben');
+
+  // Mails senden
+  for(const z of nutzerZ){
     const m=allMembers.find(x=>x.id===z.mitglied_id);
     if(!m)continue;
     // Fix 2026-11-18: Kartenzaehler NICHT mehr hier erhoehen - das ist nur der interne Vorschlag.
@@ -3067,10 +3109,11 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
   // manuell per "In Bewerbung markieren" erfasste Eintraege bleiben unveraendert und werden nicht doppelt angelegt).
   try{
     const AUTO_NOTIZ='Auto: Zuteilungsvorschlag';
-    await sb.from('hsv_sponsoring').delete().eq('bewerbung_id',bewId).eq('notiz',AUTO_NOTIZ);
+    const AUTO_NOTIZ_ABG='Auto: Zuteilungsvorschlag – gibt Karte ab';
+    await sb.from('hsv_sponsoring').delete().eq('bewerbung_id',bewId).like('notiz','Auto: Zuteilungsvorschlag%');
     const{data:manuell}=await sb.from('hsv_sponsoring').select('mitglied_id').eq('bewerbung_id',bewId);
     const manuellIds=new Set((manuell||[]).map(s=>s.mitglied_id));
-    const neu=zuteilungen.filter(z=>!manuellIds.has(z.mitglied_id)).map(z=>({bewerbung_id:bewId,mitglied_id:z.mitglied_id,anzahl:z.anzahl,notiz:AUTO_NOTIZ}));
+    const neu=zuteilungen.filter(z=>!manuellIds.has(z.mitglied_id)).map(z=>({bewerbung_id:bewId,mitglied_id:z.mitglied_id,anzahl:z.anzahl,notiz:z.dec==='abgeben'?AUTO_NOTIZ_ABG:AUTO_NOTIZ}));
     if(neu.length)await sb.from('hsv_sponsoring').insert(neu);
   }catch(e){console.error('Auto-In-Bewerbung Fehler',e);}
 
@@ -3115,7 +3158,7 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
   // Fix 2026-11-18: Das ist nur der interne Vorschlag, der HSV hat noch nichts zugeteilt ->
   // Status 'beantragt' (in Bewerbung) statt 'zugeteilt', damit Angaben nicht faelschlich gesperrt werden.
   // Vorschlag (Reihenfolge = Prioritaet) merken, damit der Kartenzaehler erst bei echter HSV-Zuteilung steigt
-  const{error:vErr}=await sb.from('hsv_bewerbungen').update({status:'beantragt',karten_zugeteilt:zuteilungen.reduce((s,z)=>s+z.anzahl,0),vorschlag:zuteilungen}).eq('id',bewId);
+  const{error:vErr}=await sb.from('hsv_bewerbungen').update({status:'beantragt',karten_zugeteilt:nutzerZ.reduce((s,z)=>s+z.anzahl,0),vorschlag:nutzerZ.map(z=>({mitglied_id:z.mitglied_id,anzahl:z.anzahl}))}).eq('id',bewId);
   if(vErr){toast('Fehler beim Speichern: '+vErr.message+' (SQL-Migration ausgeführt?)');return;}
   await loadMembers();
   await renderAdminHSVBewerbungen();
