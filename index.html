@@ -3007,24 +3007,24 @@ async function erstelleZuteilungsvorschlag(bewId, heimspiel){
   allMembers.filter(m=>m.typ!=='admin'&&!imVorschlag.has(m.id)&&!decByMid[m.id]).forEach(m=>rest.push({mitglied_id:m.id,mitglied:m,anzahl:0,entscheidung:null}));
   const restOrd={abgeben:1,behalten_ofc:2,behalten_extra:2,ja:2,behalten_ohne:3,nein:4};
   rest.sort((a,b)=>((restOrd[a.entscheidung]||5)-(restOrd[b.entscheidung]||5))||displayName(a.mitglied).localeCompare(displayName(b.mitglied)));
-  rest.forEach(r=>rows.push(r));
+  // Vorbelegung: Abgeber = -1 (gibt Karte ab, Nummer in Bewerbung, kein VVK-Kauf), alle anderen 0
+  rest.forEach(r=>{if(r.entscheidung==='abgeben')r.anzahl=-1;rows.push(r);});
 
   let html='<div style="font-size:13px;font-weight:500;margin-bottom:10px">Zuteilungsvorschlag – alle Mitglieder ('+maxKarten+' Karten verfügbar)</div>';
-  html+='<div style="font-size:11px;color:#6c757d;margin-bottom:10px">Karten nach Spieltyp: '+(heimspiel?'Heimspiel':'Auswärtsspiel')+'. Zahl = Anzahl Karten in der Bewerbung, 0 = nicht dabei.</div>';
+  html+='<div style="font-size:11px;color:#6c757d;margin-bottom:10px">Karten nach Spieltyp: '+(heimspiel?'Heimspiel':'Auswärtsspiel')+'. Zahl pro Person:<br><strong>+1</strong> = bekommt eine Karte · <strong>0</strong> = nicht in der Bewerbung (kauft ggf. selbst im VVK) · <strong>−1</strong> = gibt die Karte für andere ab, Nummer ist in der Bewerbung (darf nicht im VVK kaufen)</div>';
 
   rows.forEach((v,idx)=>{
     const istAbg=v.entscheidung==='abgeben';
     const decTxt=v.entscheidung?(DEC_LABELS[v.entscheidung]||v.entscheidung):'keine Angabe';
     const decCol=v.entscheidung?(DEC_COLORS[v.entscheidung]||'#6c757d'):'#adb5bd';
-    html+='<div style="display:flex;align-items:center;gap:10px;padding:8px;background:'+(v.anzahl>0?'var(--g50)':'#fff')+';border:1px solid '+(v.anzahl>0?'transparent':'var(--g200)')+';border-radius:6px;margin-bottom:6px;flex-wrap:wrap">';
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:8px;background:'+(v.anzahl>0?'var(--g50)':v.anzahl<0?'#f3ecfb':'#fff')+';border:1px solid '+(v.anzahl!==0?'transparent':'var(--g200)')+';border-radius:6px;margin-bottom:6px;flex-wrap:wrap">';
     html+='<div style="flex:1;min-width:160px;font-size:13px"><strong>'+displayName(v.mitglied)+'</strong>';
     html+='<span style="font-size:11px;color:'+decCol+';margin-left:6px">'+decTxt+'</span>';
     if(v.prioritaet)html+='<span style="font-size:11px;color:'+priColor[v.prioritaet]+';margin-left:6px">· '+priLabel[v.prioritaet]+'</span>';
-    if(istAbg)html+='<span style="font-size:11px;color:#6f42c1;margin-left:6px">· Nummer wurde eingereicht? Dann 1 (darf nicht im VVK kaufen)</span>';
     if(v.nurKomplett){html+='<span style="font-size:11px;margin-left:6px;color:'+(v.erfuellt?'#198754':'#CC0000')+'">'+(v.erfuellt?'✓ Nur-komplett erfüllt':'✗ Nur-komplett nicht erfüllt (0)')+'</span>';}
     html+='</div>';
     html+='<div style="font-size:12px;color:#6c757d">bisher: '+(v.mitglied[kartenField]||0)+' '+( heimspiel?'Heim':'Ausw.')+'</div>';
-    html+='<input type="number" id="vor-'+bewId+'-'+idx+'" value="'+v.anzahl+'" min="0" max="10" data-dec="'+(v.entscheidung||'')+'" oninput="aktualisiereVorschlagSumme(&quot;'+bewId+'&quot;,'+rows.length+','+maxKarten+')" style="width:50px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:13px;text-align:center">';
+    html+='<input type="number" id="vor-'+bewId+'-'+idx+'" value="'+v.anzahl+'" min="-10" max="10" data-dec="'+(v.entscheidung||'')+'" oninput="aktualisiereVorschlagSumme(&quot;'+bewId+'&quot;,'+rows.length+','+maxKarten+')" style="width:50px;padding:4px;border:1px solid var(--g300);border-radius:4px;font-size:13px;text-align:center">';
     html+='<input type="hidden" id="vor-mid-'+bewId+'-'+idx+'" value="'+v.mitglied_id+'">';
     html+='<input type="hidden" id="vor-dec-'+bewId+'-'+idx+'" value="'+(v.entscheidung||'')+'">';
     html+='</div>';
@@ -3051,9 +3051,9 @@ function aktualisiereVorschlagSumme(bewId,count,max){
     const el=document.getElementById('vor-'+bewId+'-'+i);
     if(!el)continue;
     const a=parseInt(el.value)||0;
-    if(a<=0)continue;
+    if(a===0)continue;
     personen++;
-    if(el.dataset.dec==='abgeben')abg+=a;else karten+=a;
+    if(a<0)abg+=-a;else karten+=a;
   }
   const rest=max-karten;
   const box=document.getElementById('vor-summe-'+bewId);
@@ -3072,8 +3072,8 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
     const midEl=document.getElementById('vor-mid-'+bewId+'-'+i);
     if(!anzEl||!midEl)continue;
     const anzahl=parseInt(anzEl.value)||0;
-    const decEl=document.getElementById('vor-dec-'+bewId+'-'+i);
-    if(anzahl>0)zuteilungen.push({mitglied_id:midEl.value,anzahl,dec:decEl?decEl.value:''});
+    // +N = bekommt N Karten | 0 = nicht in der Bewerbung | -N = gibt Karte ab (Nummer in Bewerbung, kein VVK-Kauf)
+    if(anzahl!==0)zuteilungen.push({mitglied_id:midEl.value,anzahl:Math.abs(anzahl),dec:anzahl<0?'abgeben':''});
   }
 
   if(!zuteilungen.length){toast('Keine Zuteilungen.');return;}
@@ -3125,8 +3125,9 @@ async function bestaetigeZuteilung(bewId, count, heimspiel){
     const{data:spons}=await sb.from('hsv_sponsoring').select('mitglied_id').eq('bewerbung_id',bewId);
     const sponIds=new Set((spons||[]).map(s=>s.mitglied_id));
     if(bewA&&bewA.spiel_api_id&&sponIds.size){
-      const{data:abgDecs}=await sb.from('kartenentscheidungen').select('mitglied_id').eq('spiel_api_id',bewA.spiel_api_id).eq('entscheidung','abgeben');
-      for(const d of (abgDecs||[])){
+      // Abgeber = alle Personen mit negativer Zahl (-1) in der Tabelle
+      const abgDecs=abgeberZ.map(z=>({mitglied_id:z.mitglied_id}));
+      for(const d of abgDecs){
         if(!sponIds.has(d.mitglied_id))continue;
         const m=allMembers.find(x=>x.id===d.mitglied_id);
         if(!m||!m.email)continue;
